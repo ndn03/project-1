@@ -16,18 +16,16 @@
     <header>
        <%- include('view-index/header-index') %>
     </header>
-    
     <!-- Product Detail Section -->
     <section class="product-detail">
         <div class="container">
             <div class="product-detail-content">
                 <section class="product-image-section">
                     <div class="product-image">
-                        <!-- Sửa ở đây: Điều kiện để hiển thị ảnh chính -->
                         <img id="product-image" 
                         src="<%= product && product.image_url ? (product.image_url.startsWith('http') ? product.image_url : '/' + product.image_url) : '/public/img/default.jpg' %>" 
                         alt="<%= product && product.name ? product.name : 'Sản phẩm không xác định' %>"
-                        onerror="this.onerror=null; this.src='/public/img/default.jpg';" >
+                        onerror="this.onerror=null; this.src='/public/img/default.jpg';">
                         <div class="product-thumbnails">
                             <% if (product.images && product.images.length > 0) { %>
                                 <% product.images.forEach(img => { %>
@@ -51,20 +49,20 @@
                                 Giá: <span id="discounted-price"><%= (product.price * (1 - product.discount / 100)).toLocaleString() %></span> VND
                             </p>
                         <% } %>
-                        <p class="stock">Còn lại: <span id="stock"><%= product.stock_quantity %></span> sản phẩm</p>
+                        <p class="stock">Còn lại: <span id="stock"><%= product.stock_quantity || 'N/A' %></span> sản phẩm</p>
                         <p class="description"><%- product.description ? product.description.replace(/\n/g, '<br>') : '' %></p>
                         <h2>Chi Tiết Sản Phẩm</h2>
                         <ul>
-                            <li>Đường kính: <%= product.details ? product.details.diameter : 'N/A' %></li>
-                            <li>Chống nước: <%= product.details ? product.details.water_resistance_level : 'N/A' %></li>
-                            <li>Độ dày: <%= product.details ? product.details.thickness : 'N/A' %></li>
-                            <li>Chất liệu mặt kính: <%= product.details ? product.details.material_face : 'N/A' %></li>
-                            <li>Chất liệu vỏ: <%= product.details ? product.details.material_case : 'N/A' %></li>
-                            <li>Chất liệu dây: <%= product.details ? product.details.material_strap : 'N/A' %></li>
-                            <li>Kích thước: <%= product.details ? product.details.size : 'N/A' %></li>
-                            <li>Bộ máy: <%= product.details ? product.details.movement : 'N/A' %></li>
-                            <li>Xuất xứ: <%= product.details ? product.details.origin : 'N/A' %></li>
-                            <li>Bảo hành: <%= product.details ? product.details.warranty : 'N/A' %></li>
+                            <li>Đường kính: <%= details.diameter || 'N/A' %></li>
+                            <li>Chống nước: <%= details.water_resistance_level || 'N/A' %></li>
+                            <li>Độ dày: <%= details.thickness || 'N/A' %></li>
+                            <li>Chất liệu mặt kính: <%= details.material_face || 'N/A' %></li>
+                            <li>Chất liệu vỏ: <%= details.material_case || 'N/A' %></li>
+                            <li>Chất liệu dây: <%= details.material_strap || 'N/A' %></li>
+                            <li>Kích thước: <%= details.size || 'N/A' %></li>
+                            <li>Bộ máy: <%= details.movement || 'N/A' %></li>
+                            <li>Xuất xứ: <%= details.origin || 'N/A' %></li>
+                            <li>Bảo hành: <%= details.warranty || 'N/A' %></li>
                         </ul>                        
                         <div class="cart">
                             <form method="POST" action="/cart/add" class="cart-form">
@@ -127,6 +125,14 @@
         </div>
     </section>
     
+    <!-- Popup hiển thị hình ảnh lớn -->
+    <div id="imagePopup" class="image-popup">
+        <span class="close-popup">&times;</span>
+        <button class="popup-nav prev-popup">&lt;</button>
+        <img class="popup-content" id="popupImage" alt="Popup Image">
+        <button class="popup-nav next-popup">&gt;</button>
+    </div>
+
     <script>
         // Script để thay đổi hình ảnh chính khi ảnh thu nhỏ được nhấp
         document.querySelectorAll('.product-thumbnails img').forEach(thumbnail => {
@@ -135,7 +141,20 @@
             });
         });
 
-        // Script để điều hướng đánh giá
+        // Script để tự động thay đổi hình ảnh chính mỗi 2 giây
+        const thumbnails = document.querySelectorAll('.product-thumbnails img');
+        let currentIndex = 0;
+
+        function autoSlide() {
+            if (thumbnails.length > 0) {
+                currentIndex = (currentIndex + 1) % thumbnails.length; // Chuyển sang ảnh tiếp theo
+                document.getElementById('product-image').src = thumbnails[currentIndex].src;
+            }
+        }
+
+        setInterval(autoSlide, 2000); // Thay đổi ảnh mỗi 3 giây
+
+        // Script để điều hướng đánh giá với hiệu ứng lướt mượt mà
         let currentReviewIndex = 0;
         const reviews = document.querySelectorAll('.review');
         const totalReviews = reviews.length;
@@ -144,6 +163,12 @@
         function showReviews(startIndex) {
             reviews.forEach((review, i) => {
                 review.style.display = (i >= startIndex && i < startIndex + reviewsPerPage) ? 'block' : 'none';
+            });
+            const reviewsList = document.getElementById('reviews-list');
+            reviewsList.scrollTo({
+                top: 0,
+                left: startIndex * reviews[0].offsetWidth,
+                behavior: 'smooth' // Add smooth scrolling effect
             });
         }
 
@@ -158,6 +183,40 @@
         });
 
         showReviews(currentReviewIndex);
+
+        // Script để hiển thị popup khi click vào ảnh
+        const productImage = document.getElementById('product-image');
+        const imagePopup = document.getElementById('imagePopup');
+        const popupImage = document.getElementById('popupImage');
+        const closePopup = document.querySelector('.close-popup');
+        const prevPopup = document.querySelector('.prev-popup');
+        const nextPopup = document.querySelector('.next-popup');
+
+        productImage.addEventListener('click', () => {
+            popupImage.src = productImage.src; // Set the popup image source
+            currentIndex = Array.from(thumbnails).findIndex(img => img.src === productImage.src);
+            imagePopup.style.display = 'block'; // Show the popup
+        });
+
+        closePopup.addEventListener('click', () => {
+            imagePopup.style.display = 'none'; // Hide the popup
+        });
+
+        window.addEventListener('click', (event) => {
+            if (event.target === imagePopup) {
+                imagePopup.style.display = 'none'; // Hide the popup when clicking outside
+            }
+        });
+
+        prevPopup.addEventListener('click', () => {
+            currentIndex = (currentIndex - 1 + thumbnails.length) % thumbnails.length;
+            popupImage.src = thumbnails[currentIndex].src;
+        });
+
+        nextPopup.addEventListener('click', () => {
+            currentIndex = (currentIndex + 1) % thumbnails.length;
+            popupImage.src = thumbnails[currentIndex].src;
+        });
     </script>
     
     <!-- Footer -->

@@ -46,19 +46,17 @@ const homeController = {
         const productId = req.params.id;
 
         try {
-            // Lấy thông tin chi tiết sản phẩm từ service
             const productData = await productService.getProductDetail(productId);
             if (!productData) {
                 return res.status(404).json({ success: false, message: "Sản phẩm không tồn tại" });
             }
 
-            // Render trang chi tiết sản phẩm
+            // Ensure all required data is passed to the view
             return res.render("productDetail", { 
                 product: productData.product, 
-                images: productData.images || [], // Thêm xử lý nếu không có hình ảnh
-                details: productData.details || [], // Thêm xử lý nếu không có chi tiết sản phẩm
-                reviews: productData.reviews || [], // Thêm xử lý nếu không có đánh giá
-                image_url: productData.image_url, // Đảm bảo trả về đúng image_url
+                images: productData.images || [], 
+                details: productData.details || {}, 
+                reviews: productData.reviews || [], 
                 formatPrice: homeController.formatPrice, 
                 generateStars: homeController.generateStars 
             });

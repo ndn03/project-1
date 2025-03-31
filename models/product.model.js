@@ -44,6 +44,7 @@ const ProductModel = {
                 p.image_url, 
                 p.discount, 
                 p.sold_quantity, 
+                p.stock_quantity,
                 p.average_rating,
                 pd.diameter, 
                 pd.water_resistance_level, 
@@ -79,15 +80,10 @@ const ProductModel = {
             GROUP BY p.id;
         `;
         const [rows] = await db.query(query, [productId]);
-
         if (rows.length) {
             const product = rows[0];
-            // Chuyển chuỗi ảnh phụ thành mảng
             product.images = product.images ? product.images.split(",") : [];
-            // Chuyển chuỗi JSON reviews thành mảng
             product.reviews = product.reviews ? JSON.parse(`[${product.reviews}]`) : [];
-            // Kiểm tra image_url, nếu không có thì gán giá trị mặc định
-            product.image_url = product.image_url || '/public/img/default.jpg';
             return product;
         }
         return null;

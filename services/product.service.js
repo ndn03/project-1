@@ -24,21 +24,32 @@ const ProductService = {
     // Lấy chi tiết sản phẩm theo id
     getProductDetail: async (productId) => {
         try {
-            // Gọi phương thức model mới để lấy chi tiết sản phẩm
             const productDetail = await ProductModel.getProductDetailById(productId);
-            if (!productDetail || !productDetail.product) {
-                return null; // Nếu không tìm thấy sản phẩm hoặc sản phẩm thiếu thông tin
+            if (!productDetail) {
+                return null; // Return null if the product is not found
             }
 
-            // Kiểm tra sự tồn tại của các thuộc tính liên quan đến hình ảnh, chi tiết, đánh giá
-            const productData = {
-                product: productDetail.product,
-                images: productDetail.images || [], // Mảng hình ảnh, mặc định là mảng rỗng nếu không có
-                details: productDetail.details || [], // Chi tiết sản phẩm, mặc định là mảng rỗng nếu không có
-                reviews: productDetail.reviews || [] // Đánh giá sản phẩm, mặc định là mảng rỗng nếu không có
+            // Ensure all required fields are included
+            return {
+                product: {
+                    ...productDetail,
+                    stock_quantity: productDetail.stock_quantity || 0, // Ensure stock_quantity is included
+                },
+                images: productDetail.images || [],
+                details: {
+                    diameter: productDetail.diameter || "N/A",
+                    water_resistance_level: productDetail.water_resistance_level || "N/A",
+                    thickness: productDetail.thickness || "N/A",
+                    material_face: productDetail.material_face || "N/A",
+                    material_case: productDetail.material_case || "N/A",
+                    material_strap: productDetail.material_strap || "N/A",
+                    size: productDetail.size || "N/A",
+                    movement: productDetail.movement || "N/A",
+                    origin: productDetail.origin || "N/A",
+                    warranty: productDetail.warranty || "N/A",
+                },
+                reviews: productDetail.reviews || [],
             };
-            return productData; // Trả về thông tin chi tiết sản phẩm
-            
         } catch (error) {
             throw new Error("Lỗi khi lấy chi tiết sản phẩm: " + error.message);
         }
