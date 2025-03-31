@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Luxury Watches</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css" />
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <h1 class="logo">Luxury Watches</h1>
+            <nav>
+                <ul>
+                    <li><a href="#">Trang chủ</a></li>
+                    <li>
+                        <a href="#">Sản phẩm</a>
+                        <ul class="dropdown">
+                            <li><a href="#1">Sản phẩm nổi bật</a></li>
+                            <li><a href="#2">Đồng hồ nam</a></li>
+                            <li><a href="#3">Đồng hồ nữ</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#">Liên hệ</a></li>
+                    <li><a href="#" onclick="showLoginPopup(); return false;">Đăng nhập</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Login Popup -->
+    <div id="authPopup" class="popup">
+        <%- include('view-index/login-popup') %>
+    </div>
+
+    <!-- Event Section -->
+    <%- include('view-index/event') %>
+
+    <!-- Hero Section with Carousel -->
+    <section class="hero"><%- include('view-index/carousel') %></section>
+
+    <!-- Thanh tìm kiếm nâng cao -->
+    <section class="search-bar">
+        <%- include('view-index/search-bar') %>
+    </section>
+
+    <section class="quick-search">
+        <%- include('view-index/quick-search') %>
+    </section>
+
+    <% if (typeof productsByCategory !== "undefined" && Object.keys(productsByCategory).length > 0) { %>
+        <% Object.keys(productsByCategory).forEach(categoryName => { %>
+            <section class="featured <%= categoryName.toLowerCase().replace(/\s+/g, '-') %>">
+                <h2><%= categoryName %></h2>
+                <%- include('./view-index/showAllProduct', { products: productsByCategory[categoryName] }) %>
+            </section>
+        <% }); %>
+    <% } else { %>
+        <p class="no-products">Không có sản phẩm nào hiển thị.</p>
+    <% } %>
+    <!-- Footer -->
+    <footer><%- include('view-index/footer-index') %></footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- Include main.js -->
+    <script src="/js/main.js" defer></script>
+
+</body>
+</html>

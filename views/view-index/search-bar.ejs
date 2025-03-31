@@ -1,0 +1,20 @@
+<div class="search-container">
+    <input type="text" id="searchInput" placeholder="Tìm kiếm đồng hồ...">
+    <button onclick="searchWatch()">Tìm kiếm</button>
+</div>
+<div class="filter-options">
+    <select id="priceRange" onchange="searchWatch()">
+        <option value="">Tầm giá</option>
+        <option value="1000000">Dưới 1 triệu</option>
+        <option value="5000000">Dưới 5 triệu</option>
+        <option value="10000000">Dưới 10 triệu</option>
+        <option value="20000000">Dưới 20 triệu</option>
+    </select>
+    <select id="watchType" onchange="searchWatch()">
+        <option value="">Loại đồng hồ</option>
+        <option value="nam">Đồng hồ nam</option>
+        <option value="nữ">Đồng hồ nữ</option>
+        <option value="cao cấp">Đồng hồ cao cấp</option>
+        <option value="thể thao">Đồng hồ thể thao</option>
+    </select>
+</div>

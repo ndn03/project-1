@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Chi Tiết Sản Phẩm</title>
+    <link rel="stylesheet" href="/css/detail.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css">
+    <!-- Bootstrap CSS (for Carousel) -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+       <%- include('view-index/header-index') %>
+    </header>
+    
+    <!-- Product Detail Section -->
+    <section class="product-detail">
+        <div class="container">
+            <div class="product-detail-content">
+                <section class="product-image-section">
+                    <div class="product-image">
+                        <!-- Sửa ở đây: Điều kiện để hiển thị ảnh chính -->
+                        <img id="product-image" 
+                        src="<%= product && product.image_url ? (product.image_url.startsWith('http') ? product.image_url : '/' + product.image_url) : '/public/img/default.jpg' %>" 
+                        alt="<%= product && product.name ? product.name : 'Sản phẩm không xác định' %>"
+                        onerror="this.onerror=null; this.src='/public/img/default.jpg';" >
+                        <div class="product-thumbnails">
+                            <% if (product.images && product.images.length > 0) { %>
+                                <% product.images.forEach(img => { %>
+                                    <img class="thumbnail" src="/<%= img %>" alt="Ảnh phụ" 
+                                         onerror="this.src='/public/img/default.jpg'">
+                                <% }) %>
+                            <% } else { %>
+                                <p>Không có ảnh phụ.</p>
+                            <% } %>
+                        </div>
+                    </div>
+                </section>
+                
+                <section class="product-info-section" style="flex: 1;">
+                    <div class="product-info">
+                        <h2 id="name"><%= product.name %></h2>
+                        <p class="original-price">Giá gốc: <span id="price"><%= product.price.toLocaleString() %></span> VND</p>
+                        <% if (product.discount) { %>
+                            <p class="discount">Giảm giá: <span id="discount"><%= product.discount %></span>%</p>
+                            <p class="discounted-price">
+                                Giá: <span id="discounted-price"><%= (product.price * (1 - product.discount / 100)).toLocaleString() %></span> VND
+                            </p>
+                        <% } %>
+                        <p class="stock">Còn lại: <span id="stock"><%= product.stock_quantity %></span> sản phẩm</p>
+                        <p class="description"><%- product.description ? product.description.replace(/\n/g, '<br>') : '' %></p>
+                        <h2>Chi Tiết Sản Phẩm</h2>
+                        <ul>
+                            <li>Đường kính: <%= product.details ? product.details.diameter : 'N/A' %></li>
+                            <li>Chống nước: <%= product.details ? product.details.water_resistance_level : 'N/A' %></li>
+                            <li>Độ dày: <%= product.details ? product.details.thickness : 'N/A' %></li>
+                            <li>Chất liệu mặt kính: <%= product.details ? product.details.material_face : 'N/A' %></li>
+                            <li>Chất liệu vỏ: <%= product.details ? product.details.material_case : 'N/A' %></li>
+                            <li>Chất liệu dây: <%= product.details ? product.details.material_strap : 'N/A' %></li>
+                            <li>Kích thước: <%= product.details ? product.details.size : 'N/A' %></li>
+                            <li>Bộ máy: <%= product.details ? product.details.movement : 'N/A' %></li>
+                            <li>Xuất xứ: <%= product.details ? product.details.origin : 'N/A' %></li>
+                            <li>Bảo hành: <%= product.details ? product.details.warranty : 'N/A' %></li>
+                        </ul>                        
+                        <div class="cart">
+                            <form method="POST" action="/cart/add" class="cart-form">
+                                <input type="hidden" name="product_id" value="<%= product.id %>">
+                                <input type="hidden" name="name" value="<%= product.name %>">
+                                <input type="hidden" name="price" value="<%= product.price %>">
+                                <button type="submit" title="Thêm vào giỏ hàng">
+                                    <i class="fa-solid fa-cart-shopping"></i> Thêm vào giỏ hàng
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Section hiển thị đánh giá -->
+    <section class="product-reviews">
+        <div class="container">
+            <h3>Đánh giá sản phẩm</h3>
+            <div class="reviews-container">
+                <button class="nav-btn prev-btn"><i class="fas fa-chevron-left"></i></button>
+                <div id="reviews-list" class="reviews-list">
+                    <% if (product.reviews && product.reviews.length > 0) { %>
+                        <% product.reviews.forEach(review => { %>
+                            <div class="review">
+                                <p class="review-user"><strong><%= review.username %></strong></p>
+                                <p class="review-rating">⭐ <%= review.rating %>/5</p>
+                                <p class="review-comment"><%= review.comment %></p>
+                                <p class="review-date"><%= new Date(review.created_at).toLocaleDateString() %></p>
+                            </div>
+                        <% }) %>
+                    <% } else { %>
+                        <p>Chưa có đánh giá nào.</p>
+                    <% } %>
+                </div>
+                <button class="nav-btn next-btn"><i class="fas fa-chevron-right"></i></button>
+            </div>
+
+            <!-- Form đánh giá -->
+            <div class="review-form">
+                <h4>Viết đánh giá</h4>
+                <form method="POST" action="/product/<%= product.id %>/review">
+                    <label for="rating">Đánh giá (1-5):</label>
+                    <select name="rating" id="rating" required>
+                        <option value="5">5 - Tuyệt vời</option>
+                        <option value="4">4 - Tốt</option>
+                        <option value="3">3 - Trung bình</option>
+                        <option value="2">2 - Kém</option>
+                        <option value="1">1 - Rất kém</option>
+                    </select>
+
+                    <label for="comment">Nhận xét:</label>
+                    <textarea name="comment" id="comment" required></textarea>
+
+                    <button type="submit">Gửi đánh giá</button>
+                </form>
+            </div>
+        </div>
+    </section>
+    
+    <script>
+        // Script để thay đổi hình ảnh chính khi ảnh thu nhỏ được nhấp
+        document.querySelectorAll('.product-thumbnails img').forEach(thumbnail => {
+            thumbnail.addEventListener('click', function() {
+                document.getElementById('product-image').src = this.src;
+            });
+        });
+
+        // Script để điều hướng đánh giá
+        let currentReviewIndex = 0;
+        const reviews = document.querySelectorAll('.review');
+        const totalReviews = reviews.length;
+        const reviewsPerPage = 4;
+
+        function showReviews(startIndex) {
+            reviews.forEach((review, i) => {
+                review.style.display = (i >= startIndex && i < startIndex + reviewsPerPage) ? 'block' : 'none';
+            });
+        }
+
+        document.querySelector('.prev-btn').addEventListener('click', () => {
+            currentReviewIndex = (currentReviewIndex - reviewsPerPage + totalReviews) % totalReviews;
+            showReviews(currentReviewIndex);
+        });
+
+        document.querySelector('.next-btn').addEventListener('click', () => {
+            currentReviewIndex = (currentReviewIndex + reviewsPerPage) % totalReviews;
+            showReviews(currentReviewIndex);
+        });
+
+        showReviews(currentReviewIndex);
+    </script>
+    
+    <!-- Footer -->
+    <footer>
+        <%- include('view-index/footer-index') %>
+    </footer>
+
+    <!-- Bootstrap JS (for Carousel functionality) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    
+</body>
+</html>
