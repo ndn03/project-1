@@ -128,19 +128,46 @@ nav ul .dropdown li a:hover {
 
 .products {
     display: flex;
-    flex-wrap: wrap; /* Đảm bảo các sản phẩm được gói lại */
-    gap: 25px; /* Tăng khoảng cách giữa các sản phẩm */
-    justify-content: flex-start; /* Căn trái các sản phẩm */
-    scroll-behavior: smooth;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    padding: 25px 0; /* Tăng khoảng cách trên và dưới */
-    margin-left: 0; /* Loại bỏ khoảng cách thừa */
-    width: 110%;
+    flex-wrap: wrap;
+    gap: 25px;
+    justify-content: flex-start;
+    overflow: hidden;
+    max-height: 560px; /* Limit to one row of products */
+    transition: max-height 0.3s ease;
+}
+
+.products.expand {
+    max-height: none; /* Remove height limit to show all products */
 }
 
 .products::-webkit-scrollbar {
     display: none;
+}
+
+.products.shrink {
+    max-height: 500px; /* Limit the height to show only a few products */
+    overflow: hidden;
+}
+
+.toggle-buttons {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.toggle-buttons button {
+    background-color: #FFD700; /* Gold color for buttons */
+    color: #333; /* Dark text on buttons */
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin: 5px;
+}
+
+.toggle-buttons button:hover {
+    background-color: #FFA500; /* Lighter gold on hover */
 }
 
 .products.shrink {

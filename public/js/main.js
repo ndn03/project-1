@@ -47,23 +47,54 @@ function openTab(tabId, event) {
 
 // Hiển thị tất cả sản phẩm
 function showAllProducts(button) {
-    const productsContainer = button.closest(".container").querySelector(".products");
-    if (productsContainer) {
-        productsContainer.classList.remove("shrink");
-        button.style.display = "none";
-        button.nextElementSibling.style.display = "inline-block";
+    const toggleButtons = button.closest(".toggle-buttons"); // Find the toggle-buttons div
+    if (!toggleButtons) {
+        console.error("Không tìm thấy .toggle-buttons");
+        return;
     }
+
+    const container = toggleButtons.previousElementSibling; // Assume the container is the previous sibling
+    if (!container || !container.classList.contains("container")) {
+        console.error("Không tìm thấy .container");
+        return;
+    }
+
+    const productsContainer = container.querySelector(".products-carousel .products");
+    if (!productsContainer) {
+        console.error("Không tìm thấy .products bên trong .products-carousel");
+        return;
+    }
+
+    productsContainer.classList.add("expand"); // Mở rộng danh sách sản phẩm
+    toggleButtons.querySelector(".show-more").style.display = "none"; // Ẩn nút "Hiển thị tất cả"
+    toggleButtons.querySelector(".show-less").style.display = "inline-block"; // Hiển thị nút "Thu nhỏ"
 }
 
 // Thu nhỏ sản phẩm
 function shrinkProducts(button) {
-    const productsContainer = button.closest(".container").querySelector(".products");
-    if (productsContainer) {
-        productsContainer.classList.add("shrink");
-        button.style.display = "none";
-        button.previousElementSibling.style.display = "inline-block";
+    const toggleButtons = button.closest(".toggle-buttons"); // Find the toggle-buttons div
+    if (!toggleButtons) {
+        console.error("Không tìm thấy .toggle-buttons");
+        return;
     }
+
+    const container = toggleButtons.previousElementSibling; // Assume the container is the previous sibling
+    if (!container || !container.classList.contains("container")) {
+        console.error("Không tìm thấy .container");
+        return;
+    }
+
+    const productsContainer = container.querySelector(".products-carousel .products");
+    if (!productsContainer) {
+        console.error("Không tìm thấy .products bên trong .products-carousel");
+        return;
+    }
+
+    productsContainer.classList.remove("expand"); // Thu nhỏ danh sách sản phẩm
+    toggleButtons.querySelector(".show-less").style.display = "none"; // Ẩn nút "Thu nhỏ"
+    toggleButtons.querySelector(".show-more").style.display = "inline-block"; // Hiển thị nút "Hiển thị tất cả"
 }
+
 document.getElementById("loginForm").addEventListener("submit", async (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
@@ -80,6 +111,7 @@ document.getElementById("loginForm").addEventListener("submit", async (event) =>
             localStorage.setItem("refreshToken", user.refreshToken);
             alert("Đăng nhập thành công!");
             updateHeader(user);
+            updateFooter(user);
             document.getElementById("authPopup").style.display = "none";
         } else {
             const errorData = await response.json();
@@ -91,7 +123,8 @@ document.getElementById("loginForm").addEventListener("submit", async (event) =>
 });
 
 document.addEventListener("DOMContentLoaded", async () => {
-    await checkUserStatus();
+    const user = await checkUserStatus(); // Kiểm tra trạng thái người dùng
+    updateFooter(user); // Cập nhật footer dựa trên trạng thái đăng nhập
 });
 
 async function checkUserStatus() {
@@ -104,6 +137,7 @@ async function checkUserStatus() {
         if (response.ok) {
             const user = await response.json();
             updateHeader(user);
+            return user;
         } else if (response.status === 403) {
             localStorage.removeItem("authToken");
             localStorage.removeItem("refreshToken");
@@ -170,6 +204,30 @@ function updateHeader(user) {
             </ul>
         </li>
     `;
+}
+
+// Hàm cập nhật footer sau khi đăng nhập hoặc đăng xuất
+function updateFooter(user) {
+    const footerLinks = document.getElementById("footer-links");
+
+    if (!footerLinks) {
+        console.error("Không tìm thấy phần tử danh sách trong footer.");
+        return;
+    }
+
+    if (user) {
+        // Nếu người dùng đã đăng nhập, hiển thị Giỏ hàng và Đăng xuất
+        footerLinks.innerHTML = `
+            <li><a href="/cart">Giỏ hàng</a></li>
+            <li><a href="#" onclick="logout(); return false;">Đăng xuất</a></li>
+        `;
+    } else {
+        // Nếu chưa đăng nhập, hiển thị Đăng nhập và Đăng ký
+        footerLinks.innerHTML = `
+            <li><a href="/login">Đăng nhập</a></li>
+            <li><a href="/register">Đăng ký</a></li>
+        `;
+    }
 }
 
 function logout() {
