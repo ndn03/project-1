@@ -12,10 +12,9 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
-    <!-- Header -->
-    <header>
-       <%- include('view-index/header-index') %>
-    </header>
+    <!-- Include the combined header -->
+    <%- include('view-index/header') %>
+
     <!-- Product Detail Section -->
     <section class="product-detail">
         <div class="container">
@@ -133,91 +132,7 @@
         <button class="popup-nav next-popup">&gt;</button>
     </div>
 
-    <script>
-        // Script để thay đổi hình ảnh chính khi ảnh thu nhỏ được nhấp
-        document.querySelectorAll('.product-thumbnails img').forEach(thumbnail => {
-            thumbnail.addEventListener('click', function() {
-                document.getElementById('product-image').src = this.src;
-            });
-        });
-
-        // Script để tự động thay đổi hình ảnh chính mỗi 2 giây
-        const thumbnails = document.querySelectorAll('.product-thumbnails img');
-        let currentIndex = 0;
-
-        function autoSlide() {
-            if (thumbnails.length > 0) {
-                currentIndex = (currentIndex + 1) % thumbnails.length; // Chuyển sang ảnh tiếp theo
-                document.getElementById('product-image').src = thumbnails[currentIndex].src;
-            }
-        }
-
-        setInterval(autoSlide, 2000); // Thay đổi ảnh mỗi 3 giây
-
-        // Script để điều hướng đánh giá với hiệu ứng lướt mượt mà
-        let currentReviewIndex = 0;
-        const reviews = document.querySelectorAll('.review');
-        const totalReviews = reviews.length;
-        const reviewsPerPage = 4;
-
-        function showReviews(startIndex) {
-            reviews.forEach((review, i) => {
-                review.style.display = (i >= startIndex && i < startIndex + reviewsPerPage) ? 'block' : 'none';
-            });
-            const reviewsList = document.getElementById('reviews-list');
-            reviewsList.scrollTo({
-                top: 0,
-                left: startIndex * reviews[0].offsetWidth,
-                behavior: 'smooth' // Add smooth scrolling effect
-            });
-        }
-
-        document.querySelector('.prev-btn').addEventListener('click', () => {
-            currentReviewIndex = (currentReviewIndex - reviewsPerPage + totalReviews) % totalReviews;
-            showReviews(currentReviewIndex);
-        });
-
-        document.querySelector('.next-btn').addEventListener('click', () => {
-            currentReviewIndex = (currentReviewIndex + reviewsPerPage) % totalReviews;
-            showReviews(currentReviewIndex);
-        });
-
-        showReviews(currentReviewIndex);
-
-        // Script để hiển thị popup khi click vào ảnh
-        const productImage = document.getElementById('product-image');
-        const imagePopup = document.getElementById('imagePopup');
-        const popupImage = document.getElementById('popupImage');
-        const closePopup = document.querySelector('.close-popup');
-        const prevPopup = document.querySelector('.prev-popup');
-        const nextPopup = document.querySelector('.next-popup');
-
-        productImage.addEventListener('click', () => {
-            popupImage.src = productImage.src; // Set the popup image source
-            currentIndex = Array.from(thumbnails).findIndex(img => img.src === productImage.src);
-            imagePopup.style.display = 'block'; // Show the popup
-        });
-
-        closePopup.addEventListener('click', () => {
-            imagePopup.style.display = 'none'; // Hide the popup
-        });
-
-        window.addEventListener('click', (event) => {
-            if (event.target === imagePopup) {
-                imagePopup.style.display = 'none'; // Hide the popup when clicking outside
-            }
-        });
-
-        prevPopup.addEventListener('click', () => {
-            currentIndex = (currentIndex - 1 + thumbnails.length) % thumbnails.length;
-            popupImage.src = thumbnails[currentIndex].src;
-        });
-
-        nextPopup.addEventListener('click', () => {
-            currentIndex = (currentIndex + 1) % thumbnails.length;
-            popupImage.src = thumbnails[currentIndex].src;
-        });
-    </script>
+    <script src="/js/main.js" defer></script>
     
     <!-- Footer -->
     <footer>

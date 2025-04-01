@@ -68,7 +68,7 @@ app.get("/", homeController.index);
 // Sử dụng router
 app.use("/", homeRouter); // Ensure homeRouter is registered here
 app.use("/product", productRouter);
-app.use("/", authRouter);
+app.use("/", authRouter); // Ensure authRouter is registered here
 
 // Xử lý lỗi 404
 app.use((req, res) => {

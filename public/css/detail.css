@@ -6,43 +6,104 @@ body {
     padding: 0;
 }
 
+
 header {
-    background-color: #333333; /* Darker header background */
+    background-color: #1A1A1A; /* Darker header */
     padding: 20px 0;
 }
 
-header .logo {
-    color: #FFD700; /* Gold color for logo */
-    font-size: 2rem;
-    text-align: center;
+.logo {
+    color: #FFD700; /* Gold color for the logo */
+    font-size: 24px;
+    font-weight: 600;
+    text-transform: uppercase;
+    display: inline-block;
 }
 
-header nav ul {
+nav {
+    float: right;
+}
+
+nav ul {
     list-style: none;
-    padding: 0;
-    text-align: center;
+    padding-left: 0;
+    margin: 0;
 }
 
-header nav ul li {
-    display: inline;
-    margin: 0 15px;
+nav ul li {
+    display: inline-block;
+    position: relative;
+    margin-left: 20px;
 }
 
-header nav ul li a {
-    color: #FFFFFF; /* White text for navigation links */
+nav ul li a {
+    color: #FFD700; /* Gold color for navigation links */
     text-decoration: none;
-    font-size: 1.1rem;
+    font-weight: 600;
+    font-size: 16px;
+    padding: 10px 15px;
+    display: block;
+    white-space: nowrap;
 }
 
-header nav ul li a:hover {
-    color: #FFD700; /* Gold color on hover */
+nav ul li:hover > .dropdown {
+    display: block;
 }
 
+nav ul .dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: #333; /* Darker dropdown background */
+    padding: 10px;
+    z-index: 100;
+    min-width: 150px;
+}
+
+nav ul .dropdown li {
+    display: block;
+    margin-left: 0;
+    margin-bottom: 10px;
+    width: 100%;
+    position: relative;
+}
+
+nav ul .dropdown li:hover > .dropdown {
+    display: block;
+    top: 0;
+    left: 100%; /* Position the nested dropdown to the right */
+}
+
+nav ul .dropdown li a {
+    color: #FFD700; /* Gold color for dropdown links */
+    font-size: 14px;
+    padding: 8px 12px;
+    display: block;
+    white-space: nowrap;
+}
+
+nav ul .dropdown li a:hover {
+    color: #FFA500; /* Lighter gold on hover */
+}
+
+.hero {
+    background-color: #2C2C2C; /* Darker hero section */
+}
+.product-info .cart .submit-btn {
+    background-color: #FFD700; /* Gold color for submit button */
+    color: #1A1A1A; /* Dark text on button */
+    padding: 15px 30px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.2em;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
 .product-detail {
     padding: 60px 0;
-    background-color: #1A1A1A; /* Darker background for product detail */
+    background-color: #2E2E2E; /* Slightly lighter gray for contrast with the header */
 }
-
 .product-detail-content {
     display: flex;
     flex-wrap: wrap;
@@ -237,7 +298,7 @@ header nav ul li a:hover {
 
 .product-reviews {
     padding: 40px 0;
-    background-color: #2C2C2C; /* Slightly lighter background for contrast */
+    background-color: #3A3A3A; /* Slightly lighter gray for contrast with the header */
     color: #FFFFFF; /* White text for better contrast */
     text-align: center;
 }
@@ -481,4 +542,128 @@ footer .footer-bottom {
         transform: scale(1);
         opacity: 1;
     }
+}
+popup {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+.popup-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #333; /* Darker background for popup */
+    color: #FFD700; /* Gold color for popup text */
+    padding: 40px;
+    border-radius: 12px;
+    width: 400px;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.15);
+}
+
+.popup-content form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.popup-content input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #FFD700; /* Gold border for inputs */
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.popup-content input:focus {
+    border-color: #FFA500; /* Lighter gold on focus */
+    outline: none;
+}
+
+.close-btn {
+    position: absolute;
+    right: 20px;
+    top: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #FFD700; /* Gold color for close button */
+}
+
+.close-btn:hover {
+    color: #fff;
+}
+
+.tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+}
+
+.tab-btn {
+    padding: 10px 20px;
+    border: none;
+    background: none;
+    font-size: 16px;
+    cursor: pointer;
+    color: #FFD700; /* Gold color for tab buttons */
+    transition: color 0.3s ease;
+}
+
+.tab-btn.active {
+    color: #FFA500; /* Lighter gold for active tab */
+    border-bottom: 2px solid #FFA500; /* Highlight active tab */
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #FFD700; /* Gold color for form labels */
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #FFD700; /* Gold border for form inputs */
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.form-group input:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+.submit-btn {
+    background-color: #FFD700; /* Gold color for submit button */
+    color: #333; /* Dark text on button */
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.submit-btn:hover {
+    background-color: #FFA500; /* Lighter gold on hover */
 }

@@ -4,7 +4,10 @@ const authController = {
     // Đăng ký tài khoản
     async register(req, res) {
         try {
-            const { full_name, username, email, password, role } = req.body;
+            const { full_name, username, email, password, role = "customer" } = req.body;
+            if (!full_name || !username || !email || !password) {
+                return res.status(400).json({ message: "Vui lòng điền đầy đủ thông tin" });
+            }
             const newUser = await authService.register(full_name, username, email, password, role);
             res.status(201).json({ message: "Đăng ký thành công!", user: newUser });
         } catch (error) {
@@ -17,11 +20,11 @@ const authController = {
         try {
             const { username, password } = req.body;
             const { accessToken, refreshToken, user } = await authService.login(username, password);
-            res.status(200).json({
-                message: "Đăng nhập thành công!",
+            res.json({
+                username: user.username,
+                role: user.role,
                 accessToken,
                 refreshToken,
-                user
             });
         } catch (error) {
             res.status(401).json({ message: error.message });
@@ -32,8 +35,11 @@ const authController = {
     async refreshToken(req, res) {
         try {
             const { refreshToken } = req.body;
-            const newAccessToken = await authService.refreshToken(refreshToken);
-            res.status(200).json(newAccessToken);
+            if (!refreshToken) {
+                return res.status(400).json({ message: "Refresh token không được cung cấp" });
+            }
+            const { accessToken } = await authService.refreshToken(refreshToken);
+            res.json({ accessToken });
         } catch (error) {
             res.status(403).json({ message: error.message });
         }
@@ -42,8 +48,11 @@ const authController = {
     // Đổi mật khẩu
     async changePassword(req, res) {
         try {
-            const userId = req.user.id;
+            const userId = req.user.id; // Lấy từ middleware authenticateToken
             const { oldPassword, newPassword } = req.body;
+            if (!oldPassword || !newPassword) {
+                return res.status(400).json({ message: "Vui lòng nhập đầy đủ mật khẩu cũ và mới" });
+            }
             const result = await authService.changePassword(userId, oldPassword, newPassword);
             res.status(200).json(result);
         } catch (error) {
@@ -54,13 +63,26 @@ const authController = {
     // Đăng xuất
     async logout(req, res) {
         try {
-            const userId = req.user.id;
-            await authService.logout(userId);
-            res.status(200).json({ message: "Đăng xuất thành công!" });
+            const userId = req.user.id; // Lấy từ middleware authenticateToken
+            const result = await authService.logout(userId);
+            res.status(200).json(result);
         } catch (error) {
-            res.status(500).json({ message: error.message });
+            res.status(500).json({ message: "Lỗi server: " + error.message });
         }
-    }
+    },
+
+    // Kiểm tra trạng thái đăng nhập
+    async getUserStatus(req, res) {
+        try {
+            if (!req.user) {
+                return res.status(401).json({ message: "Bạn chưa đăng nhập" });
+            }
+            const { username, role } = req.user;
+            res.status(200).json({ username, role });
+        } catch (error) {
+            res.status(500).json({ message: "Lỗi server: " + error.message });
+        }
+    },
 };
 
 module.exports = authController;
