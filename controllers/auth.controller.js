@@ -36,7 +36,7 @@ const authController = {
         try {
             const { refreshToken } = req.body;
             if (!refreshToken) {
-                return res.status(400).json({ message: "Refresh token không được cung cấp" });
+                return Medres.status(400).json({ message: "Refresh token không được cung cấp" });
             }
             const { accessToken } = await authService.refreshToken(refreshToken);
             res.json({ accessToken });
@@ -48,7 +48,7 @@ const authController = {
     // Đổi mật khẩu
     async changePassword(req, res) {
         try {
-            const userId = req.user.id; // Lấy từ middleware authenticateToken
+            const userId = req.user.user_id; // Lấy từ middleware authenticateToken
             const { oldPassword, newPassword } = req.body;
             if (!oldPassword || !newPassword) {
                 return res.status(400).json({ message: "Vui lòng nhập đầy đủ mật khẩu cũ và mới" });
@@ -63,7 +63,7 @@ const authController = {
     // Đăng xuất
     async logout(req, res) {
         try {
-            const userId = req.user.id; // Lấy từ middleware authenticateToken
+            const userId = req.user.user_id; // Lấy từ middleware authenticateToken
             const result = await authService.logout(userId);
             res.status(200).json(result);
         } catch (error) {
@@ -74,9 +74,6 @@ const authController = {
     // Kiểm tra trạng thái đăng nhập
     async getUserStatus(req, res) {
         try {
-            if (!req.user) {
-                return res.status(401).json({ message: "Bạn chưa đăng nhập" });
-            }
             const { username, role } = req.user;
             res.status(200).json({ username, role });
         } catch (error) {

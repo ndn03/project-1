@@ -14,12 +14,16 @@ const pool = mysql.createPool({
 // Test connection
 pool.getConnection((err, connection) => {
     if (err) {
-        console.error('Lỗi kết nối đến database:', err);
+        console.error('Lỗi kết nối đến database:', err.message);
+        console.error('Cấu hình:', {
+            host: process.env.DB_HOST,
+            user: process.env.DB_USER,
+            database: process.env.DB_NAME
+        });
         return;
     }
     console.log('Kết nối đến database thành công!');
     connection.release();
 });
 
-// Export promise pool
 module.exports = pool.promise();

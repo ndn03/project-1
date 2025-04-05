@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Giỏ Hàng</title>
+    <link rel="stylesheet" href="/css/cart.css">
+</head>
+<body>
+    <!-- Include the header -->
+    <header>
+        <div class="container">
+            <h1 class="logo">Luxury Watches</h1>
+            <nav>
+                <ul>
+                    <li><a href="/">Trang chủ</a></li>
+                    <li><a href="/product">Sản phẩm</a></li>
+                    <li><a href="/contact">Liên hệ</a></li>
+                    <li><a href="#" onclick="showLoginPopup(); return false;">Đăng nhập</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <h2>Giỏ Hàng</h2>
+        <h1>Giỏ hàng của bạn</h1>
+        <div id="cartContent">
+            <% if (typeof cart === 'undefined' || cart.items.length === 0) { %>
+                <p>Giỏ hàng trống</p>
+            <% } else { %>
+                <table id="cartTable">
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Ảnh</th>
+                            <th>Tên sản phẩm</th>
+                            <th>Số lượng</th>
+                            <th>Giá</th>
+                            <th>Xóa</th>
+                            <th>Mua ngay</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cartItems">
+                        <% cart.items.forEach((item, index) => { %>
+                            <tr>
+                                <td><%= index + 1 %></td>
+                                <td><img src="<%= item.image_url || '/img/default.jpg' %>" alt="<%= item.product_name %>"></td>
+                                <td><%= item.product_name %></td>
+                                <td><%= item.quantity %></td>
+                                <td><%= item.price.toLocaleString("vi-VN") %> VND</td>
+                                <td>
+                                    <form action="/cart/<%= item.cart_item_id %>" method="POST" class="delete-form">
+                                        <input type="hidden" name="_method" value="DELETE">
+                                        <button type="submit" title="Xóa"><i class="fas fa-trash"></i></button>
+                                    </form>
+                                </td>
+                                <td><button class="buy-now-btn">Mua ngay</button></td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+                <div id="totalPriceContainer">
+                    <p id="totalPrice">Tổng giá: <%= cart.total %> VND</p>
+                </div>
+            <% } %>
+        </div>
+    </main>
+
+    <!-- Include the footer -->
+    <footer>
+        <%- include('view-index/footer-index') %>
+    </footer>
+
+    <script>
+   document.addEventListener("DOMContentLoaded", async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+        window.location.href = "/login";
+        return;
+    }
+    try {
+        const response = await fetch("/cart", {
+            method: "GET",
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (response.ok) {
+            const html = await response.text();
+            document.documentElement.innerHTML = html;
+        } else {
+            alert("Phiên đăng nhập không hợp lệ");
+            localStorage.removeItem("token");
+            window.location.href = "/login";
+        }
+    } catch (error) {
+        console.error("Lỗi:", error);
+    }
+
+
+        // Nếu truy cập trực tiếp qua URL, gửi request với token
+        if(window.location.pathname === "/cart") {
+            try {
+                const response = await fetch("/cart", {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const html = await response.text();
+                    document.documentElement.innerHTML = html; // Cập nhật toàn bộ trang
+                } else {
+                    const result = await response.json();
+                    alert(result.message);
+                    if (response.status === 401) {
+                        window.location.href = "/login";
+                    }
+                }
+            } catch (error) {
+                console.error("Lỗi khi tải giỏ hàng:", error);
+                alert("Có lỗi xảy ra khi tải giỏ hàng");
+            }
+        }
+    });
+    </script>
+</body>
+</html>

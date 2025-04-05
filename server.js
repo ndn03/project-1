@@ -8,7 +8,7 @@ const homeController = require("./controllers/home.controller"); // Import homeC
 const homeRouter = require("./routers/home.router"); // Import homeRouter
 const helmet = require("helmet"); // Import helmet for security
 const app = express(); // Initialize the app using express()
-
+const cartRouter = require("./routers/cart.router");
 // Bảo mật cơ bản
 app.use(cors());
 app.use(
@@ -69,11 +69,12 @@ app.get("/", homeController.index);
 app.use("/", homeRouter); // Ensure homeRouter is registered here
 app.use("/product", productRouter);
 app.use("/", authRouter); // Ensure authRouter is registered here
-
+app.use("/cart", cartRouter); // Render trang giỏ hàng 
 // Xử lý lỗi 404
 app.use((req, res) => {
   res.status(404).json({ success: false, message: "API không tồn tại" });
 });
+
 
 // netstat -ano | findstr :8888
 // taskkill /PID 13900 /F

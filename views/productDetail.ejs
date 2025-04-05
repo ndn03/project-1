@@ -12,9 +12,30 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
-    <!-- Include the combined header -->
-    <%- include('view-index/header') %>
-
+    <header>
+        <div class="container">
+            <h1 class="logo">Luxury Watches</h1>
+            <nav>
+                <ul>
+                    <li><a href="#">Trang chủ</a></li>
+                    <li>
+                        <a href="#">Sản phẩm</a>
+                        <ul class="dropdown">
+                            <li><a href="#1">Sản phẩm nổi bật</a></li>
+                            <li><a href="#2">Đồng hồ nam</a></li>
+                            <li><a href="#3">Đồng hồ nữ</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#">Liên hệ</a></li>
+                    <li><a href="#" onclick="showLoginPopup(); return false;">Đăng nhập</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <!-- Login Popup -->
+    <div id="authPopup" class="popup">
+        <%- include('view-index/login-popup') %>
+    </div>
     <!-- Product Detail Section -->
     <section class="product-detail">
         <div class="container">
@@ -64,7 +85,7 @@
                             <li>Bảo hành: <%= details.warranty || 'N/A' %></li>
                         </ul>                        
                         <div class="cart">
-                            <form method="POST" action="/cart/add" class="cart-form">
+                            <form class="add-to-cart-form" data-product-id="<%= product.product_id %>">
                                 <input type="hidden" name="product_id" value="<%= product.id %>">
                                 <input type="hidden" name="name" value="<%= product.name %>">
                                 <input type="hidden" name="price" value="<%= product.price %>">
@@ -131,7 +152,6 @@
         <img class="popup-content" id="popupImage" alt="Popup Image">
         <button class="popup-nav next-popup">&gt;</button>
     </div>
-
     <script src="/js/main.js" defer></script>
     
     <!-- Footer -->

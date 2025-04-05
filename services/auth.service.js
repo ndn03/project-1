@@ -31,24 +31,23 @@ const authService = {
         if (!user) {
             throw new Error("Tài khoản không tồn tại hoặc đã bị vô hiệu hóa!");
         }
-
         const validPassword = await bcrypt.compare(password, user.password);
         if (!validPassword) {
             throw new Error("Mật khẩu không chính xác!");
         }
 
         const accessToken = jwt.sign(
-            { id: user.id, role: user.role },
+            { id: user.user_id, role: user.role },
             process.env.JWT_SECRET,
-            { expiresIn: "1h" }
+            { expiresIn: "10h" }
         );
         const refreshToken = jwt.sign(
-            { id: user.id },
+            { id: user.user_id },
             process.env.JWT_REFRESH_SECRET,
             { expiresIn: "7d" }
         );
 
-        await UserModel.saveRefreshToken(user.id, refreshToken);
+        await UserModel.saveRefreshToken(user.user_id, refreshToken);
         return { accessToken, refreshToken, user };
     },
 
@@ -64,14 +63,14 @@ const authService = {
         }
 
         const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-        if (decoded.id !== user.id) {
+        if (decoded.id !== user.user_id) {
             throw new Error("Refresh token không khớp với user!");
         }
 
         const newAccessToken = jwt.sign(
-            { id: user.id, role: user.role },
+            { id: user.user_id, role: user.role },
             process.env.JWT_SECRET,
-            { expiresIn: "100h" }
+            { expiresIn: "10h" }
         );
 
         return { accessToken: newAccessToken };
@@ -94,7 +93,7 @@ const authService = {
         }
 
         const hashedPassword = await bcrypt.hash(newPassword, 10);
-        await UserModel.pool.execute("UPDATE users SET password = ? WHERE id = ?", [
+        await UserModel.pool.execute("UPDATE users SET password = ? WHERE user_id = ?", [
             hashedPassword,
             userId,
         ]);

@@ -120,6 +120,8 @@ document.getElementById("loginForm").addEventListener("submit", async (event) =>
     } catch (error) {
         alert("Lỗi kết nối server.");
     }
+    // Debug response
+    console.log("Response từ server:", user);
 });
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -284,7 +286,39 @@ document.getElementById("registerForm").addEventListener("submit", async (event)
     }
 });
 
-  
+document.querySelectorAll(".add-to-cart-form").forEach(form => {
+    form.addEventListener("submit", async function(event) {
+        event.preventDefault(); // Ngăn submit mặc định
+
+        const productId = this.dataset.productId;
+        const data = {
+            product_id: productId,
+            quantity: 1 // Mặc định thêm 1 sản phẩm
+        };
+
+        try {
+            const response = await fetch("/cart/add", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + localStorage.getItem("token") // Token từ localStorage
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                alert("Đã thêm vào giỏ hàng thành công");
+                window.location.href = "/cart/add"; // Chuyển hướng
+            } else {
+                alert(result.message); // Hiển thị lỗi từ server
+            }
+        } catch (error) {
+            console.error("Lỗi:", error);
+            alert("Có lỗi xảy ra khi thêm vào giỏ hàng");
+        }
+    });
+});
 // Script để thay đổi hình ảnh chính khi ảnh thu nhỏ được nhấp
 document.querySelectorAll('.product-thumbnails img').forEach(thumbnail => {
     thumbnail.addEventListener('click', function() {

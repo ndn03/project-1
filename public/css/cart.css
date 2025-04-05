@@ -1,0 +1,235 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #2C2C2C; /* Darker background for a more luxurious feel */
+    color: #EAEAEA; /* Lighter font color for better readability */
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column; /* Ensure body stretches to full height */
+    min-height: 100vh; /* Ensure body takes up the full viewport height */
+}
+
+.container {
+    flex: 1; /* Allow the container to grow and push the footer down */
+    width: 80%;
+    margin: 0 auto;
+}
+
+header {
+    background-color: #1A1A1A; /* Darker header */
+    padding: 20px 0;
+}
+
+.logo {
+    color: #FFD700; /* Gold color for the logo */
+    font-size: 24px;
+    font-weight: 600;
+    text-transform: uppercase;
+    display: inline-block;
+}
+
+nav {
+    float: right;
+    margin-top: -10px;
+}
+
+nav ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+nav ul li {
+    display: inline-block;
+    position: relative;
+    margin-left: 20px;
+}
+
+nav ul li a {
+    color: #FFD700; /* Gold color for navigation links */
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 16px;
+    padding: 10px 15px;
+    display: block;
+    white-space: nowrap;
+}
+
+nav ul li:hover > .dropdown {
+    display: block;
+}
+
+nav ul .dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: #333; /* Darker dropdown background */
+    padding: 10px;
+    z-index: 100;
+    min-width: 150px;
+}
+
+nav ul .dropdown li {
+    display: block;
+    margin-left: 0;
+    margin-bottom: 10px;
+    width: 100%;
+    position: relative;
+}
+
+nav ul .dropdown li:hover > .dropdown {
+    display: block;
+    top: 0;
+    left: 100%; /* Position the nested dropdown to the right */
+}
+
+nav ul .dropdown li a {
+    color: #FFD700; /* Gold color for dropdown links */
+    font-size: 14px;
+    padding: 8px 12px;
+    display: block;
+    white-space: nowrap;
+}
+
+nav ul .dropdown li a:hover {
+    color: #FFA500; /* Lighter gold on hover */
+}
+
+.hero {
+    background-color: #2C2C2C; /* Darker hero section */
+}
+/* Cart Table Styles */
+#cartTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+#cartTable th, #cartTable td {
+    border: 1px solid #FFD700;
+    padding: 10px;
+    text-align: center;
+    color: #EAEAEA; /* Lighter font color for table content */
+}
+
+#cartTable th {
+    background-color: #1A1A1A;
+    color: #FFD700;
+    font-weight: bold;
+}
+
+#cartTable td img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 5px;
+}
+
+.quantity-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.quantity-controls button {
+    background-color: #FFD700;
+    color: #1A1A1A;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+quantity-controls button:hover {
+    background-color: #FFA500;
+}
+
+#totalPriceContainer {
+    text-align: right;
+    margin-top: 20px;
+    font-size: 1.2em;
+    color: #FFD700; /* Gold color for total price */
+}
+
+.delete-btn, .buy-now-btn {
+    background-color: #FFD700;
+    color: #1A1A1A;
+    border: none;
+    padding: 5px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.delete-btn:hover, .buy-now-btn:hover {
+    background-color: #FFA500;
+}
+
+footer {
+    background-color: #1A1A1A; /* Darker footer */
+    color: #FFD700; /* Gold color for footer text */
+    padding: 20px 0;
+    margin-top: auto; /* Push footer to the bottom */
+}
+
+footer .container {
+    width: 90%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.footer-section {
+    flex: 1;
+    margin: 0 10px;
+}
+
+.footer-section h6 {
+    margin-bottom: 10px;
+    font-size: 18px;
+    border-bottom: 2px solid #00c8ff;
+    padding-bottom: 5px;
+}
+
+.footer-section ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.footer-section ul li {
+    margin: 5px 0;
+}
+
+.footer-section a {
+    color: #FFD700; /* Gold color for footer links */
+    text-decoration: none;
+}
+
+.footer-section a:hover {
+    text-decoration: underline;
+}
+
+.footer-bottom {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.footer-bottom p {
+    margin: 0;
+    font-size: 14px;
+}

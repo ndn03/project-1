@@ -4,12 +4,23 @@ const bcrypt = require("bcrypt");
 const UserModel = {
     // Đăng ký người dùng mới
     async register(full_name, username, email, password, role = "customer") {
+        if (!full_name || !username || !email || !password) {
+            throw new Error("Vui lòng cung cấp đầy đủ thông tin (họ tên, username, email, mật khẩu)");
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            throw new Error("Email không hợp lệ");
+        }
+        if (username.length > 50 || full_name.length > 100 || email.length > 100) {
+            throw new Error("Độ dài thông tin vượt quá giới hạn cho phép");
+        }
+
         const connection = await pool.getConnection();
         await connection.beginTransaction();
 
         try {
             const [existingUser] = await connection.execute(
-                "SELECT id FROM users WHERE username = ? OR email = ?",
+                "SELECT user_id FROM users WHERE username = ? OR email = ?",
                 [username, email]
             );
             if (existingUser.length > 0) {
@@ -23,16 +34,22 @@ const UserModel = {
             );
             const userId = userResult.insertId;
 
-            await connection.execute(
+            const [profileResult] = await connection.execute(
                 "INSERT INTO user_profiles (user_id, avatar, total_purchased) VALUES (?, ?, ?)",
                 [userId, "default_avatar.png", 0]
             );
+            if (profileResult.affectedRows === 0) {
+                throw new Error("Không thể tạo profile cho người dùng");
+            }
 
             await connection.commit();
-            return { id: userId, full_name, username, email, role };
+            return { user_id: userId, full_name, username, email, role };
         } catch (error) {
             await connection.rollback();
-            throw error;
+            if (error.code === "ER_DUP_ENTRY") {
+                throw new Error("Username hoặc email đã được sử dụng!");
+            }
+            throw new Error("Lỗi khi đăng ký: " + error.message);
         } finally {
             connection.release();
         }
@@ -43,10 +60,10 @@ const UserModel = {
         if (!username) throw new Error("Username không được để trống");
         try {
             const [rows] = await pool.execute(
-                "SELECT id, username, full_name, email, password, role FROM users WHERE username = ? AND isActive = 1",
+                "SELECT user_id, username, full_name, email, password, role FROM users WHERE username = ? AND isActive = 1",
                 [username]
             );
-            return rows[0] || null;
+            return rows.length > 0 ? rows[0] : null;
         } catch (error) {
             throw new Error(`Lỗi tìm kiếm theo username: ${error.message}`);
         }
@@ -57,41 +74,45 @@ const UserModel = {
         if (!email) throw new Error("Email không được để trống");
         try {
             const [rows] = await pool.execute(
-                "SELECT id, username, full_name, email, password, role FROM users WHERE email = ? AND isActive = 1",
+                "SELECT user_id, username, full_name, email, password, role FROM users WHERE email = ? AND isActive = 1",
                 [email]
             );
-            return rows[0] || null;
+            return rows.length > 0 ? rows[0] : null;
         } catch (error) {
             throw new Error(`Lỗi tìm kiếm theo email: ${error.message}`);
         }
     },
 
     // Tìm user theo ID (bao gồm profile)
-    async findById(id) {
-        if (!id) throw new Error("ID không được để trống");
+    async findById(user_id) {
+        if (!user_id || isNaN(user_id)) throw new Error("User ID phải là số hợp lệ");
         try {
             const [rows] = await pool.execute(
-                `SELECT u.id, u.username, u.full_name, u.email, u.password, u.role, 
+                `SELECT u.user_id, u.username, u.full_name, u.email, u.password, u.role, 
                         p.avatar, p.total_purchased 
                  FROM users u 
-                 LEFT JOIN user_profiles p ON u.id = p.user_id 
-                 WHERE u.id = ? AND u.isActive = 1`,
-                [id]
+                 LEFT JOIN user_profiles p ON u.user_id = p.user_id 
+                 WHERE u.user_id = ? AND u.isActive = 1`,
+                [user_id]
             );
-            return rows[0] || null;
+            return rows.length > 0 ? rows[0] : null;
         } catch (error) {
-            throw new Error(`Lỗi tìm kiếm theo ID: ${error.message}`);
+            throw new Error(`Lỗi tìm kiếm theo User ID: ${error.message}`);
         }
     },
 
     // Lưu refresh token
-    async saveRefreshToken(userId, refreshToken) {
-        if (!userId || !refreshToken) throw new Error("User ID hoặc refresh token không được để trống");
+    async saveRefreshToken(user_id, refreshToken) {
+        if (!user_id || !refreshToken) throw new Error("User ID hoặc refresh token không được để trống");
+        if (isNaN(user_id)) throw new Error("User ID phải là số hợp lệ");
         try {
-            await pool.execute(
-                "UPDATE users SET refresh_token = ? WHERE id = ?",
-                [refreshToken, userId]
+            const [result] = await pool.execute(
+                "UPDATE users SET refresh_token = ? WHERE user_id = ?",
+                [refreshToken, user_id]
             );
+            if (result.affectedRows === 0) {
+                throw new Error("Không tìm thấy user để lưu refresh token");
+            }
         } catch (error) {
             throw new Error(`Lỗi lưu refresh token: ${error.message}`);
         }
@@ -101,24 +122,29 @@ const UserModel = {
     async findByRefreshToken(refreshToken) {
         if (!refreshToken) throw new Error("Refresh token không được để trống");
         try {
+            console.log("Searching for user with refresh token:", refreshToken);
             const [rows] = await pool.execute(
-                "SELECT id, username, full_name, email, password, role, refresh_token FROM users WHERE refresh_token = ? AND isActive = 1",
+                "SELECT user_id, username, full_name, email, password, role, refresh_token FROM users WHERE refresh_token = ? AND isActive = 1",
                 [refreshToken]
             );
-            return rows[0] || null;
+            return rows.length > 0 ? rows[0] : null;
         } catch (error) {
             throw new Error(`Lỗi tìm kiếm theo refresh token: ${error.message}`);
         }
     },
 
     // Xóa refresh token
-    async clearRefreshToken(userId) {
-        if (!userId) throw new Error("User ID không được để trống");
+    async clearRefreshToken(user_id) {
+        if (!user_id || isNaN(user_id)) throw new Error("User ID phải là số hợp lệ");
         try {
-            await pool.execute(
-                "UPDATE users SET refresh_token = NULL WHERE id = ?",
-                [userId]
+            console.log("Clearing refresh token for user ID:", user_id);
+            const [result] = await pool.execute(
+                "UPDATE users SET refresh_token = NULL WHERE user_id = ?",
+                [user_id]
             );
+            if (result.affectedRows === 0) {
+                throw new Error("Không tìm thấy user để xóa refresh token");
+            }
         } catch (error) {
             throw new Error(`Lỗi xóa refresh token: ${error.message}`);
         }

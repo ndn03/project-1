@@ -23,8 +23,8 @@
                             <form action="/product/detail/<%= product.product_id %>" method="GET">
                                 <button type="submit">Xem chi tiết</button>
                             </form>
-                            <form method="POST" action="/cart/add" class="cart-form">
-                                <input type="hidden" name="san_pham_id" value="<%= product.id %>">
+                            <form class="add-to-cart-form" data-product-id="<%= product.product_id %>">
+                                <input type="hidden" name="product_id" value="<%= product.product_id %>">
                                 <button type="submit" title="Thêm vào giỏ hàng">
                                     <i class="fa-solid fa-cart-shopping"></i>
                                 </button>
