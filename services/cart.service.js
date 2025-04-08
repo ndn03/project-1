@@ -1,93 +1,111 @@
-const CartModel = require("../models/cart.model");
-const db = require("../config/db"); // Thêm db để dùng trong updateCartItem
+const cartModel = require('../models/cart.model'); // Import the cart model
 
-class CartService {
-    // Thêm sản phẩm vào giỏ hàng
-    static async addToCart(userId, productId, quantity) {
-        const product = await CartModel.getProduct(productId);
-        if (!product) throw new Error("Sản phẩm không tồn tại");
-        if (product.stock_quantity < quantity) throw new Error("Số lượng tồn kho không đủ");
-
-        const cartId = await CartModel.getOrCreateCart(userId);
-        const cartItemId = await CartModel.addOrUpdateItem(cartId, productId, quantity);
-
-        return { cartId, cartItemId };
-    }
-
-    // Xem giỏ hàng
-    static async getCart(userId) {
-        const cartId = await CartModel.getOrCreateCart(userId);
-        const items = await CartModel.getCartItems(cartId);
-        const total = await CartModel.getCartTotal(cartId);
-
-        // Đảm bảo total là số
-        const safeTotal = (total !== null && !isNaN(total)) ? Number(total) : 0;
-
-        return {
-            cartId,
-            items,
-            total: safeTotal.toFixed(2)
-        };
-    }
-     
-
-    // Cập nhật số lượng sản phẩm
-    static async updateCartItem(userId, cartItemId, quantity) {
-        const cartId = await CartModel.getOrCreateCart(userId);
-        
-        // Sửa: Dùng db và kiểm tra item.length
-        const [item] = await db.execute(
-            "SELECT product_id FROM cart_items WHERE id = ? AND cart_id = ?",
-            [cartItemId, cartId]
-        );
-        if (item.length === 0) throw new Error("Sản phẩm không có trong giỏ hàng");
-
-        const product = await CartModel.getProduct(item[0].product_id); // Sửa: Truy cập item[0]
-        if (!product) throw new Error("Sản phẩm không tồn tại");
-        if (quantity > product.stock_quantity) throw new Error("Số lượng vượt quá tồn kho");
-
-        const affectedRows = await CartModel.updateItemQuantity(cartId, cartItemId, quantity);
-        if (affectedRows === 0) throw new Error("Không thể cập nhật sản phẩm");
-
-        return true;
-    }
-
-    // Xóa sản phẩm khỏi giỏ hàng
-    static async deleteCartItem(userId, cartItemId) {
-        const cartId = await CartModel.getOrCreateCart(userId);
-        const affectedRows = await CartModel.deleteItem(cartId, cartItemId);
-        if (affectedRows === 0) throw new Error("Sản phẩm không có trong giỏ hàng");
-
-        return true;
-    }
-
-    // Áp dụng mã giảm giá
-    static async applyVoucher(userId, code) {
-        const cartId = await CartModel.getOrCreateCart(userId);
-        const total = await CartModel.getCartTotal(cartId);
-        const voucher = await CartModel.getVoucher(code);
-
-        if (!voucher) throw new Error("Mã giảm giá không hợp lệ hoặc đã hết hạn");
-        
-        // Kiểm tra min_order_value, dùng giá trị mặc định 0 nếu không có
-        const minOrderValue = voucher.min_order_value || 0;
-        if (total < minOrderValue) {
-            throw new Error(`Đơn hàng phải có giá trị tối thiểu ${minOrderValue} để áp dụng mã này`);
+const cartService = {
+    async addToCart(userId, productId, quantity) {
+        if (!productId || !quantity || quantity <= 0) {
+            throw new Error('Invalid product or quantity');
         }
 
-        // Sửa: Dùng discount_type và discount từ bảng vouchers
-        const discountAmount = voucher.discount_type === "percentage"
-            ? (total * voucher.discount) / 100
-            : voucher.discount;
+        const userExists = await cartModel.checkUserExists(userId);
+        if (!userExists) throw new Error('Người dùng không tồn tại');
+
+        const product = await cartModel.getProduct(productId);
+        if (!product) throw new Error('Sản phẩm không tồn tại');
+        if (product.stock_quantity < quantity) {
+            throw new Error('Số lượng vượt quá tồn kho');
+        }
+
+        const cartId = await cartModel.getOrCreateCart(userId);
+        const cartItemId = await cartModel.addOrUpdateItem(cartId, productId, quantity, product.price);
+        return cartItemId;
+    },
+
+    async applyVoucher(userId, voucherCode) {
+        if (!voucherCode) throw new Error('Mã voucher không được để trống');
+
+        const userExists = await cartModel.checkUserExists(userId);
+        if (!userExists) throw new Error('Người dùng không tồn tại');
+
+        const cartId = await cartModel.getOrCreateCart(userId);
+        const voucher = await cartModel.getVoucher(voucherCode);
+        if (!voucher) throw new Error('Voucher không hợp lệ hoặc đã hết hạn');
+
+        const total = await cartModel.getCartTotal(cartId);
+        if (total < voucher.min_order_value) {
+            throw new Error(`Đơn hàng phải đạt tối thiểu ${voucher.min_order_value} để áp dụng voucher`);
+        }
+
+        await cartModel.applyVoucher(cartId, voucherCode);
+        return voucher.discount_amount;
+    },
+
+    async getCart(userId) {
+        if (!userId) {
+            throw new Error('Người dùng không tồn tại');
+        }
+
+        const userExists = await cartModel.checkUserExists(userId);
+        if (!userExists) throw new Error('Người dùng không tồn tại');
+
+        const cartId = await cartModel.getOrCreateCart(userId);
+        const items = await cartModel.getCartItems(cartId);
+        if (items.length === 0) return { message: 'Giỏ hàng trống' };
+
+        let total = await cartModel.getCartTotal(cartId);
+        const voucher = await cartModel.getAppliedVoucher(cartId);
+        let discountAmount = 0;
+        if (voucher && total >= voucher.min_order_value) {
+            discountAmount = voucher.discount_amount;
+        }
 
         const finalTotal = total - discountAmount;
 
         return {
-            original_total: total.toFixed(2),
-            discount: discountAmount.toFixed(2),
-            final_total: finalTotal.toFixed(2)
+            items: items.map(item => ({
+                cart_item_id: item.cart_item_id,
+                product_id: item.product_id,
+                name: item.product_name,
+                quantity: item.quantity,
+                price: item.price,
+                subtotal: item.quantity * item.price,
+                image_url: item.image_url
+            })),
+            total: total,
+            discount_amount: discountAmount,
+            final_total: finalTotal
         };
-    }
-}
+    },
+    async updateCartItem(userId, cartItemId, quantity) {
+        if (!cartItemId || !quantity || quantity <= 0) {
+            throw new Error('Invalid cart item ID or quantity');
+        }
 
-module.exports = CartService;
+        const userExists = await cartModel.checkUserExists(userId);
+        if (!userExists) throw new Error('Người dùng không tồn tại');
+
+        const cartId = await cartModel.getOrCreateCart(userId);
+        const affectedRows = await cartModel.updateItemQuantity(cartId, cartItemId, quantity);
+        if (!affectedRows) {
+            throw new Error('Mục không tồn tại trong giỏ hàng');
+        }
+
+        return true;
+    },
+
+    async removeCartItem(userId, cartItemId) {
+        if (!cartItemId) throw new Error('Invalid cart item ID');
+
+        const userExists = await cartModel.checkUserExists(userId);
+        if (!userExists) throw new Error('Người dùng không tồn tại');
+
+        const cartId = await cartModel.getOrCreateCart(userId);
+        const affectedRows = await cartModel.deleteItem(cartId, cartItemId);
+        if (!affectedRows) {
+            throw new Error('Mục không tồn tại trong giỏ hàng');
+        }
+
+        return true;
+    }
+};
+
+module.exports = cartService;

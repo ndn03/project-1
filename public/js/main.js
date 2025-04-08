@@ -1,8 +1,326 @@
-// Hiển thị popup đăng nhập
-console.log("Main.js is executing...");
 document.addEventListener("DOMContentLoaded", () => {
     console.log("DOM đã tải xong, bắt đầu gán sự kiện...");
+    
+    // Kiểm tra trạng thái người dùng
+    checkUserStatus().then(user => {
+        updateFooter(user);
+    });
+
+    // Gắn sự kiện cho nút prev/next (nếu tồn tại trên trang)
+    const prevBtn = document.querySelector('.prev-btn');
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            currentReviewIndex = (currentReviewIndex - reviewsPerPage + totalReviews) % totalReviews;
+            showReviews(currentReviewIndex);
+        });
+    } else {
+        console.warn("Không tìm thấy .prev-btn trong DOM");
+    }
+
+    const nextBtn = document.querySelector('.next-btn');
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            currentReviewIndex = (currentReviewIndex + reviewsPerPage) % totalReviews;
+            showReviews(currentReviewIndex);
+        });
+    } else {
+        console.warn("Không tìm thấy .next-btn trong DOM");
+    }
+
+    if (document.querySelector('.review')) {
+        showReviews(currentReviewIndex);
+    }
 });
+
+document.getElementById("loginForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const data = Object.fromEntries(formData.entries());
+    try {
+        const response = await fetch("/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+            credentials: "include", // Đảm bảo cookie được gửi từ server
+        });
+        if (response.ok) {
+            const user = await response.json();
+            console.log("Response từ server:", user);
+
+            // Không cần lưu token vào cookie nữa vì server đã làm
+            alert("Đăng nhập thành công!");
+            updateHeader(user);
+            updateFooter(user);
+            document.getElementById("authPopup").style.display = "none";
+        } else {
+            const errorData = await response.json();
+            alert(errorData.message || "Đăng nhập thất bại.");
+        }
+    } catch (error) {
+        console.error("Lỗi kết nối server:", error);
+        alert("Lỗi kết nối server.");
+    }
+});
+
+async function checkUserStatus() {
+    try {
+        let response = await fetchWithAuth("/auth/status", { method: "GET" });
+        console.log("Response từ /auth/status:", await response.clone().text());
+
+        if (response.ok) {
+            const user = await response.json();
+            console.log("User từ server:", user);
+            updateHeader(user);
+            updateFooter(user);
+            return user;
+        } else if (response.status === 401) {
+            console.log("Token không hợp lệ hoặc thiếu, thử làm mới...");
+            let refreshResponse = await fetch("/auth/refreshToken", {
+                method: "POST",
+                credentials: "include",
+            });
+            console.log("Response từ /auth/refreshToken:", await refreshResponse.clone().text());
+
+            if (refreshResponse.ok) {
+                return checkUserStatus();
+            } else {
+                throw new Error("Refresh token failed or missing");
+            }
+        } else {
+            throw new Error("Unexpected status: " + response.status);
+        }
+    } catch (error) {
+        console.error("Lỗi kiểm tra trạng thái:", error);
+        removeCookies();
+        updateHeader(null);
+        updateFooter(null);
+        return null;
+    }
+}
+
+async function fetchWithAuth(url, options = {}) {
+    // Không cần lấy token từ cookie thủ công vì server sẽ đọc từ req.cookies
+    options.credentials = "include"; // Gửi cookie (authToken, refreshToken) kèm yêu cầu
+    return fetch(url, options); // Thực hiện yêu cầu mà không thêm header Authorization
+}
+
+function updateHeader(user) {
+    const nav = document.querySelector("header nav ul");
+    if (user) {
+        nav.innerHTML = `
+            <li><a href="/">Trang chủ</a></li>
+            <li><a href="#">Sản phẩm</a>
+                <ul class="dropdown">
+                    <li><a href="#1">Sản phẩm nổi bật</a></li>
+                    <li><a href="#2">Đồng hồ nam</a></li>
+                    <li><a href="#3">Đồng hồ nữ</a></li>
+                </ul>
+            </li>
+            <li><a href="#">Liên hệ</a></li>
+            <li><a href="#">Tài khoản</a>
+                <ul class="dropdown">
+                    ${user.role === "customer" ? ` 
+                        <li><a href="/cart" class="cart-link">Giỏ hàng</a></li>
+                        <li><a href="/account">Tài khoản</a></li>
+                    ` : `
+                        <li><a href="/admin">Quản trị hệ thống</a></li>
+                    `}
+                    <li><a href="#" onclick="logout(); return false;">Đăng xuất</a></li>
+                </ul>
+            </li>
+        `;
+    } else {
+        nav.innerHTML = `
+            <li><a href="#">Trang chủ</a></li>
+            <li><a href="#">Sản phẩm</a>
+                <ul class="dropdown">
+                    <li><a href="#1">Sản phẩm nổi bật</a></li>
+                    <li><a href="#2">Đồng hồ nam</a></li>
+                    <li><a href="#3">Đồng hồ nữ</a></li>
+                </ul>
+            </li>
+            <li><a href="#">Liên hệ</a></li>
+            <li><a href="#" onclick="showLoginPopup(); return false;">Đăng nhập</a></li>
+        `;
+    }
+}
+
+document.querySelectorAll(".add-to-cart-form").forEach(form => {
+    form.addEventListener("submit", async function(event) {
+        event.preventDefault();
+
+        const productId = this.dataset.productId;
+        const data = {
+            product_id: productId,
+            quantity: 1
+        };
+
+        try {
+            const response = await fetchWithAuth("/cart/add", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                    // Xóa "Authorization" vì server đọc từ cookie
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                alert("Đã thêm vào giỏ hàng thành công");
+                window.location.href = "/"; 
+            } else if (response.status === 401 && result.message === "Phiên đăng nhập đã hết hạn") {
+                alert("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại");
+                removeCookies();
+                window.location.href = "/";
+            } else {
+                alert(result.message || "Không thể thêm vào giỏ hàng");
+            }
+        } catch (error) {
+            console.error("Lỗi:", error);
+            alert("Có lỗi xảy ra khi thêm vào giỏ hàng");
+        }
+    });
+});
+
+async function logout() {
+    try {
+        const response = await fetchWithAuth("/auth/logout", {
+            method: "POST",
+        });
+        if (response.ok) {
+            const data = await response.json();
+            alert(data.message); // "Đăng xuất thành công"
+            updateHeader(null);  // Cập nhật UI trước
+            updateFooter(null);
+            // Không cần removeCookies() vì server đã xóa cookie
+            window.location.href = "/"; // Reload sau khi cập nhật UI
+        } else {
+            const errorData = await response.text();
+            console.error("Logout thất bại - Status:", response.status, "Response:", errorData);
+            alert("Đăng xuất thất bại: " + errorData);
+        }
+    } catch (error) {
+        console.error("Lỗi đăng xuất:", error);
+        alert("Có lỗi khi đăng xuất, vui lòng thử lại.");
+    }
+}
+
+function updateFooter(user) {
+    const footerLinks = document.getElementById("footer-links");
+    if (!footerLinks) {
+        console.error("Không tìm thấy phần tử danh sách trong footer.");
+        return;
+    }
+
+    if (user) {
+        footerLinks.innerHTML = `
+            <li><a href="#" class="cart-link">Giỏ hàng</a></li>
+            <li><a href="#" onclick="logout(); return false;">Đăng xuất</a></li>
+        `;
+        document.querySelector("#footer-links .cart-link").addEventListener("click", async (e) => {
+            e.preventDefault();
+            await loadCart();
+        });
+    } else {
+        footerLinks.innerHTML = `
+            <li><a href="/">Đăng nhập</a></li>
+            <li><a href="/">Đăng ký</a></li>
+        `;
+    }
+}
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+}
+
+function removeCookies() {
+    document.cookie = "authToken=; path=/; HttpOnly; secure=false; max-age=0";
+    document.cookie = "refreshToken=; path=/; HttpOnly; secure=false; max-age=0";
+}
+
+
+///////////////////////////////////////////////////
+function attachCartEventListeners() {
+    const prevBtn = document.querySelector('.prev-btn');
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            currentReviewIndex = (currentReviewIndex - reviewsPerPage + totalReviews) % totalReviews;
+            showReviews(currentReviewIndex);
+        });
+    } else {
+        console.error("Không tìm thấy phần tử .prev-btn trong DOM");
+    }
+}
+
+document.getElementById("registerForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const data = Object.fromEntries(formData.entries());    
+    console.log("Form data:", data); // Thêm dòng này để debug
+    // Kiểm tra các trường bắt buộc
+    if (!data.full_name || !data.username || !data.email || !data.password) {
+        alert("Vui lòng điền đầy đủ thông tin (họ tên, tài khoản, email, mật khẩu)!");
+        return;
+    }
+
+    // Kiểm tra password và confirmPassword khớp nhau
+    if (data.password !== data.confirmPassword) {
+        alert("Mật khẩu và xác nhận mật khẩu không khớp!");
+        return;
+    }
+
+    // Chuẩn bị dữ liệu gửi đến backend (loại bỏ confirmPassword)
+    const registerData = {
+        full_name: data.full_name,
+        username: data.username,
+        email: data.email,
+        password: data.password,
+    };
+
+    try {
+        const response = await fetch("/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(registerData),
+        });
+        if (response.ok) {
+            alert("Đăng ký thành công!");
+            window.location.reload();
+        } else {
+            const errorData = await response.json();
+            alert(errorData.message || "Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.");
+        }
+    } catch (error) {
+        alert("Lỗi kết nối server. Vui lòng thử lại sau!");
+    }
+});
+
+// Hàm cập nhật footer sau khi đăng nhập hoặc đăng xuất
+function updateFooter(user) {
+    const footerLinks = document.getElementById("footer-links");
+
+    if (!footerLinks) {
+        console.error("Không tìm thấy phần tử danh sách trong footer.");
+        return;
+    }
+
+    if (user) {
+        // Nếu người dùng đã đăng nhập, hiển thị Giỏ hàng và Đăng xuất
+        footerLinks.innerHTML = `
+            <li><a href="/cart">Giỏ hàng</a></li>
+            <li><a href="#" onclick="logout(); return false;">Đăng xuất</a></li>
+        `;
+    } else {
+        // Nếu chưa đăng nhập, hiển thị Đăng nhập và Đăng ký
+        footerLinks.innerHTML = `
+            <li><a href="/">Đăng nhập</a></li>
+            <li><a href="/">Đăng ký</a></li>
+        `;
+    }
+}
 
 // Hiển thị popup đăng nhập
 function showLoginPopup() {
@@ -94,231 +412,6 @@ function shrinkProducts(button) {
     toggleButtons.querySelector(".show-less").style.display = "none"; // Ẩn nút "Thu nhỏ"
     toggleButtons.querySelector(".show-more").style.display = "inline-block"; // Hiển thị nút "Hiển thị tất cả"
 }
-
-document.getElementById("loginForm").addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const formData = new FormData(event.target);
-    const data = Object.fromEntries(formData.entries());
-    try {
-        const response = await fetch("/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-        });
-        if (response.ok) {
-            const user = await response.json();
-            localStorage.setItem("authToken", user.accessToken);
-            localStorage.setItem("refreshToken", user.refreshToken);
-            alert("Đăng nhập thành công!");
-            updateHeader(user);
-            updateFooter(user);
-            document.getElementById("authPopup").style.display = "none";
-        } else {
-            const errorData = await response.json();
-            alert(errorData.message || "Đăng nhập thất bại.");
-        }
-    } catch (error) {
-        alert("Lỗi kết nối server.");
-    }
-    // Debug response
-    console.log("Response từ server:", user);
-});
-
-document.addEventListener("DOMContentLoaded", async () => {
-    const user = await checkUserStatus(); // Kiểm tra trạng thái người dùng
-    updateFooter(user); // Cập nhật footer dựa trên trạng thái đăng nhập
-});
-
-async function checkUserStatus() {
-    let token = localStorage.getItem("authToken");
-    let refreshToken = localStorage.getItem("refreshToken");
-    if (!token) return;
-
-    try {
-        let response = await fetchWithAuth("/auth/status", { method: "GET" });
-        if (response.ok) {
-            const user = await response.json();
-            updateHeader(user);
-            return user;
-        } else if (response.status === 403) {
-            localStorage.removeItem("authToken");
-            localStorage.removeItem("refreshToken");
-            alert("Tài khoản không hợp lệ hoặc bị vô hiệu hóa.");
-        }
-    } catch (error) {
-        console.error("Lỗi kiểm tra trạng thái:", error);
-    }
-}
-
-async function fetchWithAuth(url, options = {}) {
-    let token = localStorage.getItem("authToken");
-    let refreshToken = localStorage.getItem("refreshToken");
-    if (!token) throw new Error("No auth token available");
-
-    options.headers = {
-        ...options.headers,
-        Authorization: `Bearer ${token}`,
-    };
-
-    let response = await fetch(url, options);
-    if (response.status === 401 && refreshToken) {
-        let refreshResponse = await fetch("/auth/refreshToken", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ refreshToken }),
-        });
-        if (refreshResponse.ok) {
-            let data = await refreshResponse.json();
-            localStorage.setItem("authToken", data.accessToken);
-            options.headers.Authorization = `Bearer ${data.accessToken}`;
-            response = await fetch(url, options);
-        } else {
-            localStorage.removeItem("authToken");
-            localStorage.removeItem("refreshToken");
-            alert("Phiên đăng nhập hết hạn, vui lòng đăng nhập lại.");
-            window.location.href = "/login";
-        }
-    }
-    return response;
-}
-
-function updateHeader(user) {
-    const nav = document.querySelector("header nav ul");
-    nav.innerHTML = `
-        <li><a href="/">Trang chủ</a></li>
-        <li><a href="#">Sản phẩm</a>
-            <ul class="dropdown">
-                <li><a href="#1">Sản phẩm nổi bật</a></li>
-                <li><a href="#2">Đồng hồ nam</a></li>
-                <li><a href="#3">Đồng hồ nữ</a></li>
-            </ul>
-        </li>
-        <li><a href="#">Liên hệ</a></li>
-        <li><a href="#">Tài khoản</a>
-            <ul class="dropdown">
-                ${user.role === "customer" ? `
-                    <li><a href="/cart">Giỏ hàng</a></li>
-                    <li><a href="/account">Tài khoản</a></li>
-                ` : `
-                    <li><a href="/admin">Quản trị hệ thống</a></li>
-                `}
-                <li><a href="#" onclick="logout(); return false;">Đăng xuất</a></li>
-            </ul>
-        </li>
-    `;
-}
-
-// Hàm cập nhật footer sau khi đăng nhập hoặc đăng xuất
-function updateFooter(user) {
-    const footerLinks = document.getElementById("footer-links");
-
-    if (!footerLinks) {
-        console.error("Không tìm thấy phần tử danh sách trong footer.");
-        return;
-    }
-
-    if (user) {
-        // Nếu người dùng đã đăng nhập, hiển thị Giỏ hàng và Đăng xuất
-        footerLinks.innerHTML = `
-            <li><a href="/cart">Giỏ hàng</a></li>
-            <li><a href="#" onclick="logout(); return false;">Đăng xuất</a></li>
-        `;
-    } else {
-        // Nếu chưa đăng nhập, hiển thị Đăng nhập và Đăng ký
-        footerLinks.innerHTML = `
-            <li><a href="/login">Đăng nhập</a></li>
-            <li><a href="/register">Đăng ký</a></li>
-        `;
-    }
-}
-
-function logout() {
-    fetchWithAuth("/auth/logout", { method: "POST" })
-        .then(() => {
-            localStorage.removeItem("authToken");
-            localStorage.removeItem("refreshToken");
-            alert("Đăng xuất thành công!");
-            window.location.reload();
-        })
-        .catch(() => alert("Lỗi khi đăng xuất."));
-}
-
-document.getElementById("registerForm").addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const formData = new FormData(event.target);
-    const data = Object.fromEntries(formData.entries());    
-    console.log("Form data:", data); // Thêm dòng này để debug
-    // Kiểm tra các trường bắt buộc
-    if (!data.full_name || !data.username || !data.email || !data.password) {
-        alert("Vui lòng điền đầy đủ thông tin (họ tên, tài khoản, email, mật khẩu)!");
-        return;
-    }
-
-    // Kiểm tra password và confirmPassword khớp nhau
-    if (data.password !== data.confirmPassword) {
-        alert("Mật khẩu và xác nhận mật khẩu không khớp!");
-        return;
-    }
-
-    // Chuẩn bị dữ liệu gửi đến backend (loại bỏ confirmPassword)
-    const registerData = {
-        full_name: data.full_name,
-        username: data.username,
-        email: data.email,
-        password: data.password,
-    };
-
-    try {
-        const response = await fetch("/register", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(registerData),
-        });
-        if (response.ok) {
-            alert("Đăng ký thành công!");
-            window.location.reload();
-        } else {
-            const errorData = await response.json();
-            alert(errorData.message || "Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.");
-        }
-    } catch (error) {
-        alert("Lỗi kết nối server. Vui lòng thử lại sau!");
-    }
-});
-
-document.querySelectorAll(".add-to-cart-form").forEach(form => {
-    form.addEventListener("submit", async function(event) {
-        event.preventDefault(); // Ngăn submit mặc định
-
-        const productId = this.dataset.productId;
-        const data = {
-            product_id: productId,
-            quantity: 1 // Mặc định thêm 1 sản phẩm
-        };
-
-        try {
-            const response = await fetch("/cart/add", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": "Bearer " + localStorage.getItem("token") // Token từ localStorage
-                },
-                body: JSON.stringify(data)
-            });
-
-            const result = await response.json();
-            if (response.ok) {
-                alert("Đã thêm vào giỏ hàng thành công");
-                window.location.href = "/cart/add"; // Chuyển hướng
-            } else {
-                alert(result.message); // Hiển thị lỗi từ server
-            }
-        } catch (error) {
-            console.error("Lỗi:", error);
-            alert("Có lỗi xảy ra khi thêm vào giỏ hàng");
-        }
-    });
-});
 // Script để thay đổi hình ảnh chính khi ảnh thu nhỏ được nhấp
 document.querySelectorAll('.product-thumbnails img').forEach(thumbnail => {
     thumbnail.addEventListener('click', function() {

@@ -5,7 +5,7 @@ USE watchshoppro;
 
 -- Bảng lưu thông tin người dùng
 CREATE TABLE `users` (
-  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
   `username` varchar(50) NOT NULL,
   `full_name` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,

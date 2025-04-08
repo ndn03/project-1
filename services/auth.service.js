@@ -37,16 +37,22 @@ const authService = {
         }
 
         const accessToken = jwt.sign(
-            { id: user.user_id, role: user.role },
+            { user_id: user.user_id, role: user.role }, // Sửa: dùng "user_id"
             process.env.JWT_SECRET,
             { expiresIn: "10h" }
         );
         const refreshToken = jwt.sign(
-            { id: user.user_id },
+            { user_id: user.user_id }, // Sửa: dùng "user_id" (tùy chọn, vì refresh token không cần role)
             process.env.JWT_REFRESH_SECRET,
             { expiresIn: "7d" }
         );
 
+
+        console.log('Access Token:', accessToken);
+        console.log('Refresh Token:', refreshToken);
+        //console.log('JWT_SECRET used:', process.env.JWT_SECRET);
+        //console.log('JWT_REFRESH_SECRET used:', process.env.JWT_REFRESH_SECRET);
+        
         await UserModel.saveRefreshToken(user.user_id, refreshToken);
         return { accessToken, refreshToken, user };
     },
@@ -63,12 +69,12 @@ const authService = {
         }
 
         const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-        if (decoded.id !== user.user_id) {
+        if (decoded.user_id !== user.user_id) { // Sửa: kiểm tra "user_id" thay vì "id"
             throw new Error("Refresh token không khớp với user!");
         }
 
         const newAccessToken = jwt.sign(
-            { id: user.user_id, role: user.role },
+            { user_id: user.user_id, role: user.role }, // Sửa: dùng "user_id"
             process.env.JWT_SECRET,
             { expiresIn: "10h" }
         );

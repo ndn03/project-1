@@ -2,15 +2,36 @@ require("dotenv").config();
 const express = require("express");
 const path = require("path");
 const cors = require("cors");
+const helmet = require("helmet");
+const cookieParser = require('cookie-parser');
+
+// Import routers và controller
 const authRouter = require("./routers/auth.router");
 const productRouter = require("./routers/product.router");
-const homeController = require("./controllers/home.controller"); // Import homeController
-const homeRouter = require("./routers/home.router"); // Import homeRouter
-const helmet = require("helmet"); // Import helmet for security
-const app = express(); // Initialize the app using express()
+const homeController = require("./controllers/home.controller");
+const homeRouter = require("./routers/home.router");
 const cartRouter = require("./routers/cart.router");
-// Bảo mật cơ bản
-app.use(cors());
+
+// Import middleware
+const authMiddleware = require("./middleware/auth.middleware");
+
+// Khởi tạo app Express
+const app = express();
+
+// Cấu hình middleware
+app.use(cookieParser()); // Sử dụng cookie-parser để đọc cookies
+app.use(cors()); // Bảo mật CORS
+app.use(helmet()); // Bảo mật với Helmet
+app.use(express.json()); // Parse JSON requests
+app.use(express.urlencoded({ extended: true })); // Parse URL-encoded requests
+
+// Cấu hình EJS và static files
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
+app.use(express.static(path.join(__dirname, "public"))); // Đảm bảo static files được phục vụ
+app.use("/img", express.static(path.join(__dirname, "public/img"))); // Phục vụ hình ảnh từ thư mục /img
+
+// Cấu hình bảo mật cơ bản với Helmet (CSP)
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -26,21 +47,21 @@ app.use(
         scriptSrcAttr: ["'unsafe-inline'"], // Cho phép inline event handlers
         styleSrc: [
           "'self'",
-          "https://cdnjs.cloudflare.com", // ✅ Cho phép tải Font Awesome CSS
+          "https://cdnjs.cloudflare.com", 
           "https://fonts.googleapis.com",
           "https://maxcdn.bootstrapcdn.com",
-          "'unsafe-inline'" // ✅ Cho phép CSS nội tuyến
+          "'unsafe-inline'"
         ],
         fontSrc: [
           "'self'",
-          "https://cdnjs.cloudflare.com", // ✅ Cho phép tải Font Awesome fonts
+          "https://cdnjs.cloudflare.com", 
           "https://fonts.gstatic.com",
-          "data:" // ✅ Cho phép fonts nhúng
+          "data:"
         ],
         imgSrc: [
           "'self'",
           "data:",
-          "https://cdnjs.cloudflare.com" // ✅ Cho phép icon Font Awesome
+          "https://cdnjs.cloudflare.com"
         ],
         connectSrc: ["'self'"],
         frameSrc: ["'none'"]
@@ -49,37 +70,20 @@ app.use(
   })
 );
 
-  
-// Middleware parse body
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Định tuyến
+app.get("/", homeController.index); // Render trang chủ
+app.use("/", homeRouter); // Đảm bảo homeRouter được sử dụng ở đây
+app.use("/product", productRouter); // Các route cho sản phẩm
+app.use("/", authRouter); // Đảm bảo authRouter được sử dụng ở đây
+app.use("/cart", cartRouter); // Giỏ hàng
 
-// Cấu hình EJS
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
-
-// Cấu hình static files
-app.use(express.static(path.join(__dirname, "public"))); // Ensure static files are served
-app.use("/img", express.static(path.join(__dirname, "public/img")));
-
-// Render the index.ejs page for the root path
-app.get("/", homeController.index);
-
-// Sử dụng router
-app.use("/", homeRouter); // Ensure homeRouter is registered here
-app.use("/product", productRouter);
-app.use("/", authRouter); // Ensure authRouter is registered here
-app.use("/cart", cartRouter); // Render trang giỏ hàng 
 // Xử lý lỗi 404
 app.use((req, res) => {
   res.status(404).json({ success: false, message: "API không tồn tại" });
 });
 
-
-// netstat -ano | findstr :8888
-// taskkill /PID 13900 /F
 // Khởi chạy server
 const port = process.env.PORT || 3337;
 app.listen(port, () => {
-  console.log(`Server is running: http://localhost:${port}`);
+  console.log(`Server is running at http://localhost:${port}`);
 });

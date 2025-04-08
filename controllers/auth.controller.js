@@ -20,11 +20,29 @@ const authController = {
         try {
             const { username, password } = req.body;
             const { accessToken, refreshToken, user } = await authService.login(username, password);
+    
+            // Gửi refreshToken vào cookie
+            res.cookie("refreshToken", refreshToken, {
+                httpOnly: true,
+                secure: false, // Để true nếu dùng HTTPS
+                path: "/",
+                sameSite: "strict",
+                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
+            });
+    
+            // Gửi accessToken vào cookie (thay vì chỉ trả trong JSON)
+            res.cookie("authToken", accessToken, {
+                httpOnly: true,
+                secure: false,
+                path: "/",
+                sameSite: "strict",
+                maxAge: 10 * 60 * 60 * 1000, // 10 giờ
+            });
+    
+            // Trả thông tin user trong JSON (không cần token nữa vì đã lưu vào cookie)
             res.json({
                 username: user.username,
                 role: user.role,
-                accessToken,
-                refreshToken,
             });
         } catch (error) {
             res.status(401).json({ message: error.message });
@@ -34,17 +52,24 @@ const authController = {
     // Làm mới token
     async refreshToken(req, res) {
         try {
-            const { refreshToken } = req.body;
+            const refreshToken = req.cookies.refreshToken;
             if (!refreshToken) {
-                return Medres.status(400).json({ message: "Refresh token không được cung cấp" });
+                return res.status(400).json({ message: "Refresh token không được cung cấp" });
             }
+    
             const { accessToken } = await authService.refreshToken(refreshToken);
+            res.cookie("authToken", accessToken, {
+                httpOnly: true,
+                secure: false,
+                path: "/",
+                sameSite: "strict",
+                maxAge: 10 * 60 * 60 * 1000, // 10 giờ
+            });
             res.json({ accessToken });
         } catch (error) {
             res.status(403).json({ message: error.message });
         }
     },
-
     // Đổi mật khẩu
     async changePassword(req, res) {
         try {
@@ -63,14 +88,25 @@ const authController = {
     // Đăng xuất
     async logout(req, res) {
         try {
-            const userId = req.user.user_id; // Lấy từ middleware authenticateToken
-            const result = await authService.logout(userId);
-            res.status(200).json(result);
+            const userId = req.user.user_id;
+            await authService.logout(userId);
+            res.clearCookie("refreshToken", {
+                path: "/",
+                httpOnly: true,
+                secure: false,
+                sameSite: "strict",
+            });
+            res.clearCookie("authToken", {
+                path: "/",
+                httpOnly: true,
+                secure: false,
+                sameSite: "strict",
+            });
+            res.status(200).json({ message: "Đăng xuất thành công" });
         } catch (error) {
             res.status(500).json({ message: "Lỗi server: " + error.message });
         }
     },
-
     // Kiểm tra trạng thái đăng nhập
     async getUserStatus(req, res) {
         try {

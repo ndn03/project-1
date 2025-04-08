@@ -5,7 +5,7 @@ USE watchshoppro;
 
 -- Bảng lưu thông tin người dùng
 CREATE TABLE IF NOT EXISTS users (
-    id INT AUTO_INCREMENT PRIMARY KEY,  -- ID người dùng (khóa chính)
+    user_id INT AUTO_INCREMENT PRIMARY KEY,  -- ID người dùng (khóa chính)
     username VARCHAR(50) NOT NULL UNIQUE,  -- Tên đăng nhập (duy nhất)
     password VARCHAR(255) NOT NULL,  -- Mật khẩu đã mã hóa
     email VARCHAR(100) NOT NULL UNIQUE,  -- Email (duy nhất)

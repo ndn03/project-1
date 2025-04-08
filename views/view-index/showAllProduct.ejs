@@ -23,6 +23,7 @@
                             <form action="/product/detail/<%= product.product_id %>" method="GET">
                                 <button type="submit">Xem chi tiết</button>
                             </form>
+                            <!-- <div id="notification" style="display: none; padding: 10px; margin-bottom: 10px; background-color: #4CAF50; color: white; border-radius: 5px;"></div> -->
                             <form class="add-to-cart-form" data-product-id="<%= product.product_id %>">
                                 <input type="hidden" name="product_id" value="<%= product.product_id %>">
                                 <button type="submit" title="Thêm vào giỏ hàng">
