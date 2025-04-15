@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Thanh toán</title>
+   <!-- <link rel="stylesheet" href="/css/styles.css"> Thêm CSS nếu cần -->
+</head>
+<body>
+    <h1>Thanh toán</h1>
+
+    <% if (error) { %>
+        <p style="color: red;"><%= error %></p>
+    <% } %>
+
+    <% if (cart && cart.items && cart.items.length > 0) { %>
+        <h2>Giỏ hàng của bạn</h2>
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Sản phẩm</th>
+                    <th>Số lượng</th>
+                    <th>Giá</th>
+                    <th>Tổng</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% cart.items.forEach(item => { %>
+                    <tr>
+                        <td><%= item.name %></td>
+                        <td><%= item.quantity %></td>
+                        <td><%= item.price %></td>
+                        <td><%= item.subtotal %></td>
+                    </tr>
+                <% }); %>
+            </tbody>
+        </table>
+        <p><strong>Tổng tiền:</strong> <%= cart.total %></p>
+        <p><strong>Giảm giá:</strong> <%= cart.discount_amount %></p>
+        <p><strong>Thành tiền:</strong> <%= cart.final_total %></p>
+
+        <h2>Thông tin giao hàng</h2>
+        <form id="checkout-form">
+            <input type="hidden" name="cart_id" value="<%= cartId %>">
+            <div>
+                <label for="province">Tỉnh/Thành phố:</label>
+                <select id="province" name="province_id" required>
+                    <option value="">Chọn tỉnh/thành</option>
+                </select>
+            </div>
+            <div>
+                <label for="district">Quận/Huyện:</label>
+                <select id="district" name="district_id" required>
+                    <option value="">Chọn quận/huyện</option>
+                </select>
+            </div>
+            <div>
+                <label for="ward">Phường/Xã:</label>
+                <select id="ward" name="ward_id" required>
+                    <option value="">Chọn phường/xã</option>
+                </select>
+            </div>
+            <div>
+                <label for="street_address">Địa chỉ chi tiết:</label>
+                <input type="text" id="street_address" name="street_address" required>
+            </div>
+            <div>
+                <label for="payment_method">Phương thức thanh toán:</label>
+                <select id="payment_method" name="payment_method_id" required>
+                    <option value="1">Tiền mặt</option>
+                    <option value="2">Thẻ tín dụng</option>
+                    <!-- Thêm các phương thức khác từ payment_methods -->
+                </select>
+            </div>
+            <button type="submit">Đặt hàng</button>
+        </form>
+    <% } %>
+
+    <script src="/js/checkout.js"></script>
+</body>
+</html>

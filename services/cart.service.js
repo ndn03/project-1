@@ -1,4 +1,4 @@
-const cartModel = require('../models/cart.model'); // Import the cart model
+const cartModel = require('../models/cart.model');
 
 const cartService = {
     async addToCart(userId, productId, quantity) {
@@ -32,7 +32,7 @@ const cartService = {
 
         const total = await cartModel.getCartTotal(cartId);
         if (total < voucher.min_order_value) {
-            throw new Error(`Đơn hàng phải đạt tối thiểu ${voucher.min_order_value} để áp dụng voucher`);
+            throw new Error(`Đơn hàng phải đạt tối thiểu ${voucher.min_order_value.toLocaleString('vi-VN')} VND để áp dụng voucher`);
         }
 
         await cartModel.applyVoucher(cartId, voucherCode);
@@ -75,6 +75,7 @@ const cartService = {
             final_total: finalTotal
         };
     },
+
     async updateCartItem(userId, cartItemId, quantity) {
         if (!cartItemId || !quantity || quantity <= 0) {
             throw new Error('Invalid cart item ID or quantity');

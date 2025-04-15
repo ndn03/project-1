@@ -24,13 +24,15 @@ const cartController = {
                 return res.status(401).json({ alert: "Alert: Không tìm thấy thông tin người dùng" });
             }
             const userId = req.user.user_id;
-            const { voucher_code } = req.body;
-            const discountAmount = await cartService.applyVoucher(userId, voucher_code);
+            const { code } = req.body;
+            console.log("Received voucher code in controller:", code);
+            const discountAmount = await cartService.applyVoucher(userId, code);
             res.status(200).json({
                 message: 'Voucher đã được áp dụng',
                 discount_amount: discountAmount
             });
         } catch (error) {
+            console.error("Lỗi khi áp dụng voucher:", error);
             res.status(500).json({ error: error.message });
         }
     },
@@ -38,8 +40,14 @@ const cartController = {
     async getCart(req, res) {
         try {
             if (!req.user || !req.user.user_id) {
+                // Nếu là request AJAX, trả về JSON
+                if (req.headers['x-requested-with'] === 'XMLHttpRequest') {
+                    return res.status(401).json({ message: "Vui lòng đăng nhập để xem giỏ hàng" });
+                }
+                // Nếu là truy cập trực tiếp, render trang đầy đủ
                 return res.status(401).render("cart", { cart: { message: "Vui lòng đăng nhập để xem giỏ hàng" } });
             }
+
             const userId = req.user.user_id;
             const cartData = await cartService.getCart(userId);
     
@@ -50,9 +58,25 @@ const cartController = {
                 final_total: cartData.final_total
             };
     
+            // Nếu là request AJAX (từ fetch), chỉ render nội dung cart-content
+            if (req.headers['x-requested-with'] === 'XMLHttpRequest') {
+                return res.status(200).render("cart-content", { cart }, (err, html) => {
+                    if (err) {
+                        return res.status(500).json({ message: "Lỗi server: " + err.message });
+                    }
+                    res.send(html);
+                });
+            }
+
+            // Nếu là truy cập trực tiếp, render toàn bộ trang cart.ejs
             res.status(200).render("cart", { cart });
         } catch (error) {
             console.error("Lỗi server:", error);
+            // Nếu là request AJAX, trả về JSON
+            if (req.headers['x-requested-with'] === 'XMLHttpRequest') {
+                return res.status(500).json({ message: "Lỗi server: " + error.message });
+            }
+            // Nếu là truy cập trực tiếp, render trang lỗi
             res.status(500).render("cart", { cart: { message: "Lỗi server: " + error.message } });
         }
     },
@@ -84,16 +108,15 @@ const cartController = {
             res.status(500).json({ error: error.message });
         }
     },
+
     async getCartData(req, res) {
         try {
-            // Lấy dữ liệu từ database, ví dụ dùng Sequelize/Mongoose
             const cartItems = await Cart.findAll({ where: { user_id: req.user.user_id } });
-            res.json({ items: cartItems }); // Trả về danh sách sản phẩm
+            res.json({ items: cartItems });
         } catch (error) {
             res.status(500).json({ message: "Lỗi khi lấy dữ liệu giỏ hàng" });
         }
     }
 };
-
 
 module.exports = cartController;

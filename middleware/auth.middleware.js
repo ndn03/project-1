@@ -5,9 +5,8 @@ require("dotenv").config();
 const authMiddleware = {
     authenticateToken: async (req, res, next) => {
         // 🆕 Lấy token từ Cookie
-        const token = req.cookies.authToken; // 👈 Bổ sung dòng này
-        console.log(`[${req.method} ${req.path}] Cookie hiện tại:`, req.cookies); // Log toàn bộ cookie
-        console.log(`[${req.method} ${req.path}] Received Cookie Token:`, token);
+        const token = req.cookies.authToken;
+        console.log(`[${req.method} ${req.path}] Cookie hiện tại:`, req.cookies);
         console.log(`[${req.method} ${req.path}] Received Cookie Token:`, token);
 
         if (!token) {
@@ -23,14 +22,10 @@ const authMiddleware = {
             }
 
             const decoded = jwt.verify(token, secretKey);
-            if (process.env.NODE_ENV === 'development') {
-                console.log("Decoded JWT:", decoded);
-            }
+            console.log("Decoded JWT:", decoded);
 
             if (!decoded.user_id) {
-                if (process.env.NODE_ENV === 'development') {
-                    console.log("Token Payload Error: Thiếu user_id trong payload");
-                }
+                console.log("Token Payload Error: Thiếu user_id trong payload");
                 return res.status(401).json({ message: "Token không chứa user_id" });
             }
 
@@ -41,9 +36,7 @@ const authMiddleware = {
                 );
 
                 if (rows.length === 0) {
-                    if (process.env.NODE_ENV === 'development') {
-                        console.log("Database Error: Không tìm thấy user hoặc user không active");
-                    }
+                    console.log("Database Error: Không tìm thấy user hoặc user không active");
                     return res.status(403).json({ message: "Tài khoản không tồn tại hoặc đã bị vô hiệu hóa" });
                 }
 
@@ -57,15 +50,11 @@ const authMiddleware = {
             console.error("Lỗi trong authenticateToken:", error);
 
             if (error.name === "TokenExpiredError") {
-                if (process.env.NODE_ENV === 'development') {
-                    console.log("Token Error: Token đã hết hạn");
-                }
+                console.log("Token Error: Token đã hết hạn");
                 return res.status(401).json({ message: "Phiên đăng nhập đã hết hạn" });
             }
             if (error.name === "JsonWebTokenError") {
-                if (process.env.NODE_ENV === 'development') {
-                    console.log("Token Error: Token không hợp lệ hoặc định dạng sai");
-                }
+                console.log("Token Error: Token không hợp lệ hoặc định dạng sai");
                 return res.status(401).json({ message: "Token không hợp lệ" });
             }
 
@@ -76,19 +65,15 @@ const authMiddleware = {
     authorizeRoles: (...roles) => {
         return (req, res, next) => {
             if (!req.user) {
-                if (process.env.NODE_ENV === 'development') {
-                    console.log("Authorize Error: Chưa đăng nhập");
-                }
+                console.log("Authorize Error: Chưa đăng nhập");
                 return res.status(401).json({ message: "Bạn chưa đăng nhập" });
             }
 
             if (!roles.includes(req.user.role)) {
-                if (process.env.NODE_ENV === 'development') {
-                    console.log("Authorize Error: Không có quyền truy cập", {
-                        required: roles,
-                        current: req.user.role,
-                    });
-                }
+                console.log("Authorize Error: Không có quyền truy cập", {
+                    required: roles,
+                    current: req.user.role,
+                });
                 return res.status(403).json({
                     message: "Bạn không có quyền truy cập",
                     required: roles,

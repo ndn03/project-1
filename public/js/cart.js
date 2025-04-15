@@ -1,24 +1,41 @@
-// Hàm load giỏ hàng khi trang được tải
 async function loadCart() {
     try {
-        const response = await fetch("http://localhost:3333/cart", { 
+        const response = await fetch("http://localhost:3333/cart", {
             method: "GET",
-            credentials: "include" // Gửi cookie kèm yêu cầu
+            credentials: "include",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest" // Thêm header để server nhận biết request AJAX
+            }
         });
+
         if (response.ok) {
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+                // Nếu response là JSON (trường hợp lỗi)
+                const data = await response.json();
+                alert(data.message || "Không thể tải giỏ hàng");
+                return;
+            }
+
             const htmlContent = await response.text();
             const cartContainer = document.getElementById("cart-container");
             if (cartContainer) {
                 cartContainer.innerHTML = htmlContent;
-                attachCartEventListeners(); // Gán lại sự kiện sau khi nội dung được cập nhật
+                attachCartEventListeners();
             } else {
                 console.error("Không tìm thấy cart-container trong DOM");
             }
         } else {
-            const errorHtml = await response.text();
-            alert("Không thể tải giỏ hàng: " + response.status);
-            const cartContainer = document.getElementById("cart-container");
-            if (cartContainer) cartContainer.innerHTML = errorHtml;
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+                const data = await response.json();
+                alert(data.message || "Không thể tải giỏ hàng: " + response.status);
+            } else {
+                const errorHtml = await response.text();
+                alert("Không thể tải giỏ hàng: " + response.status);
+                const cartContainer = document.getElementById("cart-container");
+                if (cartContainer) cartContainer.innerHTML = errorHtml;
+            }
         }
     } catch (error) {
         console.error("Lỗi tải giỏ hàng:", error);
@@ -26,52 +43,34 @@ async function loadCart() {
     }
 }
 
-// Hàm gửi request có đính kèm cookie
 async function fetchWithAuth(url, options = {}) {
-    options.credentials = "include"; // Gửi cookie kèm yêu cầu
+    options.credentials = "include";
+    options.headers = options.headers || {};
+    options.headers["X-Requested-With"] = "XMLHttpRequest"; // Thêm header cho tất cả request
     let response = await fetch(url, options);
 
-    // Xử lý trường hợp token hết hạn (401)
     if (response.status === 401) {
         console.log("Token expired or invalid, attempting to refresh");
         const refreshResponse = await fetch("http://localhost:3333/auth/refreshToken", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include" // Gửi cookie refreshToken
+            headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
+            credentials: "include"
         });
 
         if (refreshResponse.ok) {
             console.log("Token refreshed, retrying request");
             response = await fetch(url, { ...options, credentials: "include" });
         } else {
-            console.log("Refresh token failed, redirecting to login");
             alert("Phiên đăng nhập hết hạn, vui lòng đăng nhập lại.");
             window.location.href = "/";
-            return null; // Trả về null để xử lý lỗi
+            return null;
         }
     }
 
     return response;
 }
 
-// Hàm gán sự kiện cho các nút trong giỏ hàng
 function attachCartEventListeners() {
-    const prevBtn = document.querySelector('.prev-btn');
-    if (prevBtn) {
-        prevBtn.addEventListener('click', () => {
-            currentReviewIndex = (currentReviewIndex - reviewsPerPage + totalReviews) % totalReviews;
-            showReviews(currentReviewIndex);
-        });
-    }
-
-    const nextBtn = document.querySelector('.next-btn');
-    if (nextBtn) {
-        nextBtn.addEventListener('click', () => {
-            currentReviewIndex = (currentReviewIndex + reviewsPerPage) % totalReviews;
-            showReviews(currentReviewIndex);
-        });
-    }
-
     // Xóa sản phẩm
     document.querySelectorAll('.delete-form').forEach(form => {
         form.addEventListener('submit', async (event) => {
@@ -79,13 +78,13 @@ function attachCartEventListeners() {
             const cartItemId = form.action.split('/').pop();
 
             try {
-                const response = await fetchWithAuth(`/cart/remove/${cartItemId}`, {
+                const response = await fetchWithAuth(`http://localhost:3333/cart/remove/${cartItemId}`, {
                     method: 'DELETE'
                 });
 
                 if (response && response.ok) {
                     alert('Sản phẩm đã được xóa khỏi giỏ hàng');
-                    await loadCart(); // Tải lại giỏ hàng
+                    await loadCart();
                 } else if (response) {
                     const result = await response.json();
                     alert(result.error || 'Có lỗi khi xóa sản phẩm');
@@ -97,20 +96,27 @@ function attachCartEventListeners() {
         });
     });
 
-    // Cập nhật số lượng
-    document.querySelectorAll('input[data-cart-item-id]').forEach(input => {
-        input.addEventListener('change', async () => {
-            const cartItemId = input.dataset.cartItemId;
-            const quantity = parseInt(input.value);
-
-            if (quantity < 1) {
-                alert('Số lượng phải lớn hơn 0');
-                input.value = input.defaultValue;
+    // Nút + và -
+    document.querySelectorAll('.quantity-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const cartItemId = btn.dataset.cartItemId;
+            const isIncrement = btn.classList.contains('plus-btn');
+            const input = document.querySelector(`input[data-cart-item-id="${cartItemId}"]`);
+            if (!input) {
+                console.error(`Không tìm thấy input cho cartItemId: ${cartItemId}`);
                 return;
             }
 
+            let quantity = parseInt(input.value) || 1;
+
+            // Cập nhật số lượng
+            quantity = isIncrement ? quantity + 1 : Math.max(1, quantity - 1);
+
+            // Cập nhật giá trị hiển thị ngay lập tức
+            input.value = quantity;
+
             try {
-                const response = await fetchWithAuth('/cart/update', {
+                const response = await fetchWithAuth('http://localhost:3333/cart/update', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
@@ -119,21 +125,66 @@ function attachCartEventListeners() {
                 });
 
                 if (response && response.ok) {
-                    alert('Số lượng đã được cập nhật');
-                    await loadCart(); // Tải lại giỏ hàng
+                    await loadCart();
                 } else if (response) {
                     const result = await response.json();
                     alert(result.error || 'Có lỗi khi cập nhật số lượng');
-                    input.value = input.defaultValue;
+                    input.value = isIncrement ? quantity - 1 : quantity + 1;
                 }
             } catch (error) {
                 console.error('Lỗi:', error);
-                alert('Có lỗi xảy ra khi cập nhật số lượng');
-                input.value = input.defaultValue;
+                alert('Có lỗi khi cập nhật số lượng');
+                input.value = isIncrement ? quantity - 1 : quantity + 1;
             }
         });
     });
+
+    // Gửi mã voucher
+    const voucherForm = document.getElementById('voucher-form');
+    if (voucherForm) {
+        voucherForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const voucherInput = document.getElementById('voucher-code');
+            if (!voucherInput) {
+                console.error("Không tìm thấy ô input voucher-code");
+                alert("Lỗi giao diện: Không tìm thấy ô nhập mã giảm giá");
+                return;
+            }
+
+            const code = voucherInput.value.trim();
+            console.log("Mã voucher gửi đi:", code);
+
+            if (!code) {
+                alert("Vui lòng nhập mã giảm giá.");
+                return;
+            }
+
+            try {
+                console.log("Gửi request apply-voucher với body:", JSON.stringify({ code }));
+                const response = await fetchWithAuth('http://localhost:3333/cart/apply-voucher', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ code })
+                });
+
+                if (response && response.ok) {
+                    alert('Áp dụng voucher thành công!');
+                    await loadCart();
+                } else if (response) {
+                    const data = await response.json();
+                    console.error("Lỗi từ server:", data);
+                    alert(data.error || 'Không thể áp dụng voucher');
+                }
+            } catch (error) {
+                console.error('Lỗi khi áp dụng voucher:', error);
+                alert('Có lỗi xảy ra khi áp dụng voucher');
+            }
+        });
+    } else {
+        console.warn("Không tìm thấy voucher-form trong DOM");
+    }
 }
 
-// Gọi loadCart khi trang được tải
 window.addEventListener("DOMContentLoaded", loadCart);

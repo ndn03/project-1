@@ -4,7 +4,7 @@ const path = require("path");
 const cors = require("cors");
 const helmet = require("helmet");
 const cookieParser = require('cookie-parser');
-
+const orderRoutes = require('./routers/order.router'); // Import order router
 // Import routers và controller
 const authRouter = require("./routers/auth.router");
 const productRouter = require("./routers/product.router");
@@ -76,7 +76,7 @@ app.use("/", homeRouter); // Đảm bảo homeRouter được sử dụng ở đ
 app.use("/product", productRouter); // Các route cho sản phẩm
 app.use("/", authRouter); // Đảm bảo authRouter được sử dụng ở đây
 app.use("/cart", cartRouter); // Giỏ hàng
-
+app.use('/', orderRoutes);
 // Xử lý lỗi 404
 app.use((req, res) => {
   res.status(404).json({ success: false, message: "API không tồn tại" });

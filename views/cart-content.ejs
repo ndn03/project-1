@@ -1,49 +1,61 @@
-<% if (!cart || typeof cart === 'undefined' || cart.message || !cart.cart_items || cart.cart_items.length === 0) { %>
-    <p><%= (cart && cart.message) ? cart.message : 'Giỏ hàng trống' %></p>
-<% } else { %>
+<div id="cart-container">
     <h1>Giỏ hàng của bạn</h1>
-    <table id="cartTable">
-        <thead>
-            <tr>
-                <th>STT</th>
-                <th>Ảnh</th>
-                <th>Tên sản phẩm</th>
-                <th>Số lượng</th>
-                <th>Giá</th>
-                <th>Xóa</th>
-                <th>Mua ngay</th>
-            </tr>
-        </thead>
-        <tbody id="cartItems">
-            <% cart.cart_items.forEach((item, index) => { %>
+    <% if (!cart || typeof cart === 'undefined' || cart.message || !cart.cart_items || cart.cart_items.length === 0) { %>
+        <p><%= (cart && cart.message) ? cart.message : 'Giỏ hàng trống' %></p>
+    <% } else { %>
+        <table class="cart-table">
+            <thead>
                 <tr>
-                    <td><%= index + 1 %></td>
-                    <td><img src="<%= item.image_url || '/img/default.jpg' %>" alt="<%= item.name %>"></td>
-                    <td><%= item.name %></td>
-                    <td>
-                        <input type="number" 
-                               value="<%= item.quantity %>" 
-                               min="1" 
-                               data-cart-item-id="<%= item.cart_item_id %>" 
-                               onchange="updateQuantity(this)">
-                    </td>
-                    <td><%= parseFloat(item.price).toLocaleString("vi-VN") %> VND</td>
-                    <td>
-                        <form action="/cart/remove/<%= item.cart_item_id %>" method="POST" class="delete-form">
-                            <input type="hidden" name="_method" value="DELETE">
-                            <button type="submit" title="Xóa"><i class="fas fa-trash"></i></button>
-                        </form>
-                    </td>
-                    <td><button class="buy-now-btn">Mua ngay</button></td>
+                    <th>Hình ảnh</th>
+                    <th>Tên sản phẩm</th>
+                    <th>Số lượng</th>
+                    <th>Giá</th>
+                    <th>Thao tác</th>
                 </tr>
-            <% }) %>
-        </tbody>
-    </table>
-    <div id="totalPriceContainer">
-        <p id="totalPrice">Tổng giá: <%= cart.total.toLocaleString("vi-VN") %> VND</p>
-        <% if (cart.discount_amount > 0) { %>
-            <p>Giảm giá: <%= cart.discount_amount.toLocaleString("vi-VN") %> VND</p>
-        <% } %>
-        <p>Tổng thanh toán: <%= cart.final_total.toLocaleString("vi-VN") %> VND</p>
-    </div>
-<% } %>
+            </thead>
+            <tbody>
+                <% cart.cart_items.forEach((item) => { %>
+                    <tr>
+                        <td><img src="<%= item.image_url || '/img/default.jpg' %>" alt="<%= item.name %>"></td>
+                        <td><%= item.name %></td>
+                        <td>
+                            <div class="quantity-control">
+                                <button type="button" class="quantity-btn minus-btn" data-cart-item-id="<%= item.cart_item_id %>">-</button>
+                                <input type="number" class="quantity-input" data-cart-item-id="<%= item.cart_item_id %>" value="<%= item.quantity %>" min="1" readonly>
+                                <button type="button" class="quantity-btn plus-btn" data-cart-item-id="<%= item.cart_item_id %>">+</button>
+                            </div>
+                        </td>
+                        <td><%= parseFloat(item.price).toLocaleString("vi-VN") %> VND</td>
+                        <td>
+                            <form class="delete-form" action="/cart/remove/<%= item.cart_item_id %>" method="POST">
+                                <input type="hidden" name="_method" value="DELETE">
+                                <button type="submit" class="delete-btn">Xóa</button>
+                            </form>
+                        </td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+
+        <!-- Form nhập voucher -->
+        <div class="voucher-section">
+            <form id="voucher-form">
+                <label for="voucher-code">Mã giảm giá:</label>
+                <input type="text" id="voucher-code" name="voucher-code" placeholder="Nhập mã giảm giá" required>
+                <button type="submit" class="btn">Áp dụng</button>
+            </form>
+        </div>
+
+        <div class="cart-actions">
+            <a href="/checkout" class="btn">Thanh toán</a>
+            <a href="/" class="btn">Tiếp tục mua sắm</a>
+        </div>
+        <div id="totalPriceContainer">
+            <p id="totalPrice">Tổng giá: <%= cart.total.toLocaleString("vi-VN") %> VND</p>
+            <% if (cart.discount_amount > 0) { %>
+                <p>Giảm giá: <%= cart.discount_amount.toLocaleString("vi-VN") %> VND</p>
+            <% } %>
+            <p>Tổng thanh toán: <%= cart.final_total.toLocaleString("vi-VN") %> VND</p>
+        </div>
+    <% } %>
+</div>
