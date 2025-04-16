@@ -12,5 +12,5 @@ router.post('/add', cartController.addToCart); // Thêm sản phẩm vào giỏ 
 router.post('/apply-voucher', cartController.applyVoucher); // Áp dụng voucher
 router.put('/update', cartController.updateCartItem); // Cập nhật số lượng sản phẩm
 router.delete('/remove/:cartItemId', cartController.removeCartItem); // Xóa sản phẩm khỏi giỏ hàng
-
+router.get('/data', cartController.getCartData);
 module.exports = router;    

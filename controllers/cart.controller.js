@@ -111,12 +111,23 @@ const cartController = {
 
     async getCartData(req, res) {
         try {
-            const cartItems = await Cart.findAll({ where: { user_id: req.user.user_id } });
-            res.json({ items: cartItems });
+            if (!req.user || !req.user.user_id) {
+                return res.status(401).json({ alert: "Alert: Không tìm thấy thông tin người dùng" });
+            }
+    
+            const userId = req.user.user_id;
+            const cartData = await cartService.getCart(userId);
+            if (!cartData || !cartData.cart_id) {
+                return res.status(404).json({ error: "Không tìm thấy giỏ hàng" });
+            }
+    
+            // Trả về toàn bộ dữ liệu, bao gồm cart_items
+            res.status(200).json(cartData); // Giả sử cartService.getCart trả về { cart_id, cart_items, ... }
         } catch (error) {
-            res.status(500).json({ message: "Lỗi khi lấy dữ liệu giỏ hàng" });
+            console.error("Lỗi khi lấy dữ liệu giỏ hàng:", error);
+            res.status(500).json({ error: error.message });
         }
-    }
-};
+    },
+}
 
 module.exports = cartController;

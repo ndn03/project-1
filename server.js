@@ -4,34 +4,29 @@ const path = require("path");
 const cors = require("cors");
 const helmet = require("helmet");
 const cookieParser = require('cookie-parser');
-const orderRoutes = require('./routers/order.router'); // Import order router
-// Import routers và controller
+const fetch = require('node-fetch'); // Cần cài đặt: npm install node-fetch
+const orderRoutes = require('./routers/order.router');
 const authRouter = require("./routers/auth.router");
 const productRouter = require("./routers/product.router");
 const homeController = require("./controllers/home.controller");
 const homeRouter = require("./routers/home.router");
 const cartRouter = require("./routers/cart.router");
 
-// Import middleware
 const authMiddleware = require("./middleware/auth.middleware");
 
-// Khởi tạo app Express
 const app = express();
 
-// Cấu hình middleware
-app.use(cookieParser()); // Sử dụng cookie-parser để đọc cookies
-app.use(cors()); // Bảo mật CORS
-app.use(helmet()); // Bảo mật với Helmet
-app.use(express.json()); // Parse JSON requests
-app.use(express.urlencoded({ extended: true })); // Parse URL-encoded requests
+app.use(cookieParser());
+app.use(cors());
+app.use(helmet());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Cấu hình EJS và static files
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
-app.use(express.static(path.join(__dirname, "public"))); // Đảm bảo static files được phục vụ
-app.use("/img", express.static(path.join(__dirname, "public/img"))); // Phục vụ hình ảnh từ thư mục /img
+app.use(express.static(path.join(__dirname, "public")));
+app.use("/img", express.static(path.join(__dirname, "public/img")));
 
-// Cấu hình bảo mật cơ bản với Helmet (CSP)
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -44,17 +39,17 @@ app.use(
           "https://maxcdn.bootstrapcdn.com",
           "'unsafe-inline'"
         ],
-        scriptSrcAttr: ["'unsafe-inline'"], // Cho phép inline event handlers
+        scriptSrcAttr: ["'unsafe-inline'"],
         styleSrc: [
           "'self'",
-          "https://cdnjs.cloudflare.com", 
+          "https://cdnjs.cloudflare.com",
           "https://fonts.googleapis.com",
           "https://maxcdn.bootstrapcdn.com",
           "'unsafe-inline'"
         ],
         fontSrc: [
           "'self'",
-          "https://cdnjs.cloudflare.com", 
+          "https://cdnjs.cloudflare.com",
           "https://fonts.gstatic.com",
           "data:"
         ],
@@ -63,27 +58,64 @@ app.use(
           "data:",
           "https://cdnjs.cloudflare.com"
         ],
-        connectSrc: ["'self'"],
+        connectSrc: [
+          "'self'", // Cho phép tất cả các route trên domain server (bao gồm /proxy/provinces)
+          "https://provinces.open-api.vn" // Giữ để hỗ trợ kết nối trực tiếp nếu cần
+        ],
         frameSrc: ["'none'"]
       }
     }
   })
 );
 
-// Định tuyến
-app.get("/", homeController.index); // Render trang chủ
-app.use("/", homeRouter); // Đảm bảo homeRouter được sử dụng ở đây
-app.use("/product", productRouter); // Các route cho sản phẩm
-app.use("/", authRouter); // Đảm bảo authRouter được sử dụng ở đây
-app.use("/cart", cartRouter); // Giỏ hàng
+// Proxy routes để gọi API tỉnh thành
+app.get('/proxy/provinces', async (req, res) => {
+  try {
+    const response = await fetch('https://provinces.open-api.vn/api/p/');
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error("Lỗi proxy provinces:", error);
+    res.status(500).json({ error: "Không thể tải danh sách tỉnh/thành phố" });
+  }
+});
+
+app.get('/proxy/districts/:provinceId', async (req, res) => {
+  try {
+    const provinceId = req.params.provinceId;
+    const response = await fetch(`https://provinces.open-api.vn/api/p/${provinceId}?depth=2`);
+    const data = await response.json();
+    res.json(data.districts || []);
+  } catch (error) {
+    console.error("Lỗi proxy districts:", error);
+    res.status(500).json({ error: "Không thể tải danh sách quận/huyện" });
+  }
+});
+
+app.get('/proxy/wards/:districtId', async (req, res) => {
+  try {
+    const districtId = req.params.districtId;
+    const response = await fetch(`https://provinces.open-api.vn/api/d/${districtId}?depth=2`);
+    const data = await response.json();
+    res.json(data.wards || []);
+  } catch (error) {
+    console.error("Lỗi proxy wards:", error);
+    res.status(500).json({ error: "Không thể tải danh sách phường/xã" });
+  }
+});
+
+app.get("/", homeController.index);
+app.use("/", homeRouter);
+app.use("/product", productRouter);
+app.use("/", authRouter);
+app.use("/cart", cartRouter);
 app.use('/', orderRoutes);
-// Xử lý lỗi 404
+
 app.use((req, res) => {
   res.status(404).json({ success: false, message: "API không tồn tại" });
 });
 
-// Khởi chạy server
-const port = process.env.PORT || 3337;
+const port = process.env.PORT || 3333;
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
 });
