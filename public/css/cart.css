@@ -183,14 +183,13 @@ quantity-btn:hover {
 }
 
 footer {
-    background-color: #1A1A1A; /* Darker footer */
+    background-color: #1F1F1F; /* Slightly lighter than body background */
     color: #FFD700; /* Gold color for footer text */
     padding: 20px 0;
-    margin-top: auto; /* Push footer to the bottom */
     text-align: center;
-    position: relative;
-    bottom: 0;
+    margin-top: auto; /* Push footer to the bottom */
     width: 100%;
+    border-top: 1px solid #FFD700; /* Add a gold border at the top */
 }
 
 footer .container {
@@ -244,6 +243,7 @@ footer .container {
 .footer-bottom p {
     margin: 0;
     font-size: 14px;
+    color: #EAEAEA; /* Lighter text color for better readability */
 }
 
 #cart-container {
@@ -424,9 +424,13 @@ footer .container {
 #order-form-container {
     margin-top: 20px;
     padding: 20px;
+    max-width: 800px; /* Limit the width of the form */
+    margin-left: auto;
+    margin-right: auto; /* Center the form horizontally */
     border: 1px solid #FFD700; /* Gold border to match theme */
     border-radius: 5px;
     background-color: #1A1A1A; /* Dark background to match theme */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add a subtle shadow */
 }
 
 #order-form-container h2 {
@@ -436,12 +440,19 @@ footer .container {
     text-align: center;
 }
 
+#order-form {
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping to the next row */
+    gap: 20px; /* Add spacing between fields */
+}
+
 .form-group {
-    margin-bottom: 15px;
+    flex: 1 1 calc(50% - 20px); /* Take 50% width minus the gap */
+    display: flex;
+    flex-direction: column;
 }
 
 .form-group label {
-    display: block;
     margin-bottom: 5px;
     font-weight: bold;
     color: #FFD700; /* Gold color for labels */
@@ -460,22 +471,16 @@ footer .container {
     box-sizing: border-box;
 }
 
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-    outline: none;
-    border-color: #FFA500; /* Lighter gold on focus */
-}
-
 .form-group textarea {
     height: 100px;
     resize: vertical;
 }
 
 .form-actions {
+    width: 100%; /* Ensure buttons span the full width */
     display: flex;
-    gap: 10px;
     justify-content: center;
+    gap: 10px;
 }
 
 .form-actions .btn {
@@ -507,19 +512,12 @@ footer .container {
 }
 
 @media (max-width: 768px) {
-    #order-form-container {
-        padding: 15px;
+    #order-form {
+        flex-direction: column; /* Stack fields vertically on smaller screens */
     }
 
-    .form-group label {
-        font-size: 14px;
-    }
-
-    .form-group input,
-    .form-group select,
-    .form-group textarea {
-        font-size: 12px;
-        padding: 8px;
+    .form-group {
+        flex: 1 1 100%; /* Take full width on smaller screens */
     }
 
     .form-actions .btn {

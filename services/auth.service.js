@@ -116,6 +116,60 @@ const authService = {
         await UserModel.clearRefreshToken(userId);
         return { message: "Đăng xuất thành công!" };
     },
-};
+    
+    async forgotPassword(email) {
+        if (!email) {
+          throw new Error("Vui lòng nhập email");
+        }
+    
+        const user = await UserModel.findByEmail(email);
+        if (!user) {
+          throw new Error("Email không tồn tại hoặc tài khoản đã bị vô hiệu hóa!");
+        }
+    
+        const resetToken = jwt.sign(
+          { user_id: user.user_id },
+          process.env.JWT_SECRET,
+          { expiresIn: "1h" }
+        );
+    
+        await UserModel.saveResetToken(user.user_id, resetToken);
+    
+        const resetUrl = `${process.env.BASE_URL}/auth/reset-password?token=${resetToken}`;
+        const mailOptions = {
+          from: process.env.EMAIL_USER,
+          to: email,
+          subject: "Đặt lại mật khẩu - WatchShopPro",
+          html: `
+            <h2>Đặt lại mật khẩu</h2>
+            <p>Nhấn vào liên kết dưới đây để đặt lại mật khẩu của bạn:</p>
+            <a href="${resetUrl}">${resetUrl}</a>
+            <p>Liên kết này sẽ hết hạn sau 1 giờ.</p>
+          `
+        };
+    
+        await transporter.sendMail(mailOptions);
+        return { message: "Vui lòng kiểm tra email để đặt lại mật khẩu" };
+      },
+    
+      async resetPassword(token, newPassword) {
+        if (!token || !newPassword) {
+          throw new Error("Token hoặc mật khẩu mới không được để trống");
+        }
+    
+        const user = await UserModel.findByResetToken(token);
+        if (!user) {
+          throw new Error("Token không hợp lệ hoặc đã hết hạn!");
+        }
+    
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        if (decoded.user_id !== user.user_id) {
+          throw new Error("Token không hợp lệ!");
+        }
+    
+        await UserModel.updatePassword(user.user_id, newPassword);
+        return { message: "Mật khẩu đã được đặt lại thành công!" };
+      }
+    };
 
 module.exports = authService;

@@ -59,8 +59,8 @@
         </div>
     <% } %>
 </div>
-<!-- 
-Form nhập thông tin đặt hàng -->
+
+<!-- Form nhập thông tin đặt hàng -->
 <div id="order-form-container">
     <h2>Thông tin đặt hàng</h2>
     <form id="order-form">
@@ -98,8 +98,11 @@ Form nhập thông tin đặt hàng -->
             <label for="payment-method">Phương thức thanh toán:</label>
             <select id="payment-method" name="payment_method_id" required>
                 <option value="">Chọn phương thức thanh toán</option>
-                <option value="1">Thanh toán khi nhận hàng (COD)</option>
-                <option value="2">Chuyển khoản ngân hàng</option>
+                <% if (cart && cart.payment_methods && cart.payment_methods.length > 0) { %>
+                    <% cart.payment_methods.forEach(method => { %>
+                        <option value="<%= method.payment_method_id %>"><%= method.name %></option>
+                    <% }) %>
+                <% } %>
             </select>
         </div>
         <div class="form-group">
@@ -118,14 +121,20 @@ Form nhập thông tin đặt hàng -->
                 </tr>
             </thead>
             <tbody>
-                <% cart.cart_items.forEach((item) => { %>
+                <% if (cart && cart.cart_items && cart.cart_items.length > 0) { %>
+                    <% cart.cart_items.forEach((item) => { %>
+                        <tr>
+                            <td><img src="<%= item.image_url || '/img/default.jpg' %>" alt="<%= item.name %>"></td>
+                            <td><%= item.name %></td>
+                            <td><%= item.quantity %></td>
+                            <td><%= parseFloat(item.price).toLocaleString("vi-VN") %> VND</td>
+                        </tr>
+                    <% }) %>
+                <% } else { %>
                     <tr>
-                        <td><img src="<%= item.image_url || '/img/default.jpg' %>" alt="<%= item.name %>"></td>
-                        <td><%= item.name %></td>
-                        <td><%= item.quantity %></td>
-                        <td><%= parseFloat(item.price).toLocaleString("vi-VN") %> VND</td>
+                        <td colspan="4">Giỏ hàng trống</td>
                     </tr>
-                <% }) %>
+                <% } %>
             </tbody>
         </table>
         <div class="form-actions">

@@ -11,7 +11,7 @@ const productRouter = require("./routers/product.router");
 const homeController = require("./controllers/home.controller");
 const homeRouter = require("./routers/home.router");
 const cartRouter = require("./routers/cart.router");
-
+const nodemailer = require('nodemailer');
 const authMiddleware = require("./middleware/auth.middleware");
 
 const app = express();
@@ -114,7 +114,24 @@ app.use('/', orderRoutes);
 app.use((req, res) => {
   res.status(404).json({ success: false, message: "API không tồn tại" });
 });
+// Cấu hình Nodemailer
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
 
+transporter.verify((error, success) => {
+  if (error) {
+    console.error('Lỗi cấu hình email:', error);
+  } else {
+    console.log('Email server sẵn sàng:', success);
+  }
+});
+
+module.exports.transporter = transporter;
 const port = process.env.PORT || 3333;
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);

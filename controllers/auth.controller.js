@@ -1,4 +1,5 @@
 const authService = require("../services/auth.service");
+const nodemailer = require("nodemailer");
 
 const authController = {
     // Đăng ký tài khoản
@@ -116,6 +117,64 @@ const authController = {
             res.status(500).json({ message: "Lỗi server: " + error.message });
         }
     },
-};
+
+    // Quên mật khẩu
+    async forgotPassword(req, res) {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ error: "Email là bắt buộc." });
+        }
+
+        try {
+            // Example: Send a reset password email
+            const transporter = nodemailer.createTransport({
+                service: "Gmail",
+                auth: {
+                    user: process.env.EMAIL_USER,
+                    pass: process.env.EMAIL_PASS,
+                },
+            });
+
+            const mailOptions = {
+                from: process.env.EMAIL_USER,
+                to: email,
+                subject: "Yêu cầu đặt lại mật khẩu",
+                text: "Vui lòng nhấp vào liên kết sau để đặt lại mật khẩu của bạn: [link]",
+            };
+
+            await transporter.sendMail(mailOptions);
+            res.json({ message: "Email đặt lại mật khẩu đã được gửi." });
+        } catch (error) {
+            console.error("Lỗi khi gửi email:", error);
+            res.status(500).json({ error: "Không thể gửi email đặt lại mật khẩu." });
+        }
+    },
+    async forgotPassword(req, res) {
+        try {
+          const { email } = req.body;
+          if (!email) {
+            return res.status(400).json({ message: "Vui lòng nhập email" });
+          }
+          const result = await authService.forgotPassword(email);
+          res.status(200).json(result);
+        } catch (error) {
+          res.status(400).json({ message: error.message });
+        }
+      },
+    
+      async resetPassword(req, res) {
+        try {
+          const { token, newPassword } = req.body;
+          if (!token || !newPassword) {
+            return res.status(400).json({ message: "Token hoặc mật khẩu mới không được để trống" });
+          }
+          const result = await authService.resetPassword(token, newPassword);
+          res.status(200).json(result);
+        } catch (error) {
+          res.status(400).json({ message: error.message });
+        }
+      }
+    };
 
 module.exports = authController;

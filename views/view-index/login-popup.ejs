@@ -3,6 +3,7 @@
     <div class="tabs">
         <button class="tab-btn active" onclick="openTab('login', event)">Đăng nhập</button>
         <button class="tab-btn" onclick="openTab('register', event)">Đăng ký</button>
+        <!-- <button class="tab-btn" onclick="openTab('forgot-password', event)">Quên mật khẩu</button> -->
     </div>
     <!-- Login Form -->
     <div id="login" class="tab-content active">
@@ -49,4 +50,15 @@
             <button type="submit" class="submit-btn">Đăng ký</button>
         </form>
     </div>
+    <!-- Forgot Password Form -->
+    <!-- <div id="forgot-password" class="tab-content">
+        <form id="forgotPasswordForm" action="/auth/forgot-password" method="POST">
+            <div class="form-group">
+                <label for="forgotEmail">Email</label>
+                <input type="email" id="forgotEmail" name="email" placeholder="Nhập email của bạn" required>
+            </div>
+            <div id="message" class="message"></div>
+            <button type="submit" class="submit-btn" id="submitBtn">Gửi yêu cầu</button>
+        </form>
+    </div> -->
 </div>

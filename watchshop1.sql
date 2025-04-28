@@ -172,10 +172,9 @@ CREATE TABLE `payment_methods` (
   `payment_methods_id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(50) NOT NULL,
   `type` enum('E-Wallet','Bank','Cash') DEFAULT 'Cash',
-  `payment_method_id` int(11) NOT NULL,
-  PRIMARY KEY (`id`),
+  PRIMARY KEY (`payment_methods_id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE `order_items` (
   `order_item_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -195,9 +194,9 @@ CREATE TABLE `order_items` (
 CREATE TABLE `order_status` (
   `order_status_id` int(11) NOT NULL AUTO_INCREMENT,
   `status` varchar(50) NOT NULL,
-  PRIMARY KEY (`order_statu_id`),
+  PRIMARY KEY (`order_status_id`),
   UNIQUE KEY `status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Bảng lưu thông tin đơn hàng
 CREATE TABLE `orders` (
@@ -221,9 +220,9 @@ CREATE TABLE `orders` (
   KEY `status_id` (`status_id`),
   KEY `payment_method_id` (`payment_method_id`),
   CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
-  CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`status_id`) REFERENCES `order_status` (`order_statu_id`),
-  CONSTRAINT `orders_ibfk_3` FOREIGN KEY (`payment_method_id`) REFERENCES `payment_methods` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+  CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`status_id`) REFERENCES `order_status` (`order_status_id`),
+  CONSTRAINT `orders_ibfk_3` FOREIGN KEY (`payment_method_id`) REFERENCES `payment_methods` (`payment_methods_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Bảng lưu thông tin thanh toán
 CREATE TABLE `payments` (

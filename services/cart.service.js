@@ -43,24 +43,21 @@ const cartService = {
         if (!userId) {
             throw new Error('Người dùng không tồn tại');
         }
-
         const userExists = await cartModel.checkUserExists(userId);
         if (!userExists) throw new Error('Người dùng không tồn tại');
-
         const cartId = await cartModel.getOrCreateCart(userId);
         const items = await cartModel.getCartItems(cartId);
-        if (items.length === 0) return { message: 'Giỏ hàng trống' };
-
+        const paymentMethods = await cartModel.getPaymentMethods(); // Dòng ~50
+        if (items.length === 0) return { cart_id: cartId, message: 'Giỏ hàng trống', payment_methods: paymentMethods };
         let total = await cartModel.getCartTotal(cartId);
         const voucher = await cartModel.getAppliedVoucher(cartId);
         let discountAmount = 0;
         if (voucher && total >= voucher.min_order_value) {
             discountAmount = voucher.discount_amount;
         }
-
         const finalTotal = total - discountAmount;
-
         return {
+            cart_id: cartId,
             items: items.map(item => ({
                 cart_item_id: item.cart_item_id,
                 product_id: item.product_id,
@@ -72,7 +69,8 @@ const cartService = {
             })),
             total: total,
             discount_amount: discountAmount,
-            final_total: finalTotal
+            final_total: finalTotal,
+            payment_methods: paymentMethods
         };
     },
 
@@ -106,7 +104,47 @@ const cartService = {
         }
 
         return true;
+    },
+    async getCart(userId) {
+    if (!userId) {
+        throw new Error('Người dùng không tồn tại');
     }
+    const userExists = await cartModel.checkUserExists(userId);
+    if (!userExists) throw new Error('Người dùng không tồn tại');
+    const cartId = await cartModel.getOrCreateCart(userId);
+    const items = await cartModel.getCartItems(cartId);
+    const paymentMethods = await cartModel.getPaymentMethods();
+    if (items.length === 0) {
+        return {
+            cart_id: cartId,
+            message: 'Giỏ hàng trống',
+            payment_methods: paymentMethods
+        };
+    }
+    let total = await cartModel.getCartTotal(cartId);
+    const voucher = await cartModel.getAppliedVoucher(cartId);
+    let discountAmount = 0;
+    if (voucher && total >= voucher.min_order_value) {
+        discountAmount = voucher.discount_amount;
+    }
+    const finalTotal = total - discountAmount;
+    return {
+        cart_id: cartId,
+        items: items.map(item => ({
+            cart_item_id: item.cart_item_id,
+            product_id: item.product_id,
+            name: item.product_name,
+            quantity: item.quantity,
+            price: item.price,
+            subtotal: item.quantity * item.price,
+            image_url: item.image_url
+        })),
+        total: total,
+        discount_amount: discountAmount,
+        final_total: finalTotal,
+        payment_methods: paymentMethods
+    };
+}
 };
 
 module.exports = cartService;

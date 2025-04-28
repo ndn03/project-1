@@ -109,7 +109,19 @@ const cartModel = {
     async checkUserExists(userId) {
         const [user] = await pool.query('SELECT user_id FROM users WHERE user_id = ?', [userId]);
         return user.length > 0;
-    }
+    },
+
+    async getPaymentMethods() {
+        try {
+            console.log('Executing query to fetch payment methods');
+            const [rows] = await pool.query('SELECT payment_method_id, name FROM payment_methods');
+            console.log('Payment methods fetched:', rows);
+            return rows;
+        } catch (error) {
+            console.error('Lỗi khi lấy phương thức thanh toán:', error.message, error.stack);
+            throw new Error('Không thể lấy danh sách phương thức thanh toán');
+        }
+    },
 };
 
 module.exports = cartModel;

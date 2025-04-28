@@ -501,10 +501,18 @@ footer .container {
     color: #FFD700; /* Gold color for popup text */
     padding: 40px;
     border-radius: 12px;
-    width: 400px;
+    width: 520px; /* Increased by 30% from the original 400px */
     box-shadow: 0 2px 15px rgba(0, 0, 0, 0.15);
 }
-
+.message {
+    margin-top: 10px;
+    font-size: 14px;
+    text-align: center;
+}
+.submit-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
 .close-btn {
     position: absolute;
     right: 20px;

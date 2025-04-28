@@ -149,6 +149,54 @@ const UserModel = {
             throw new Error(`Lỗi xóa refresh token: ${error.message}`);
         }
     },
+
+    // Lưu reset token (tận dụng cột refresh_token, thêm tiền tố để phân biệt)
+    async saveResetToken(user_id, resetToken) {
+        if (!user_id || !resetToken) throw new Error("User ID hoặc reset token không được để trống");
+        if (isNaN(user_id)) throw new Error("User ID phải là số hợp lệ");
+        try {
+            const [result] = await pool.execute(
+                "UPDATE users SET refresh_token = ? WHERE user_id = ?",
+                [`reset:${resetToken}`, user_id] // Thêm tiền tố "reset:" để phân biệt
+            );
+            if (result.affectedRows === 0) {
+                throw new Error("Không tìm thấy user để lưu reset token");
+            }
+        } catch (error) {
+            throw new Error(`Lỗi lưu reset token: ${error.message}`);
+        }
+    },
+
+    // Tìm user theo reset token
+    async findByResetToken(resetToken) {
+        if (!resetToken) throw new Error("Reset token không được để trống");
+        try {
+            const [rows] = await pool.execute(
+                "SELECT user_id, username, full_name, email, password, role, refresh_token FROM users WHERE refresh_token = ? AND isActive = 1",
+                [`reset:${resetToken}`]
+            );
+            return rows.length > 0 ? rows[0] : null;
+        } catch (error) {
+            throw new Error(`Lỗi tìm kiếm theo reset token: ${error.message}`);
+        }
+    },
+
+    // Cập nhật mật khẩu
+    async updatePassword(user_id, password) {
+        if (!user_id || !password) throw new Error("User ID hoặc password không được để trống");
+        try {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            const [result] = await pool.execute(
+                "UPDATE users SET password = ?, refresh_token = NULL WHERE user_id = ?",
+                [hashedPassword, user_id]
+            );
+            if (result.affectedRows === 0) {
+                throw new Error("Không tìm thấy user để cập nhật mật khẩu");
+            }
+        } catch (error) {
+            throw new Error(`Lỗi cập nhật mật khẩu: ${error.message}`);
+        }
+    }
 };
 
 module.exports = UserModel;

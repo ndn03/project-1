@@ -1,6 +1,7 @@
 async function loadCart() {
     try {
-        const response = await fetch("http://localhost:3333/cart", {
+        console.log("Đang gọi API giỏ hàng...");
+        const response = await fetch("http://localhost:3333/cart/content", {
             method: "GET",
             credentials: "include",
             headers: {
@@ -8,15 +9,20 @@ async function loadCart() {
             }
         });
 
+        console.log("Response status:", response.status);
         if (response.ok) {
             const contentType = response.headers.get("content-type");
+            console.log("Content-Type:", contentType);
+
             if (contentType && contentType.includes("application/json")) {
                 const data = await response.json();
+                console.log("JSON response:", data);
                 alert(data.message || "Không thể tải giỏ hàng");
                 return;
             }
 
             const htmlContent = await response.text();
+            console.log("HTML content:", htmlContent);
             const cartContainer = document.getElementById("cart-container");
             if (cartContainer) {
                 cartContainer.innerHTML = htmlContent;
@@ -24,9 +30,11 @@ async function loadCart() {
                 loadProvinces();
             } else {
                 console.error("Không tìm thấy cart-container trong DOM");
+                alert("Lỗi giao diện: Không tìm thấy container giỏ hàng");
             }
         } else {
             const errorData = await response.json().catch(() => ({ message: "Lỗi không xác định" }));
+            console.error("Lỗi API:", errorData);
             alert("Không thể tải giỏ hàng: " + (errorData.message || response.status));
         }
     } catch (error) {
@@ -35,6 +43,7 @@ async function loadCart() {
     }
 }
 
+// Giữ nguyên các hàm khác từ artifact trước
 async function fetchWithAuth(url, options = {}) {
     options.credentials = "include";
     options.headers = options.headers || {};
@@ -42,7 +51,6 @@ async function fetchWithAuth(url, options = {}) {
     let response = await fetch(url, options);
 
     if (response.status === 401) {
-        console.log("Token expired or invalid, attempting to refresh");
         const refreshResponse = await fetch("http://localhost:3333/auth/refreshToken", {
             method: "POST",
             headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
@@ -50,7 +58,6 @@ async function fetchWithAuth(url, options = {}) {
         });
 
         if (refreshResponse.ok) {
-            console.log("Token refreshed, retrying request");
             response = await fetch(url, { ...options, credentials: "include" });
         } else {
             alert("Phiên đăng nhập hết hạn, vui lòng đăng nhập lại.");
@@ -196,15 +203,12 @@ function attachCartEventListeners() {
             }
 
             const code = voucherInput.value.trim();
-            console.log("Mã voucher gửi đi:", code);
-
             if (!code) {
                 alert("Vui lòng nhập mã giảm giá.");
                 return;
             }
 
             try {
-                console.log("Gửi request apply-voucher với body:", JSON.stringify({ code }));
                 const response = await fetchWithAuth('http://localhost:3333/cart/apply-voucher', {
                     method: 'POST',
                     headers: {
@@ -218,7 +222,6 @@ function attachCartEventListeners() {
                     await loadCart();
                 } else if (response) {
                     const data = await response.json();
-                    console.error("Lỗi từ server:", data);
                     alert(data.error || 'Không thể áp dụng voucher');
                 }
             } catch (error) {
@@ -226,15 +229,13 @@ function attachCartEventListeners() {
                 alert('Có lỗi xảy ra khi áp dụng voucher');
             }
         });
-    } else {
-        console.warn("Không tìm thấy voucher-form trong DOM");
     }
 
     const checkoutBtn = document.getElementById('checkout-btn');
     if (checkoutBtn) {
         checkoutBtn.addEventListener('click', async () => {
             try {
-                const cartResponse = await fetchWithAuth("http://localhost:3333/cart", {
+                const cartResponse = await fetchWithAuth("http://localhost:3333/cart/content", {
                     method: "GET",
                     headers: {
                         "X-Requested-With": "XMLHttpRequest"
@@ -250,13 +251,11 @@ function attachCartEventListeners() {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(cartContent, 'text/html');
                 const cartTable = doc.querySelector('.cart-table');
-
                 const productsTable = document.getElementById('products-table');
                 if (productsTable && cartTable) {
                     productsTable.innerHTML = cartTable.outerHTML;
                 } else if (!cartTable) {
                     productsTable.innerHTML = '<p>Giỏ hàng trống hoặc không có sản phẩm.</p>';
-                    console.warn("Không tìm thấy cart-table trong dữ liệu giỏ hàng");
                 } else {
                     console.error("Không tìm thấy products-table trong form");
                 }
@@ -313,7 +312,7 @@ function attachCartEventListeners() {
                 return;
             }
 
-            const cartResponse = await fetchWithAuth("http://localhost:3333/cart", {
+            const cartResponse = await fetchWithAuth("http://localhost:3333/cart/content", {
                 method: "GET",
                 headers: {
                     "X-Requested-With": "XMLHttpRequest"
@@ -329,6 +328,14 @@ function attachCartEventListeners() {
             if (!cartContent.includes('cart-table')) {
                 alert("Giỏ hàng trống! Vui lòng thêm sản phẩm trước khi đặt hàng.");
                 return;
+            }
+
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(cartContent, 'text/html');
+            const cartTable = doc.querySelector('.cart-table');
+            const productsTable = document.getElementById('products-table');
+            if (productsTable && cartTable) {
+                productsTable.innerHTML = cartTable.outerHTML;
             }
 
             const cartDataResponse = await fetchWithAuth("http://localhost:3333/cart/data", {
@@ -363,7 +370,6 @@ function attachCartEventListeners() {
             };
 
             try {
-                console.log("Gửi request tạo đơn hàng với body:", JSON.stringify(orderData));
                 const response = await fetchWithAuth('http://localhost:3333/orders', {
                     method: 'POST',
                     headers: {
@@ -377,7 +383,6 @@ function attachCartEventListeners() {
                     window.location.href = `/orders/${result.order.order_id}`;
                 } else if (response) {
                     const data = await response.json();
-                    console.error("Lỗi từ server:", data);
                     alert(data.error || 'Không thể đặt hàng');
                 }
             } catch (error) {
@@ -389,15 +394,10 @@ function attachCartEventListeners() {
         const cancelOrderBtn = document.getElementById('cancel-order-btn');
         if (cancelOrderBtn) {
             cancelOrderBtn.addEventListener('click', () => {
-                const orderFormContainer = document.getElementById('order-form-container');
-                if (orderFormContainer) {
-                    orderFormContainer.style.display = 'none';
-                    orderForm.reset();
-                }
+                orderForm.reset();
+                alert("Đã hủy nhập thông tin đặt hàng.");
             });
         }
-    } else {
-        console.warn("Không tìm thấy order-form trong DOM");
     }
 }
 
