@@ -53,6 +53,68 @@ const ProductService = {
         } catch (error) {
             throw new Error("Lỗi khi lấy chi tiết sản phẩm: " + error.message);
         }
+    },
+
+    // Lấy danh sách sản phẩm với bộ lọc và phân trang
+    getAllProducts: async ({ limit = 10, offset = 0, brandId, categoryId, minPrice, maxPrice, sortBy }) => {
+        try {
+            const products = await ProductModel.getProductsByFilters({
+                limit,
+                offset,
+                brandId,
+                categoryId,
+                minPrice,
+                maxPrice,
+                sortBy
+            });
+            return products;
+        } catch (error) {
+            throw new Error("Lỗi khi lấy danh sách sản phẩm: " + error.message);
+        }
+    },
+
+    // Thêm sản phẩm mới
+    createProduct: async (data) => {
+        try {
+            const { product, details, images, categories } = data;
+            if (!product?.name || !product?.price || !product?.brand_id) {
+                throw new Error("Thiếu thông tin bắt buộc: name, price, hoặc brand_id");
+            }
+            const productId = await ProductModel.createProduct(product, details || {}, images || [], categories || []);
+            return { productId };
+        } catch (error) {
+            throw new Error("Lỗi khi tạo sản phẩm: " + error.message);
+        }
+    },
+
+    // Cập nhật sản phẩm
+    updateProduct: async (productId, data) => {
+        try {
+            const { product, details, images, categories } = data;
+            if (!product?.name || !product?.price || !product?.brand_id) {
+                throw new Error("Thiếu thông tin bắt buộc: name, price, hoặc brand_id");
+            }
+            const success = await ProductModel.updateProduct(productId, product, details || {}, images || [], categories || []);
+            if (!success) {
+                throw new Error("Sản phẩm không tồn tại");
+            }
+            return { productId };
+        } catch (error) {
+            throw new Error("Lỗi khi cập nhật sản phẩm: " + error.message);
+        }
+    },
+
+    // Xóa sản phẩm
+    deleteProduct: async (productId) => {
+        try {
+            const success = await ProductModel.deleteProduct(productId);
+            if (!success) {
+                throw new Error("Sản phẩm không tồn tại");
+            }
+            return true;
+        } catch (error) {
+            throw new Error("Lỗi khi xóa sản phẩm: " + error.message);
+        }
     }
 };
 

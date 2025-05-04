@@ -90,7 +90,86 @@ const orderModel = {
             [userId, productId]
         );
         return orders.length > 0;
-    }
-};
+    },
+
+    async updateOrderStatus(orderId, statusId) {
+        try {
+            // Kiểm tra xem đơn hàng có tồn tại không
+            const [order] = await pool.query(
+                'SELECT * FROM orders WHERE order_id = ?',
+                [orderId]
+            );
+
+            if (order.length === 0) {
+                throw new Error('Không tìm thấy đơn hàng');
+            }
+
+            // Kiểm tra xem trạng thái có tồn tại không
+            const [status] = await pool.query(
+                'SELECT * FROM order_status WHERE order_status_id = ?',
+                [statusId]
+            );
+
+            if (status.length === 0) {
+                throw new Error('Trạng thái không hợp lệ');
+            }
+
+            // Cập nhật trạng thái đơn hàng
+            await pool.query(
+                'UPDATE orders SET status_id = ? WHERE order_id = ?',
+                [statusId, orderId]
+            );
+
+            // Nếu trạng thái là "HOÀN THÀNH", cập nhật doanh thu
+            if (status[0].status === 'Hoàn thành') {
+                // Lấy thông tin đơn hàng
+                const [orderInfo] = await pool.query(
+                    'SELECT user_id, final_amount FROM orders WHERE order_id = ?',
+                    [orderId]
+                );
+
+                if (orderInfo.length > 0) {
+                    // Cập nhật tổng doanh thu trong user_profiles
+                    await pool.query(
+                        'UPDATE user_profiles SET total_purchased = total_purchased + ? WHERE user_id = ?',
+                        [orderInfo[0].final_amount, orderInfo[0].user_id]
+                    );
+                }
+            }
+
+            // Lấy thông tin đơn hàng sau khi cập nhật
+            const [updatedOrder] = await pool.query(
+                `SELECT o.*, os.status as status_name, pm.name as payment_method_name
+                FROM orders o
+                LEFT JOIN order_status os ON o.status_id = os.order_status_id
+                LEFT JOIN payment_methods pm ON o.payment_method_id = pm.payment_method_id
+                WHERE o.order_id = ?`,
+                [orderId]
+            );
+
+            return updatedOrder[0];
+        } catch (error) {
+            console.error('Lỗi khi cập nhật trạng thái đơn hàng:', error);
+            throw error;
+        }
+    },
+
+    async getActualRevenue() {
+        const [result] = await pool.query(
+            `SELECT COALESCE(SUM(final_amount), 0) AS actual_revenue
+             FROM orders
+             WHERE status_id = (SELECT order_status_id FROM order_status WHERE status = 'Hoàn thành')`
+        );
+        return result[0].actual_revenue;
+    },
+
+    async getExpectedRevenue() {
+        const [result] = await pool.query(
+            `SELECT COALESCE(SUM(final_amount), 0) AS expected_revenue
+             FROM orders`
+        );
+        return result[0].expected_revenue;
+    },
+}
 
 module.exports = orderModel;

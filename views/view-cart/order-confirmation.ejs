@@ -8,10 +8,6 @@
 <body>
     <h1>Xác nhận đơn hàng</h1>
 
-    <% if (error) { %>
-        <p style="color: red;"><%= error %></p>
-    <% } %>
-
     <% if (order) { %>
         <p>Cảm ơn bạn đã đặt hàng! Mã đơn hàng: <strong>#<%= order.order_id %></strong></p>
         <h2>Thông tin đơn hàng</h2>

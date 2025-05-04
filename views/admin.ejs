@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Đồng Hồ</title>
+    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <h2>Admin</h2>
+        </div>
+        <ul class="menu">
+            <li class="menu-item">
+                <a href="#" onclick="showSection('product-info')">
+                    <i class="fas fa-home"></i> Tổng quan
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="#" onclick="showSection('add-product')">
+                    <i class="fas fa-edit"></i> Quản lý sản phẩm
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="#" onclick="showSection('donhang')">
+                    <i class="fab fa-first-order"></i> Quản lý đơn hàng
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="#" onclick="showSection('user')">
+                    <i class="fas fa-user-circle"></i> Tài khoản
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="#" onclick="showSection('voucher-management')">
+                    <i class="fas fa-ticket-alt"></i> Quản lý voucher
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="#" onclick="showSection('comment')">
+                    <i class="fas fa-ticket-alt"></i> Quản lý đánh giá
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="#" onclick="showSection('list-info')">
+                    <i class="fas fa-list"></i> Khác
+                </a>
+            </li>
+        </ul>
+    </div>
+    
+    <div class="main-content">
+        <header>
+            <h1>TỔNG QUAN</h1>
+            <a href="/" class="btn-back-home">Quay lại trang chủ</a>
+        </header>
+
+        <!-- Section Tổng quan -->
+        <section id="product-info" class="content-section">
+            <div class="overview">
+                <div class="box">
+                    <h3>Tổng Số Sản Phẩm</h3>
+                    <p id="total-products">0</p>
+                </div>
+                <div class="box">
+                    <h3>Tổng Số Khách Hàng</h3>
+                    <p id="total-customers">0</p>
+                </div>
+                <div class="box">
+                    <h3>Đơn hàng chờ duyệt</h3>
+                    <p id="pending-orders">0</p>
+                </div>
+                <div class="box">
+                    <h3>Đơn hàng đã giao</h3>
+                    <p id="completed-orders">0</p>
+                </div>
+                <div class="box revenue-box">
+                    <h3>Tổng Doanh Thu</h3>
+                    <p id="total-revenue" style="cursor:pointer">0 VND</p>
+                    <button id="show-revenue-detail" class="btn-primary" style="margin-top:8px;">Xem chi tiết</button>
+                </div>
+            </div>
+            <!-- Top Selling Products Table -->
+            <div class="top-selling-products" style="margin-top:32px;">
+                <h3 style="margin-bottom:12px;">Top 5 Sản Phẩm Bán Chạy</h3>
+                <div id="top-selling-products-list" class="top-selling-products-list" style="display:flex;gap:18px;flex-wrap:wrap;">
+                    <!-- Sản phẩm bán chạy sẽ được render bằng JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Section Quản lý sản phẩm -->
+        <section id="add-product" class="content-section" style="display: none;">
+            <div class="products">
+                <h2>Quản Lý Sản Phẩm</h2>
+                <div class="action-buttons">
+                    <button id="add-product-btn" class="btn-primary">
+                        <i class="fas fa-plus"></i> Thêm Sản Phẩm
+                    </button>
+                    <button id="add-category-btn" class="btn-secondary">
+                        <i class="fas fa-folder-plus"></i> Thêm Danh Mục
+                    </button>
+                    <button id="add-brand-btn" class="btn-secondary">
+                        <i class="fas fa-tag"></i> Thêm Thương Hiệu
+                    </button>
+                </div>
+
+                <!-- Form thêm/sửa sản phẩm -->
+                <div id="product-form" class="form-container">
+                    <div class="form-content">
+                        <div class="form-header">
+                            <h3 id="form-title">Thêm Sản Phẩm Mới</h3>
+                            <button type="button" class="close-form" onclick="hideProductForm()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <form id="product-form-content">
+                            <input type="hidden" id="product-id">
+                            <div class="form-group">
+                                <label for="product-name">Tên sản phẩm:</label>
+                                <input type="text" id="product-name" name="product-name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="product-price">Giá:</label>
+                                <input type="number" id="product-price" name="product-price" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="product-discount">Giảm giá (%):</label>
+                                <input type="number" id="product-discount" name="product-discount" min="0" max="100">
+                            </div>
+                            <div class="form-group">
+                                <label for="product-stock">Số lượng tồn kho:</label>
+                                <input type="number" id="product-stock" name="product-stock" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="product-brand">Thương hiệu:</label>
+                                <select id="product-brand" name="product-brand" required></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Danh mục:</label>
+                                <div id="product-categories-container" class="checkbox-group">
+                                    <!-- Categories will be added here dynamically -->
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="product-images">Hình ảnh:</label>
+                                <input type="file" id="product-images" name="product-images" multiple accept="image/*">
+                            </div>
+                            <div class="form-group">
+                                <label for="additional-images">Hình ảnh phụ:</label>
+                                <div id="additional-images-container" class="image-preview-container">
+                                    <!-- Additional images will be dynamically added here -->
+                                </div>
+                                <input type="file" id="additional-images" name="additional-images" multiple accept="image/*">
+                            </div>
+                            <div class="form-group">
+                                <h4>Thông số kỹ thuật</h4>
+                                <label for="product-diameter">Đường kính:</label>
+                                <input type="text" id="product-diameter" name="product-diameter">
+
+                                <label for="product-water-resistance">Độ chống nước:</label>
+                                <input type="text" id="product-water-resistance" name="product-water-resistance">
+
+                                <label for="product-thickness">Độ dày:</label>
+                                <input type="text" id="product-thickness" name="product-thickness">
+
+                                <label for="product-material-face">Mặt kính:</label>
+                                <input type="text" id="product-material-face" name="product-material-face">
+
+                                <label for="product-material-case">Vỏ:</label>
+                                <input type="text" id="product-material-case" name="product-material-case">
+
+                                <label for="product-material-strap">Dây:</label>
+                                <input type="text" id="product-material-strap" name="product-material-strap">
+
+                                <label for="product-size">Kích thước:</label>
+                                <input type="text" id="product-size" name="product-size">
+
+                                <label for="product-movement">Bộ máy:</label>
+                                <input type="text" id="product-movement" name="product-movement">
+
+                                <label for="product-origin">Xuất xứ:</label>
+                                <input type="text" id="product-origin" name="product-origin">
+
+                                <label for="product-warranty">Bảo hành:</label>
+                                <input type="text" id="product-warranty" name="product-warranty">
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn-primary">
+                                    <i class="fas fa-save"></i> Lưu
+                                </button>
+                                <button type="button" class="btn-secondary" onclick="hideProductForm()">
+                                    <i class="fas fa-times"></i> Hủy
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Danh sách sản phẩm -->
+                <div class="product-list-container">
+                    <div class="search-filter">
+                        <div class="search-box">
+                            <input type="text" id="search-product" placeholder="Tìm kiếm sản phẩm...">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <div class="filter-box">
+                            <select id="filter-brand">
+                                <option value="">Tất cả thương hiệu</option>
+                            </select>
+                            <select id="filter-category">
+                                <option value="">Tất cả danh mục</option>
+                            </select>
+                            <select id="filter-sort">
+                                <option value="newest">Mới nhất</option>
+                                <option value="price_asc">Giá tăng dần</option>
+                                <option value="price_desc">Giá giảm dần</option>
+                                <option value="name_asc">Tên A-Z</option>
+                                <option value="name_desc">Tên Z-A</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="product-table-container">
+                        <table class="product-table">
+                            <thead>
+                                <tr>
+                                    <th>Hình ảnh</th>
+                                    <th>Tên sản phẩm</th>
+                                    <th>Giá</th>
+                                    <th>Giảm giá</th>
+                                    <th>Tồn kho</th>
+                                    <th>Thương hiệu</th>
+                                    <th>Danh mục</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="product-list">
+                                <!-- Sản phẩm sẽ được thêm vào đây bằng JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="pagination">
+                        <button id="prev-page" class="btn-secondary">
+                            <i class="fas fa-chevron-left"></i> Trước
+                        </button>
+                        <span id="page-info">Trang 1</span>
+                        <button id="next-page" class="btn-secondary">
+                            Sau <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section Quản lý đơn hàng -->
+        <section id="donhang" class="content-section" style="display: none;">
+            <div class="order">
+                <h2>Quản Lý Đơn Hàng</h2>
+                <div class="order-table-container">
+                    <table class="order-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Khách Hàng</th>
+                        
+                                <th>Địa Chỉ</th>
+                                <th>Phương Thức TT</th>
+                                <th>Trạng Thái</th>
+                                <th>Tổng Tiền</th>
+                                <th>Ngày Tạo</th>
+                                <th>Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersList">
+                            <!-- Danh sách đơn hàng sẽ được thêm bằng JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section Tài khoản -->
+        <section id="user" class="content-section" style="display: none;">
+            <div class="user-management">
+                <!-- Nội dung quản lý tài khoản sẽ được thêm vào đây -->
+            </div>
+        </section>
+
+        <!-- Section Quản lý voucher -->
+        <section id="voucher-management" class="content-section" style="display: none;">
+            <h2>Quản Lý Voucher</h2>
+            <div class="voucher-list-container">
+                <table class="voucher-table">
+                    <thead>
+                        <tr>
+                            <th>Mã voucher</th>
+                            <th>Giảm giá (%)</th>
+                            <th>Giá trị đơn hàng tối thiểu</th>
+                            <th>Ngày bắt đầu</th>
+                            <th>Ngày kết thúc</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="voucher-list">
+                        <!-- Danh sách voucher sẽ được render bằng JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Section Quản lý đánh giá -->
+        <section id="comment" class="content-section" style="display: none;">
+            <h2>Quản Lý Đánh Giá</h2>
+            <div class="comment-management">
+                <table class="comment-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nội dung</th>
+                            <th>Đánh giá</th>
+                            <th>Người dùng</th>
+                            <th>Sản phẩm</th>
+                            <th>Ngày tạo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="comment-table-body">
+                        <!-- Dữ liệu đánh giá sẽ được render bằng JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Section Danh mục, Thương hiệu, Thanh toán -->
+        <section id="list-info" class="content-section" style="display: none;">
+            <h2>Danh mục, Thương hiệu & Phương thức thanh toán</h2>
+            <div class="info-lists" style="display: flex; gap: 32px; flex-wrap: wrap;">
+                <div style="flex:1;min-width:220px;">
+                    <h3>Danh mục sản phẩm</h3>
+                    <button class="btn-primary" id="add-category-btn2" style="margin-bottom:8px;">Thêm danh mục</button>
+                    <table class="info-table">
+                        <thead><tr><th>Tên danh mục</th><th>Thao tác</th></tr></thead>
+                        <tbody id="category-list">
+                            <!-- Danh sách danh mục sẽ được render bằng JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div style="flex:1;min-width:220px;">
+                    <h3>Thương hiệu</h3>
+                    <button class="btn-primary" id="add-brand-btn2" style="margin-bottom:8px;">Thêm thương hiệu</button>
+                    <table class="info-table">
+                        <thead><tr><th>Tên thương hiệu</th><th>Thao tác</th></tr></thead>
+                        <tbody id="brand-list">
+                            <!-- Danh sách thương hiệu sẽ được render bằng JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div style="flex:1;min-width:220px;">
+                    <h3>Phương thức thanh toán</h3>
+                    <button class="btn-primary" id="add-payment-btn" style="margin-bottom:8px;">Thêm phương thức</button>
+                    <table class="info-table">
+                        <thead><tr><th>Tên phương thức</th><th>Thao tác</th></tr></thead>
+                        <tbody id="payment-method-list">
+                            <!-- Danh sách phương thức thanh toán sẽ được render bằng JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="order-history-container">
+                <h3>Lịch sử đơn hàng đã hoàn thành</h3>
+                <table class="info-table order-history-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Khách Hàng</th>
+                            <th>Địa Chỉ</th>
+                            <th>Phương Thức TT</th>
+                            <th>Tổng Tiền</th>
+                            <th>Ngày Tạo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="order-history-list">
+                        <!-- Lịch sử đơn hàng sẽ được render bằng JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- Form thêm/sửa thương hiệu -->
+    <div id="brand-form" class="form-container">
+        <div class="form-content">
+            <div class="form-header">
+                <h3 id="brand-form-title">Thêm Thương Hiệu Mới</h3>
+                <button type="button" class="close-form" onclick="hideBrandForm()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="brand-form-content">
+                <input type="hidden" id="brand-id">
+                <div class="form-group">
+                    <label for="brand-name">Tên thương hiệu:</label>
+                    <input type="text" id="brand-name" name="brand-name" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-save"></i> Lưu
+                    </button>
+                    <button type="button" class="btn-secondary" onclick="hideBrandForm()">
+                        <i class="fas fa-times"></i> Hủy
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Form thêm/sửa danh mục -->
+    <div id="category-form" class="form-container">
+        <div class="form-content">
+            <div class="form-header">
+                <h3 id="category-form-title">Thêm Danh Mục Mới</h3>
+                <button type="button" class="close-form" onclick="hideCategoryForm()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="category-form-content">
+                <input type="hidden" id="category-id">
+                <div class="form-group">
+                    <label for="category-name">Tên danh mục:</label>
+                    <input type="text" id="category-name" name="category-name" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-save"></i> Lưu
+                    </button>
+                    <button type="button" class="btn-secondary" onclick="hideCategoryForm()">
+                        <i class="fas fa-times"></i> Hủy
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal chi tiết sản phẩm -->
+    <div id="product-detail-modal" class="form-container">
+        <div class="form-content" style="max-width: 600px;">
+            <div class="form-header">
+                <h3>Chi tiết sản phẩm</h3>
+                <button type="button" class="close-form" onclick="hideProductDetail()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="product-detail-content">
+                <!-- Nội dung chi tiết sẽ được render bằng JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal doanh thu chi tiết -->
+    <div id="revenue-detail-modal" class="form-container">
+        <div class="form-content" style="max-width: 400px;">
+            <div class="form-header">
+                <h3>Chi tiết doanh thu</h3>
+                <button type="button" class="close-form" onclick="hideRevenueDetail()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="revenue-details-modal">
+                <div class="revenue-item"><span>Hôm nay:</span> <span id="modal-today-revenue">0 VND</span></div>
+                <div class="revenue-item"><span>Hôm qua:</span> <span id="modal-yesterday-revenue">0 VND</span></div>
+                <div class="revenue-item"><span>7 ngày qua:</span> <span id="modal-week-revenue">0 VND</span></div>
+                <div class="revenue-item"><span>30 ngày qua:</span> <span id="modal-month-revenue">0 VND</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Danh mục -->
+    <div id="category-modal" class="form-container" style="display:none;">
+        <div class="form-content" style="max-width:350px;">
+            <div class="form-header">
+                <h3 id="category-modal-title">Thêm Danh Mục</h3>
+                <button type="button" class="close-form" onclick="hideCategoryModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="category-modal-form">
+                <input type="hidden" id="category-modal-id">
+                <div class="form-group">
+                    <label for="category-modal-name">Tên danh mục:</label>
+                    <input type="text" id="category-modal-name" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Lưu</button>
+                    <button type="button" class="btn-secondary" onclick="hideCategoryModal()">Hủy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Thương hiệu -->
+    <div id="brand-modal" class="form-container" style="display:none;">
+        <div class="form-content" style="max-width:350px;">
+            <div class="form-header">
+                <h3 id="brand-modal-title">Thêm Thương Hiệu</h3>
+                <button type="button" class="close-form" onclick="hideBrandModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="brand-modal-form">
+                <input type="hidden" id="brand-modal-id">
+                <div class="form-group">
+                    <label for="brand-modal-name">Tên thương hiệu:</label>
+                    <input type="text" id="brand-modal-name" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Lưu</button>
+                    <button type="button" class="btn-secondary" onclick="hideBrandModal()">Hủy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Phương thức thanh toán -->
+    <div id="payment-modal" class="form-container" style="display:none;">
+        <div class="form-content" style="max-width:350px;">
+            <div class="form-header">
+                <h3 id="payment-modal-title">Thêm Phương Thức</h3>
+                <button type="button" class="close-form" onclick="hidePaymentModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="payment-modal-form">
+                <input type="hidden" id="payment-modal-id">
+                <div class="form-group">
+                    <label for="payment-modal-name">Tên phương thức:</label>
+                    <input type="text" id="payment-modal-name" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Lưu</button>
+                    <button type="button" class="btn-secondary" onclick="hidePaymentModal()">Hủy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/admin.js"></script>
+</body>
+</html>

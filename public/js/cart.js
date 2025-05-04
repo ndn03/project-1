@@ -298,8 +298,8 @@ function attachCartEventListeners() {
         orderForm.addEventListener('submit', async (event) => {
             event.preventDefault();
 
-            const fullName = document.getElementById('full-name').value.trim();
-            const phone = document.getElementById('phone').value.trim();
+            const receiverName = document.getElementById('full-name').value.trim();
+            const receiverPhone = document.getElementById('phone').value.trim();
             const provinceId = document.getElementById('province').value;
             const districtId = document.getElementById('district').value;
             const wardId = document.getElementById('ward').value;
@@ -307,7 +307,7 @@ function attachCartEventListeners() {
             const paymentMethodId = document.getElementById('payment-method').value;
             const note = document.getElementById('note').value.trim();
 
-            if (!fullName || !phone || !provinceId || !districtId || !wardId || !streetAddress || !paymentMethodId) {
+            if (!receiverName || !receiverPhone || !provinceId || !districtId || !wardId || !streetAddress || !paymentMethodId) {
                 alert("Vui lòng điền đầy đủ thông tin bắt buộc!");
                 return;
             }
@@ -366,7 +366,10 @@ function attachCartEventListeners() {
                     district_id: districtId,
                     ward_id: wardId,
                     street_address: streetAddress
-                }
+                },
+                receiver_name: receiverName,
+                receiver_phone: receiverPhone,
+                note: note
             };
 
             try {
@@ -380,7 +383,7 @@ function attachCartEventListeners() {
 
                 if (response && response.ok) {
                     const result = await response.json();
-                    window.location.href = `/orders/${result.order.order_id}`;
+                    showOrderConfirmationModal(result.order);
                 } else if (response) {
                     const data = await response.json();
                     alert(data.error || 'Không thể đặt hàng');
@@ -397,6 +400,72 @@ function attachCartEventListeners() {
                 orderForm.reset();
                 alert("Đã hủy nhập thông tin đặt hàng.");
             });
+        }
+    }
+}
+
+function showOrderConfirmationModal(order) {
+    // Tạo HTML hóa đơn
+    const modalHtml = `
+    <div id="order-confirmation-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="close-order-modal">&times;</span>
+            <h2>Đặt hàng thành công!</h2>
+            <p>Mã đơn hàng: <strong>#${order.order_id}</strong></p>
+            <p><strong>Người nhận:</strong> ${order.receiver_name}</p>
+            <p><strong>Số điện thoại:</strong> ${order.receiver_phone}</p>
+            <p><strong>Địa chỉ:</strong> ${order.full_address}</p>
+            <p><strong>Phương thức thanh toán:</strong> ${order.method_name || order.payment_method_name || ''}</p>
+            <p><strong>Trạng thái:</strong> ${order.status_name || order.status || ''}</p>
+            <p><strong>Tổng tiền:</strong> ${Number(order.total_amount).toLocaleString('vi-VN')} VND</p>
+            <p><strong>Phí vận chuyển:</strong> ${Number(order.shipping_fee).toLocaleString('vi-VN')} VND</p>
+            <p><strong>Giảm giá:</strong> ${Number(order.discount_amount).toLocaleString('vi-VN')} VND</p>
+            <p><strong>Thành tiền:</strong> <b>${Number(order.final_amount).toLocaleString('vi-VN')} VND</b></p>
+            <h3>Chi tiết sản phẩm</h3>
+            <table border="1" style="width:100%;margin-bottom:10px;">
+                <thead>
+                    <tr>
+                        <th>Sản phẩm</th>
+                        <th>Số lượng</th>
+                        <th>Giá</th>
+                        <th>Tổng</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${(order.items || []).map(item => `
+                        <tr>
+                            <td>${item.product_name}</td>
+                            <td>${item.quantity}</td>
+                            <td>${Number(item.price).toLocaleString('vi-VN')} VND</td>
+                            <td>${(item.quantity * item.price).toLocaleString('vi-VN')} VND</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+            <button id="close-order-modal-btn" class="btn">Đóng</button>
+        </div>
+    </div>
+    `;
+
+    // Xóa modal cũ nếu có
+    const oldModal = document.getElementById('order-confirmation-modal');
+    if (oldModal) oldModal.remove();
+
+    // Thêm modal vào body
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+    // Show modal
+    const modal = document.getElementById('order-confirmation-modal');
+    modal.style.display = 'block';
+
+    // Đóng modal khi bấm nút hoặc dấu X
+    document.getElementById('close-order-modal').onclick = () => modal.remove();
+    document.getElementById('close-order-modal-btn').onclick = () => modal.remove();
+
+    // Đóng modal khi click ra ngoài
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.remove();
         }
     }
 }

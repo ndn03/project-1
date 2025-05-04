@@ -11,8 +11,10 @@ const productRouter = require("./routers/product.router");
 const homeController = require("./controllers/home.controller");
 const homeRouter = require("./routers/home.router");
 const cartRouter = require("./routers/cart.router");
+const adminRouter = require("./routers/admin.router");
 const nodemailer = require('nodemailer');
 const authMiddleware = require("./middleware/auth.middleware");
+const overviewController = require('./controllers/overview.controller');
 
 const app = express();
 
@@ -109,7 +111,11 @@ app.use("/", homeRouter);
 app.use("/product", productRouter);
 app.use("/", authRouter);
 app.use("/cart", cartRouter);
+app.use('/admin', adminRouter);
 app.use('/', orderRoutes);
+
+// Overview route
+app.get('/admin/api/overview', authMiddleware.authenticateToken, overviewController.getOverview);
 
 app.use((req, res) => {
   res.status(404).json({ success: false, message: "API không tồn tại" });

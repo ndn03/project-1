@@ -5,26 +5,26 @@
 }
 
 body {
-    font-family: 'Poppins', sans-serif;
-    background-color: #2C2C2C; /* Darker background for a more luxurious feel */
-    margin: 0;
-    padding: 0;
+    font-family: 'Poppins', Arial, sans-serif;
+    background-color: #f7f7f7;
+    color: #222;
 }
 
 .container {
-    width: 80%;
+    width: 90%;
     margin: 0 auto;
 }
 
 header {
-    background-color: #1A1A1A; /* Darker header */
+    background-color: #fff;
     padding: 20px 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
 .logo {
-    color: #FFD700; /* Gold color for the logo */
+    color: #f5b700;
     font-size: 24px;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
     display: inline-block;
 }
@@ -46,58 +46,37 @@ nav ul li {
 }
 
 nav ul li a {
-    color: #FFD700; /* Gold color for navigation links */
+    color: #333;
     text-decoration: none;
     font-weight: 600;
     font-size: 16px;
     padding: 10px 15px;
     display: block;
     white-space: nowrap;
+    border-radius: 6px;
+    transition: background 0.2s;
 }
 
-nav ul li:hover > .dropdown {
-    display: block;
+nav ul li a:hover {
+    background: #f5b70022;
 }
 
 nav ul .dropdown {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    background-color: #333; /* Darker dropdown background */
-    padding: 10px;
-    z-index: 100;
-    min-width: 150px;
-}
-
-nav ul .dropdown li {
-    display: block;
-    margin-left: 0;
-    margin-bottom: 10px;
-    width: 100%;
-    position: relative;
-}
-
-nav ul .dropdown li:hover > .dropdown {
-    display: block;
-    top: 0;
-    left: 100%; /* Position the nested dropdown to the right */
+    background-color: #fff;
+    color: #222;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
 nav ul .dropdown li a {
-    color: #FFD700; /* Gold color for dropdown links */
-    font-size: 14px;
-    padding: 8px 12px;
-    display: block;
-    white-space: nowrap;
+    color: #333;
 }
 
 nav ul .dropdown li a:hover {
-    color: #FFA500; /* Lighter gold on hover */
+    color: #f5b700;
 }
 
 .hero {
-    background-color: #2C2C2C; /* Darker hero section */
+    background-color: #f7f7f7;
 }
 
 .carousel-inner img {
@@ -105,15 +84,18 @@ nav ul .dropdown li a:hover {
     margin-left: 20%;
     width: 65%;
     height: 400px;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
 .featured {
     padding: 40px 0;
-    background: #1A1A1A; /* Darker background for featured section */
+    background: #fff;
 }
 
 .featured h2 {
-    color: #FFD700; /* Gold color for section titles */
+    color: #f5b700;
     text-align: center;
     margin-bottom: 30px;
 }
@@ -122,19 +104,19 @@ nav ul .dropdown li a:hover {
     position: relative;
     padding: 0 40px;
     width: auto;
-    margin-left: -100px;;
+    margin-left: -100px;
 }
 
 .products {
     display: flex;
-    flex-wrap: wrap; /* Đảm bảo các sản phẩm được gói lại */
-    gap: 25px; /* Tăng khoảng cách giữa các sản phẩm */
-    justify-content: flex-start; /* Căn trái các sản phẩm */
+    flex-wrap: wrap;
+    gap: 25px;
+    justify-content: flex-start;
     scroll-behavior: smooth;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    padding: 25px 0; /* Tăng khoảng cách trên và dưới */
-    margin-left: 0; /* Loại bỏ khoảng cách thừa */
+    padding: 25px 0;
+    margin-left: 0;
     width: 110%;
 }
 
@@ -143,80 +125,80 @@ nav ul .dropdown li a:hover {
 }
 
 .products.shrink {
-    max-height: 500px; /* Chỉ hiển thị 4 sản phẩm đầu tiên */
+    max-height: 500px;
     overflow: hidden;
 }
 
 .product {
-    flex: 1 1 calc(22% - 25px); /* Tăng kích thước sản phẩm (giảm số lượng sản phẩm mỗi hàng) */
-    max-width: calc(22% - 25px); /* Đảm bảo không vượt quá 22% */
-    background: #333; /* Nền tối cho sản phẩm */
-    border-radius: 12px; /* Tăng độ bo góc */
-    padding: 20px; /* Tăng khoảng cách bên trong */
-    transition: transform 0.3s ease;
+    flex: 1 1 calc(22% - 25px);
+    max-width: calc(22% - 25px);
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    transition: transform 0.3s ease, box-shadow 0.3s;
     position: relative;
-
-}
-
-.product:nth-child(4n+1) {
-    margin-left: 0; /* Đảm bảo sản phẩm đầu tiên của mỗi hàng không bị thụt vào */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border: 1.5px solid #f5f5f5;
 }
 
 .product:hover {
-    transform: translateY(-5px);
+    transform: translateY(-5px) scale(1.03);
+    box-shadow: 0 8px 24px rgba(245,183,0,0.10);
 }
 
 .product img {
     width: 100%;
-    height: 220px; /* Tăng chiều cao ảnh */
+    height: 220px;
     object-fit: cover;
-    border-radius: 10px; /* Tăng độ bo góc cho ảnh */
-    margin-bottom: 20px; /* Tăng khoảng cách dưới ảnh */
+    border-radius: 10px;
+    margin-bottom: 20px;
+    background: #f7f7f7;
 }
 
 .product h3 {
-    color: #FFD700; /* Gold color for product names */
-    margin-bottom: 15px; /* Tăng khoảng cách dưới tiêu đề */
-    font-size: 1.2em; /* Tăng kích thước chữ */
+    color: #f5b700;
+    margin-bottom: 15px;
+    font-size: 1.2em;
 }
 
 .product .original-price {
-    color: #B0B0B0; /* Light gray for original price */
+    color: #b0b0b0;
     text-decoration: line-through;
-    font-size: 1em; /* Tăng kích thước chữ */
+    font-size: 1em;
 }
 
 .product .discount {
-    color: #FFD700; /* Gold color for discount text */
+    color: #f5b700;
     font-weight: bold;
-    margin: 8px 0; /* Tăng khoảng cách trên và dưới */
-    font-size: 1.1em; /* Tăng kích thước chữ */
+    margin: 8px 0;
+    font-size: 1.1em;
 }
 
 .product .discounted-price {
-    color: #FFFFFF; /* White color for discounted price */
+    color: #222;
     font-weight: bold;
-    font-size: 1.2em; /* Tăng kích thước chữ */
+    font-size: 1.2em;
 }
 
 .cart {
     display: flex;
-    gap: 15px; /* Tăng khoảng cách giữa các nút */
-    margin-top: 20px; /* Tăng khoảng cách trên */
+    gap: 15px;
+    margin-top: 20px;
 }
 
 .cart-form button {
-    background: #FFD700; /* Gold color for buttons */
-    color: #1A1A1A; /* Dark text on buttons */
+    background: #f5b700;
+    color: #222;
     border: none;
-    padding: 10px 20px; /* Tăng kích thước nút */
-    border-radius: 8px; /* Tăng độ bo góc */
+    padding: 10px 20px;
+    border-radius: 8px;
     cursor: pointer;
     transition: background 0.3s ease;
+    font-weight: 600;
 }
 
 .cart-form button:hover {
-    background: #FFA500; /* Lighter gold on hover */
+    background: #ffd700;
 }
 
 .nav-btn {
@@ -226,9 +208,9 @@ nav ul .dropdown li a:hover {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: #c4a747;
+    background: #f5b700;
     border: none;
-    color: white;
+    color: #fff;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -238,7 +220,7 @@ nav ul .dropdown li a:hover {
 }
 
 .nav-btn:hover {
-    background: #ab9139;
+    background: #ffd700;
 }
 
 .prev-btn {
@@ -251,7 +233,7 @@ nav ul .dropdown li a:hover {
 
 @media (max-width: 1200px) {
     .product {
-        flex: 1 1 calc(30% - 25px); /* 3 sản phẩm mỗi hàng trên màn hình nhỏ hơn */
+        flex: 1 1 calc(30% - 25px);
         max-width: calc(30% - 25px);
     }
 }
@@ -262,7 +244,7 @@ nav ul .dropdown li a:hover {
     }
     
     .product {
-        flex: 1 1 calc(45% - 25px); /* 2 sản phẩm mỗi hàng trên màn hình nhỏ hơn */
+        flex: 1 1 calc(45% - 25px);
         max-width: calc(45% - 25px);
         min-width: 240px;
     }
@@ -270,7 +252,7 @@ nav ul .dropdown li a:hover {
 
 @media (max-width: 480px) {
     .product {
-        flex: 1 1 100%; /* 1 sản phẩm mỗi hàng trên màn hình rất nhỏ */
+        flex: 1 1 100%;
         max-width: 100%;
     }
 }
@@ -291,13 +273,22 @@ nav ul .dropdown li a:hover {
     font-size: 15px;
     border-radius: 10px;
     padding: 7px;
-    border-color: antiquewhite;
+    border-color: #f5b700;
     margin-left: 20px;
+    background: #fff;
+    color: #f5b700;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.product button:hover {
+    background: #f5b700;
+    color: #fff;
 }
 
 .products:hover {
     transform: scale(1.04);
-    transition: all 0.3s ease-in-out;  
+    transition: all 0.3s ease-in-out;
 }
 
 .cart i {
@@ -305,9 +296,10 @@ nav ul .dropdown li a:hover {
 }
 
 .search-bar {
-    background-color: #1A1A1A; /* Darker search bar */
+    background-color: #fff;
     padding: 20px;
     display: flex;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
 .search-container {
@@ -321,9 +313,11 @@ nav ul .dropdown li a:hover {
 .search-container input {
     padding: 15px;
     width: 300px;
-    border: 1px solid #FFD700; /* Gold border for input */
+    border: 1px solid #f5b700;
     border-radius: 5px;
     font-size: 16px;
+    background: #fff;
+    color: #222;
 }
 
 .filter-options {
@@ -339,30 +333,33 @@ nav ul .dropdown li a:hover {
     height: 55px;
     border: 1px solid #ddd;
     border-radius: 4px;
-    background-color: white;
+    background-color: #fff;
+    color: #222;
 }
 
 .filter-options select:hover {
-    border-color: #007bff;
+    border-color: #f5b700;
 }
 
 .search-container button {
     padding: 15px;
-    background-color: #FFD700; /* Gold color for search button */
+    background-color: #f5b700;
     border: none;
     border-radius: 5px;
-    color: #1A1A1A; /* Dark text on button */
+    color: #222;
     cursor: pointer;
     font-size: 16px;
+    font-weight: 600;
+    transition: background 0.2s;
 }
 
 .search-container button:hover {
-    background-color: #FFA500; /* Lighter gold on hover */
+    background-color: #ffd700;
 }
 
 .quick-search {
     padding: 30px 0;
-    background-color: #2C2C2C; /* Darker background for quick search */
+    background-color: #f7f7f7;
 }
 
 .quick-search-buttons {
@@ -374,12 +371,13 @@ nav ul .dropdown li a:hover {
 .quick-search-btn {
     text-decoration: none;
     text-align: center;
-    color: #FFD700; /* Gold color for quick search text */
+    color: #f5b700;
     transition: transform 0.3s ease;
 }
 
 .quick-search-btn:hover {
     transform: translateY(-5px);
+    color: #ffd700;
 }
 
 .quick-search-btn img {
@@ -388,17 +386,20 @@ nav ul .dropdown li a:hover {
     border-radius: 50%;
     margin-bottom: 10px;
     object-fit: cover;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
-quick-search-btn span {
+.quick-search-btn span {
     display: block;
     font-weight: 600;
 }
 
 footer {
-    background-color: #1A1A1A; /* Darker footer */
-    color: #FFD700; /* Gold color for footer text */
+    background-color: #fff;
+    color: #f5b700;
     padding: 20px 0;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.04);
 }
 
 footer .container {
@@ -422,7 +423,7 @@ footer .container {
 .footer-section h6 {
     margin-bottom: 10px;
     font-size: 18px;
-    border-bottom: 2px solid #00c8ff;
+    border-bottom: 2px solid #f5b700;
     padding-bottom: 5px;
 }
 
@@ -436,12 +437,13 @@ footer .container {
 }
 
 .footer-section a {
-    color: #FFD700; /* Gold color for footer links */
+    color: #f5b700;
     text-decoration: none;
 }
 
 .footer-section a:hover {
     text-decoration: underline;
+    color: #ffd700;
 }
 
 .footer-bottom {
@@ -452,6 +454,7 @@ footer .container {
 .footer-bottom p {
     margin: 0;
     font-size: 14px;
+    color: #888;
 }
 
 .popup {
@@ -461,7 +464,7 @@ footer .container {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.12);
     z-index: 1000;
 }
 
@@ -470,12 +473,12 @@ footer .container {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: #333; /* Darker background for popup */
-    color: #FFD700; /* Gold color for popup text */
+    background-color: #fff;
+    color: #222;
     padding: 40px;
     border-radius: 12px;
     width: 400px;
-    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.10);
 }
 
 .popup-content form {
@@ -487,13 +490,15 @@ footer .container {
 .popup-content input {
     width: 100%;
     padding: 10px;
-    border: 1px solid #FFD700; /* Gold border for inputs */
+    border: 1px solid #f5b700;
     border-radius: 5px;
     font-size: 14px;
+    background: #fff;
+    color: #222;
 }
 
 .popup-content input:focus {
-    border-color: #FFA500; /* Lighter gold on focus */
+    border-color: #ffd700;
     outline: none;
 }
 
@@ -503,18 +508,19 @@ footer .container {
     top: 15px;
     font-size: 24px;
     cursor: pointer;
-    color: #FFD700; /* Gold color for close button */
+    color: #f5b700;
+    transition: color 0.2s;
 }
 
 .close-btn:hover {
-    color: #fff;
+    color: #ffd700;
 }
 
 .tabs {
     display: flex;
     justify-content: center;
     margin-bottom: 20px;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #eee;
 }
 
 .tab-btn {
@@ -523,13 +529,13 @@ footer .container {
     background: none;
     font-size: 16px;
     cursor: pointer;
-    color: #FFD700; /* Gold color for tab buttons */
+    color: #f5b700;
     transition: color 0.3s ease;
 }
 
 .tab-btn.active {
-    color: #FFA500; /* Lighter gold for active tab */
-    border-bottom: 2px solid #FFA500; /* Highlight active tab */
+    color: #ffd700;
+    border-bottom: 2px solid #ffd700;
 }
 
 .tab-content {
@@ -547,15 +553,7 @@ footer .container {
     left: 0;
     width: 100%;
     height: 2px;
-    background-color: #007bff;
-}
-
-.tab-content {
-    display: none;
-}
-
-.tab-content.active {
-    display: block;
+    background-color: #f5b700;
 }
 
 .form-group {
@@ -566,19 +564,21 @@ footer .container {
     display: block;
     margin-bottom: 5px;
     font-size: 14px;
-    color: #FFD700; /* Gold color for form labels */
+    color: #f5b700;
 }
 
 .form-group input {
     width: 100%;
     padding: 10px;
-    border: 1px solid #FFD700; /* Gold border for form inputs */
+    border: 1px solid #f5b700;
     border-radius: 5px;
     font-size: 14px;
+    background: #fff;
+    color: #222;
 }
 
 .form-group input:focus {
-    border-color: #007bff;
+    border-color: #ffd700;
     outline: none;
 }
 
@@ -593,7 +593,7 @@ footer .container {
 .forgot-password {
     float: right;
     font-size: 14px;
-    color: #007bff;
+    color: #f5b700;
     text-decoration: none;
     margin-top: -30px;
 }
@@ -604,29 +604,30 @@ footer .container {
 }
 
 .submit-btn {
-    background-color: #FFD700; /* Gold color for submit button */
-    color: #333; /* Dark text on button */
+    background-color: #f5b700;
+    color: #222;
     border: none;
     padding: 10px;
     border-radius: 5px;
     font-size: 16px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    font-weight: 600;
 }
 
 .submit-btn:hover {
-    background-color: #FFA500; /* Lighter gold on hover */
+    background-color: #ffd700;
 }
 
 .events {
     padding: 60px 0;
-    background-color: #122a42;
+    background-color: #f7f7f7;
 }
 
 .section-title {
     text-align: center;
     font-size: 2.5rem;
-    color: #fff;
+    color: #222;
     margin-bottom: 40px;
     font-weight: 600;
     position: relative;
@@ -637,7 +638,7 @@ footer .container {
     display: block;
     width: 60px;
     height: 3px;
-    background: #c4a747;
+    background: #f5b700;
     margin: 15px auto;
 }
 
@@ -649,16 +650,16 @@ footer .container {
 }
 
 .event-card {
-    background: #333; /* Darker background for event cards */
+    background: #fff;
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .event-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    box-shadow: 0 8px 20px rgba(245,183,0,0.10);
 }
 
 .event-image {
@@ -672,6 +673,7 @@ footer .container {
     height: 100%;
     object-fit: cover;
     transition: transform 0.5s ease;
+    background: #fff;
 }
 
 .event-card:hover .event-image img {
@@ -682,10 +684,10 @@ footer .container {
     position: absolute;
     top: 15px;
     right: 15px;
-    background: rgba(196, 167, 71, 0.8);
+    background: rgba(245,183,0, 0.8);
     padding: 10px;
     border-radius: 8px;
-    color: white;
+    color: #fff;
     text-align: center;
     min-width: 60px;
 }
@@ -709,13 +711,13 @@ footer .container {
 
 .event-content h3 {
     font-size: 1.25rem;
-    color: #FFD700; /* Gold color for event titles */
+    color: #f5b700;
     margin-bottom: 12px;
     font-weight: 600;
 }
 
 .event-description {
-    color: #B0B0B0; /* Light gray for event descriptions */
+    color: #888;
     font-size: 0.95rem;
     line-height: 1.5;
     margin-bottom: 15px;
@@ -725,7 +727,7 @@ footer .container {
     display: flex;
     justify-content: space-between;
     margin-bottom: 20px;
-    color: #9ba6b4;
+    color: #888;
     font-size: 0.9rem;
 }
 
@@ -736,14 +738,14 @@ footer .container {
 }
 
 .event-info i {
-    color: #FFD700; /* Gold color for event icons */
+    color: #f5b700;
 }
 
 .event-button {
     display: inline-block;
     padding: 10px 20px;
-    background: #FFD700; /* Gold color for event buttons */
-    color: #1A1A1A; /* Dark text on button */
+    background: #f5b700;
+    color: #222;
     text-decoration: none;
     border-radius: 25px;
     transition: background 0.3s ease;
@@ -752,7 +754,7 @@ footer .container {
 }
 
 .event-button:hover {
-    background: #FFA500; /* Lighter gold on hover */
+    background: #ffd700;
     color: #fff;
     text-decoration: none;
 }
@@ -776,7 +778,7 @@ footer .container {
     position: absolute;
     top: 10px;
     right: 10px;
-    background: white;
+    background: #fff;
     border-radius: 50%;
     width: 35px;
     height: 35px;
@@ -784,13 +786,13 @@ footer .container {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.08);
     transition: all 0.3s ease;
     z-index: 1;
 }
 
 .favorite-btn i {
-    color: #ff6b81;
+    color: #e74c3c;
     font-size: 18px;
 }
 
@@ -799,7 +801,7 @@ footer .container {
 }
 
 .favorite-btn.active i {
-    color: #ff4757;
+    color: #c0392b;
 }
 
 .product-stats {
@@ -813,12 +815,12 @@ footer .container {
 }
 
 .sales-count {
-    color: #666;
+    color: #888;
     font-size: 0.9em;
 }
 
 .sales-count i {
-    color: #2ecc71;
+    color: #27ae60;
     margin-right: 5px;
 }
 
@@ -829,12 +831,12 @@ footer .container {
 }
 
 .stars {
-    color: #ffd700;
+    color: #f5b700;
     font-size: x-small;
 }
 
 .rating-count {
-    color: #666;
+    color: #888;
     font-size: 0.9em;
 }
 
@@ -865,26 +867,26 @@ footer .container {
 }
 
 ul {
-    list-style: none; /* Remove default bullet points */
+    list-style: none;
     padding: 0;
     margin: 0;
 }
 
 li {
-    margin: 5px 0; /* Add spacing between list items */
-    padding: 5px 10px; /* Add padding for better readability */
-    border-radius: 5px; /* Add rounded corners */
-    transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+    margin: 5px 0;
+    padding: 5px 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
 }
 
 li:hover {
-    background-color: #333; /* Darker background on hover */
-    color: #FFD700; /* Gold color for text on hover */
+    background-color: #f5f5f5;
+    color: #f5b700;
 }
 
 .show-all-btn, .shrink-btn {
-    background-color: #FFD700; /* Gold color for buttons */
-    color: #333; /* Dark text on buttons */
+    background-color: #f5b700;
+    color: #222;
     border: none;
     padding: 10px 20px;
     border-radius: 5px;
@@ -892,8 +894,9 @@ li:hover {
     cursor: pointer;
     margin-top: 20px;
     transition: background-color 0.3s ease;
+    font-weight: 600;
 }
 
 .show-all-btn:hover, .shrink-btn:hover {
-    background-color: #FFA500; /* Lighter gold on hover */
+    background-color: #ffd700;
 }

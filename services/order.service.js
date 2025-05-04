@@ -1,9 +1,10 @@
 const axios = require('axios');
 const cartModel = require('../models/cart.model');
 const orderModel = require('../models/order.model');
+const db = require('../config/db');
 
 const orderService = {
-    async createOrder(userId, cartId, paymentMethodId, shippingAddress) {
+    async createOrder(userId, cartId, paymentMethodId, shippingAddress, receiverName, receiverPhone, note) {
         try {
             // 1. Kiểm tra giỏ hàng
             console.log(`[OrderService] Kiểm tra giỏ hàng với cartId: ${cartId}`);
@@ -112,6 +113,8 @@ const orderService = {
             try {
                 const orderData = {
                     user_id: userId,
+                    receiver_name: receiverName,
+                    receiver_phone: receiverPhone,
                     total_amount,
                     shipping_fee,
                     discount_amount,
@@ -122,7 +125,8 @@ const orderService = {
                     province_id,
                     district_id,
                     ward_id,
-                    full_address
+                    full_address,
+                    note
                 };
                 orderId = await orderModel.createOrder(orderData);
             } catch (error) {
@@ -188,6 +192,111 @@ const orderService = {
         } catch (error) {
             console.error(`[OrderService] Lỗi khi lấy đơn hàng: ${error.message}`);
             throw error;
+        }
+    },
+
+    async getAllOrders(status) {
+        try {
+            console.log('[OrderService] Bắt đầu lấy danh sách đơn hàng');
+            let where = '';
+            let params = [];
+            if (status === 'completed') {
+                where = 'WHERE os.status = ?';
+                params = ['Hoàn thành'];
+            } else if (status === 'pending') {
+                where = 'WHERE os.status != ?';
+                params = ['Hoàn thành'];
+            } else {
+                where = '';
+                params = [];
+            }
+            const [orders] = await db.query(`
+                SELECT 
+                    o.order_id,
+                    o.created_at,
+                    o.final_amount,
+                    o.status_id,
+                    os.status,
+                    u.username,
+                    u.email,
+                    o.payment_status,
+                    pm.name as payment_method_name,
+                    o.full_address
+                FROM orders o
+                LEFT JOIN order_status os ON o.status_id = os.order_status_id
+                LEFT JOIN users u ON o.user_id = u.user_id
+                LEFT JOIN payment_methods pm ON o.payment_method_id = pm.payment_method_id
+                ${where}
+                ORDER BY o.created_at DESC
+            `, params);
+
+            console.log('[OrderService] Số lượng đơn hàng:', orders?.length || 0);
+
+            if (!orders || orders.length === 0) {
+                return [];
+            }
+
+            const formattedOrders = orders.map(order => ({
+                ...order,
+                created_at: new Date(order.created_at).toLocaleString('vi-VN'),
+                final_amount: parseFloat(order.final_amount) || 0,
+                status: order.status || 'Chờ xử lý'
+            }));
+
+            console.log('[OrderService] Đã format dữ liệu đơn hàng');
+            return formattedOrders;
+        } catch (error) {
+            console.error('[OrderService] Lỗi khi lấy danh sách đơn hàng:', error);
+            throw new Error('Không thể lấy danh sách đơn hàng: ' + error.message);
+        }
+    },
+
+    async getOrderById(orderId) {
+        try {
+            const order = await orderModel.getOrderById(orderId);
+            if (!order) {
+                throw new Error('Không tìm thấy đơn hàng');
+            }
+            return order;
+        } catch (error) {
+            console.error(`[OrderService] Lỗi khi lấy đơn hàng theo ID: ${error.message}`);
+            throw error;
+        }
+    },
+
+    async updateOrderStatus(orderId, statusId) {
+        try {
+            const order = await orderModel.updateOrderStatus(orderId, statusId);
+            if (!order) {
+                throw new Error('Không tìm thấy đơn hàng để cập nhật');
+            }
+            return order;
+        } catch (error) {
+            console.error(`[OrderService] Lỗi khi cập nhật trạng thái đơn hàng: ${error.message}`);
+            throw error;
+        }
+    },
+
+    async deleteOrder(orderId) {
+        try {
+            const result = await orderModel.deleteOrder(orderId);
+            if (!result) {
+                throw new Error('Không tìm thấy đơn hàng để xóa');
+            }
+            return result;
+        } catch (error) {
+            console.error(`[OrderService] Lỗi khi xóa đơn hàng: ${error.message}`);
+            throw error;
+        }
+    },
+
+    async getAllStatuses() {
+        try {
+            const [statuses] = await db.query('SELECT * FROM order_status ORDER BY order_status_id');
+            return statuses;
+        } catch (error) {
+            console.error('[OrderService] Lỗi khi lấy danh sách trạng thái:', error);
+            throw new Error('Không thể lấy danh sách trạng thái: ' + error.message);
         }
     }
 };

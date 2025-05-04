@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <h2>Admin</h2>
+        </div>
+        <ul class="menu">
+            <li class="menu-item">
+                <a href="/admin">
+                    <i class="fas fa-home"></i> Tổng quan
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="/admin/products">
+                    <i class="fas fa-edit"></i> Quản lý sản phẩm
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="/admin/orders">
+                    <i class="fab fa-first-order"></i> Quản lý đơn hàng
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="/admin/users" class="active">
+                    <i class="fas fa-user-circle"></i> Quản lý người dùng
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="/admin/categories">
+                    <i class="fas fa-tags"></i> Quản lý danh mục
+                </a>
+            </li>
+        </ul>
+    </div>
+    
+    <div class="main-content">
+        <header>
+            <h1>Quản lý người dùng</h1>
+        </header>
+        
+        <section class="users">
+            <div class="user-filters">
+                <input type="text" id="search-user" placeholder="Tìm kiếm người dùng...">
+                <select id="role-filter">
+                    <option value="">Tất cả vai trò</option>
+                    <option value="admin">Admin</option>
+                    <option value="customer">Khách hàng</option>
+                </select>
+            </div>
+
+            <div id="user-list">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên người dùng</th>
+                            <th>Email</th>
+                            <th>Vai trò</th>
+                            <th>Ngày tạo</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Dữ liệu người dùng sẽ được thêm vào đây bằng JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <script src="/js/admin/users.js"></script>
+</body>
+</html> 

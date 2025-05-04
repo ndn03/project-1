@@ -87,6 +87,277 @@ const ProductModel = {
             return product;
         }
         return null;
+    },
+
+    // Thêm sản phẩm mới
+    createProduct: async (productData) => {
+        const {
+            name,
+            brand_id,
+            price,
+            discount,
+            image_url,
+            stock_quantity,
+            categories,
+            details
+        } = productData;
+
+        const connection = await db.getConnection();
+        try {
+            await connection.beginTransaction();
+
+            // Insert into products table
+            const [result] = await connection.query(
+                `INSERT INTO products (
+                    name, brand_id, price, discount, image_url, 
+                    stock_quantity, sold_quantity, average_rating
+                ) VALUES (?, ?, ?, ?, ?, ?, 0, 0)`,
+                [name, brand_id, price, discount, image_url, stock_quantity]
+            );
+
+            const productId = result.insertId;
+
+            // Insert product details
+            if (details) {
+                await connection.query(
+                    `INSERT INTO product_details (
+                        product_id, diameter, water_resistance_level, thickness,
+                        material_face, material_case, material_strap, size,
+                        movement, origin, warranty
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    [
+                        productId,
+                        details.diameter,
+                        details.water_resistance_level,
+                        details.thickness,
+                        details.material_face,
+                        details.material_case,
+                        details.material_strap,
+                        details.size,
+                        details.movement,
+                        details.origin,
+                        details.warranty
+                    ]
+                );
+            }
+
+            // Insert categories
+            if (categories && categories.length > 0) {
+                const categoryValues = categories.map(categoryId => [productId, categoryId]);
+                await connection.query(
+                    'INSERT INTO product_categories (product_id, category_id) VALUES ?',
+                    [categoryValues]
+                );
+            }
+
+            await connection.commit();
+            return productId;
+        } catch (error) {
+            await connection.rollback();
+            throw error;
+        } finally {
+            connection.release();
+        }
+    },
+
+    // Cập nhật sản phẩm
+    updateProduct: async (productId, productData) => {
+        const {
+            name,
+            brand_id,
+            price,
+            discount,
+            image_url,
+            stock_quantity,
+            categories,
+            details
+        } = productData;
+
+        const connection = await db.getConnection();
+        try {
+            await connection.beginTransaction();
+
+            // Update products table
+            await connection.query(
+                `UPDATE products 
+                SET name = ?, brand_id = ?, price = ?, discount = ?, 
+                    image_url = ?, stock_quantity = ?
+                WHERE product_id = ?`,
+                [name, brand_id, price, discount, image_url, stock_quantity, productId]
+            );
+
+            // Update product details
+            if (details) {
+                await connection.query(
+                    `UPDATE product_details 
+                    SET diameter = ?, water_resistance_level = ?, thickness = ?,
+                        material_face = ?, material_case = ?, material_strap = ?,
+                        size = ?, movement = ?, origin = ?, warranty = ?
+                    WHERE product_id = ?`,
+                    [
+                        details.diameter,
+                        details.water_resistance_level,
+                        details.thickness,
+                        details.material_face,
+                        details.material_case,
+                        details.material_strap,
+                        details.size,
+                        details.movement,
+                        details.origin,
+                        details.warranty,
+                        productId
+                    ]
+                );
+            }
+
+            // Update categories
+            if (categories) {
+                // Delete existing categories
+                await connection.query(
+                    'DELETE FROM product_categories WHERE product_id = ?',
+                    [productId]
+                );
+
+                // Insert new categories
+                if (categories.length > 0) {
+                    const categoryValues = categories.map(categoryId => [productId, categoryId]);
+                    await connection.query(
+                        'INSERT INTO product_categories (product_id, category_id) VALUES ?',
+                        [categoryValues]
+                    );
+                }
+            }
+
+            await connection.commit();
+            return true;
+        } catch (error) {
+            await connection.rollback();
+            throw error;
+        } finally {
+            connection.release();
+        }
+    },
+
+    // Xóa sản phẩm (xóa mềm)
+    deleteProduct: async (productId) => {
+        const query = `UPDATE products SET isActive = 0 WHERE product_id = ?`;
+        const [result] = await db.query(query, [productId]);
+        return result.affectedRows > 0;
+    },
+
+    // Lấy sản phẩm theo bộ lọc và phân trang
+    getProductsByFilters: async ({ brandId, categoryId, minPrice, maxPrice, sortBy, limit, offset }) => {
+        // First get total count
+        let countQuery = `
+            SELECT COUNT(DISTINCT p.product_id) as total
+            FROM products p
+            LEFT JOIN brands b ON p.brand_id = b.brand_id
+            LEFT JOIN product_categories pc ON p.product_id = pc.product_id
+            LEFT JOIN categories c ON pc.category_id = c.category_id
+            WHERE p.isActive = 1
+        `;
+        const countParams = [];
+
+        if (brandId) {
+            countQuery += ` AND p.brand_id = ?`;
+            countParams.push(brandId);
+        }
+        if (categoryId) {
+            countQuery += ` AND pc.category_id = ?`;
+            countParams.push(categoryId);
+        }
+        if (minPrice) {
+            countQuery += ` AND p.price >= ?`;
+            countParams.push(minPrice);
+        }
+        if (maxPrice) {
+            countQuery += ` AND p.price <= ?`;
+            countParams.push(maxPrice);
+        }
+
+        const [countResult] = await db.query(countQuery, countParams);
+        const total = countResult[0].total;
+
+        // Then get products with pagination
+        let query = `
+            SELECT 
+                p.product_id, 
+                p.name, 
+                p.price, 
+                p.discount,
+                p.stock_quantity,
+                p.sold_quantity, 
+                p.average_rating, 
+                p.image_url,
+                b.name as brand_name,
+                GROUP_CONCAT(DISTINCT c.name) as category_names
+            FROM products p
+            LEFT JOIN brands b ON p.brand_id = b.brand_id
+            LEFT JOIN product_categories pc ON p.product_id = pc.product_id
+            LEFT JOIN categories c ON pc.category_id = c.category_id
+            WHERE p.isActive = 1
+        `;
+        const params = [...countParams];
+
+        if (brandId) {
+            query += ` AND p.brand_id = ?`;
+        }
+        if (categoryId) {
+            query += ` AND pc.category_id = ?`;
+        }
+        if (minPrice) {
+            query += ` AND p.price >= ?`;
+        }
+        if (maxPrice) {
+            query += ` AND p.price <= ?`;
+        }
+
+        query += ` GROUP BY p.product_id`;
+
+        if (sortBy === "price_asc") query += ` ORDER BY p.price ASC`;
+        else if (sortBy === "price_desc") query += ` ORDER BY p.price DESC`;
+        else if (sortBy === "sold_quantity") query += ` ORDER BY p.sold_quantity DESC`;
+        else query += ` ORDER BY p.product_id DESC`;
+
+        query += ` LIMIT ? OFFSET ?`;
+        params.push(parseInt(limit), parseInt(offset));
+
+        const [products] = await db.query(query, params);
+
+        return {
+            total,
+            products
+        };
+    },
+
+    getProductById: async (productId) => {
+        const [rows] = await db.query(
+            `SELECT 
+                p.*,
+                b.name as brand_name,
+                pd.diameter,
+                pd.water_resistance_level,
+                pd.thickness,
+                pd.material_face,
+                pd.material_case,
+                pd.material_strap,
+                pd.size,
+                pd.movement,
+                pd.origin,
+                pd.warranty,
+                GROUP_CONCAT(DISTINCT c.name) as category_names,
+                GROUP_CONCAT(DISTINCT pi.image_url) as additional_images
+            FROM products p
+            LEFT JOIN brands b ON p.brand_id = b.brand_id
+            LEFT JOIN product_details pd ON p.product_id = pd.product_id
+            LEFT JOIN product_categories pc ON p.product_id = pc.product_id
+            LEFT JOIN categories c ON pc.category_id = c.category_id
+            LEFT JOIN product_images pi ON p.product_id = pi.product_id
+            WHERE p.product_id = ? AND p.isActive = 1
+            GROUP BY p.product_id`,
+            [productId]
+        );
+        return rows[0];
     }
 };
 

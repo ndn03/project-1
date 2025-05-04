@@ -202,6 +202,8 @@ CREATE TABLE `order_status` (
 CREATE TABLE `orders` (
   `order_id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) DEFAULT NULL,
+  `receiver_name` varchar(100) NOT NULL,
+  `receiver_phone` varchar(20) NOT NULL,
   `total_amount` decimal(10,2) NOT NULL,
   `shipping_fee` decimal(10,2) DEFAULT 0.00,
   `discount_amount` decimal(10,2) DEFAULT 0.00,
@@ -211,18 +213,19 @@ CREATE TABLE `orders` (
   `payment_status` enum('pending','paid','failed') DEFAULT 'pending',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `province` varchar(100) NOT NULL,
-  `district` varchar(100) NOT NULL,
-  `ward` varchar(100) NOT NULL,
-  `street_address` text NOT NULL,
+  `province_id` varchar(10) NOT NULL,
+  `district_id` varchar(10) NOT NULL,
+  `ward_id` varchar(10) NOT NULL,
+  `full_address` text DEFAULT NULL,
+  `note` text DEFAULT NULL COMMENT 'Ghi chú của người dùng khi đặt hàng',
   PRIMARY KEY (`order_id`),
   KEY `user_id` (`user_id`),
-  KEY `status_id` (`status_id`),
-  KEY `payment_method_id` (`payment_method_id`),
+  KEY `orders_ibfk_2` (`status_id`),
+  KEY `orders_ibfk_3` (`payment_method_id`),
   CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
   CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`status_id`) REFERENCES `order_status` (`order_status_id`),
-  CONSTRAINT `orders_ibfk_3` FOREIGN KEY (`payment_method_id`) REFERENCES `payment_methods` (`payment_methods_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  CONSTRAINT `orders_ibfk_3` FOREIGN KEY (`payment_method_id`) REFERENCES `payment_methods` (`payment_method_id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
 
 -- Bảng lưu thông tin thanh toán
 CREATE TABLE `payments` (

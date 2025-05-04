@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <h2>Admin</h2>
+        </div>
+        <ul class="menu">
+            <li class="menu-item">
+                <a href="/admin">
+                    <i class="fas fa-home"></i> Tổng quan
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="/admin/products" class="active">
+                    <i class="fas fa-edit"></i> Quản lý sản phẩm
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="/admin/orders">
+                    <i class="fab fa-first-order"></i> Quản lý đơn hàng
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="/admin/users">
+                    <i class="fas fa-user-circle"></i> Quản lý người dùng
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="/admin/categories">
+                    <i class="fas fa-tags"></i> Quản lý danh mục
+                </a>
+            </li>
+        </ul>
+    </div>
+    
+    <div class="main-content">
+        <header>
+            <h1>Quản lý sản phẩm</h1>
+        </header>
+        
+        <section class="products">
+            <div class="action-buttons">
+                <button id="add-product-btn">Thêm sản phẩm mới</button>
+                <button id="add-category-btn">Thêm danh mục</button>
+                <button id="add-brand-btn">Thêm thương hiệu</button>
+            </div>
+            
+            <div class="product-filters">
+                <input type="text" id="search-product" placeholder="Tìm kiếm sản phẩm...">
+                <select id="category-filter">
+                    <option value="">Tất cả danh mục</option>
+                </select>
+                <select id="brand-filter">
+                    <option value="">Tất cả thương hiệu</option>
+                </select>
+            </div>
+
+            <div id="product-list">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Hình ảnh</th>
+                            <th>Tên sản phẩm</th>
+                            <th>Danh mục</th>
+                            <th>Thương hiệu</th>
+                            <th>Giá</th>
+                            <th>Số lượng</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Dữ liệu sản phẩm sẽ được thêm vào đây bằng JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <script src="/js/admin/products.js"></script>
+</body>
+</html>

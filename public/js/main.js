@@ -443,22 +443,30 @@ function showReviews(startIndex) {
         review.style.display = (i >= startIndex && i < startIndex + reviewsPerPage) ? 'block' : 'none';
     });
     const reviewsList = document.getElementById('reviews-list');
-    reviewsList.scrollTo({
-        top: 0,
-        left: startIndex * reviews[0].offsetWidth,
-        behavior: 'smooth' // Add smooth scrolling effect
+    if (reviewsList && reviews.length > 0) {
+        reviewsList.scrollTo({
+            top: 0,
+            left: startIndex * reviews[0].offsetWidth,
+            behavior: 'smooth'
+        });
+    }
+}
+
+const prevBtn2 = document.querySelector('.prev-btn');
+if (prevBtn2) {
+    prevBtn2.addEventListener('click', () => {
+        currentReviewIndex = (currentReviewIndex - reviewsPerPage + totalReviews) % totalReviews;
+        showReviews(currentReviewIndex);
     });
 }
 
-document.querySelector('.prev-btn').addEventListener('click', () => {
-    currentReviewIndex = (currentReviewIndex - reviewsPerPage + totalReviews) % totalReviews;
-    showReviews(currentReviewIndex);
-});
-
-document.querySelector('.next-btn').addEventListener('click', () => {
-    currentReviewIndex = (currentReviewIndex + reviewsPerPage) % totalReviews;
-    showReviews(currentReviewIndex);
-});
+const nextBtn2 = document.querySelector('.next-btn');
+if (nextBtn2) {
+    nextBtn2.addEventListener('click', () => {
+        currentReviewIndex = (currentReviewIndex + reviewsPerPage) % totalReviews;
+        showReviews(currentReviewIndex);
+    });
+}
 
 showReviews(currentReviewIndex);
 
@@ -470,28 +478,38 @@ const closePopup = document.querySelector('.close-popup');
 const prevPopup = document.querySelector('.prev-popup');
 const nextPopup = document.querySelector('.next-popup');
 
-productImage.addEventListener('click', () => {
-    popupImage.src = productImage.src; // Set the popup image source
-    currentIndex = Array.from(thumbnails).findIndex(img => img.src === productImage.src);
-    imagePopup.style.display = 'block'; // Show the popup
-});
+if (productImage) {
+    productImage.addEventListener('click', () => {
+        popupImage.src = productImage.src;
+        currentIndex = Array.from(thumbnails).findIndex(img => img.src === productImage.src);
+        imagePopup.style.display = 'block';
+    });
+}
 
-closePopup.addEventListener('click', () => {
-    imagePopup.style.display = 'none'; // Hide the popup
-});
+if (closePopup) {
+    closePopup.addEventListener('click', () => {
+        imagePopup.style.display = 'none';
+    });
+}
 
-window.addEventListener('click', (event) => {
-    if (event.target === imagePopup) {
-        imagePopup.style.display = 'none'; // Hide the popup when clicking outside
-    }
-});
+if (prevPopup) {
+    prevPopup.addEventListener('click', () => {
+        currentIndex = (currentIndex - 1 + thumbnails.length) % thumbnails.length;
+        popupImage.src = thumbnails[currentIndex].src;
+    });
+}
 
-prevPopup.addEventListener('click', () => {
-    currentIndex = (currentIndex - 1 + thumbnails.length) % thumbnails.length;
-    popupImage.src = thumbnails[currentIndex].src;
-});
+if (nextPopup) {
+    nextPopup.addEventListener('click', () => {
+        currentIndex = (currentIndex + 1) % thumbnails.length;
+        popupImage.src = thumbnails[currentIndex].src;
+    });
+}
 
-nextPopup.addEventListener('click', () => {
-    currentIndex = (currentIndex + 1) % thumbnails.length;
-    popupImage.src = thumbnails[currentIndex].src;
-});
+if (imagePopup) {
+    window.addEventListener('click', (event) => {
+        if (event.target === imagePopup) {
+            imagePopup.style.display = 'none';
+        }
+    });
+}
