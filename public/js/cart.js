@@ -8,21 +8,16 @@ async function loadCart() {
                 "X-Requested-With": "XMLHttpRequest"
             }
         });
-
-        console.log("Response status:", response.status);
         if (response.ok) {
             const contentType = response.headers.get("content-type");
-            console.log("Content-Type:", contentType);
 
             if (contentType && contentType.includes("application/json")) {
                 const data = await response.json();
-                console.log("JSON response:", data);
                 alert(data.message || "Không thể tải giỏ hàng");
                 return;
             }
 
             const htmlContent = await response.text();
-            console.log("HTML content:", htmlContent);
             const cartContainer = document.getElementById("cart-container");
             if (cartContainer) {
                 cartContainer.innerHTML = htmlContent;
@@ -405,46 +400,110 @@ function attachCartEventListeners() {
 }
 
 function showOrderConfirmationModal(order) {
-    // Tạo HTML hóa đơn
+    // Tạo HTML popup hiện đại
     const modalHtml = `
-    <div id="order-confirmation-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" id="close-order-modal">&times;</span>
+    <div id="order-confirmation-modal" class="order-success-modal">
+        <div class="order-success-modal-content">
+            <span class="order-success-close-btn" id="close-order-modal">&times;</span>
+            <div class="order-success-icon">
+                <i class="fa fa-check-circle"></i>
+            </div>
             <h2>Đặt hàng thành công!</h2>
-            <p>Mã đơn hàng: <strong>#${order.order_id}</strong></p>
-            <p><strong>Người nhận:</strong> ${order.receiver_name}</p>
-            <p><strong>Số điện thoại:</strong> ${order.receiver_phone}</p>
-            <p><strong>Địa chỉ:</strong> ${order.full_address}</p>
-            <p><strong>Phương thức thanh toán:</strong> ${order.method_name || order.payment_method_name || ''}</p>
-            <p><strong>Trạng thái:</strong> ${order.status_name || order.status || ''}</p>
-            <p><strong>Tổng tiền:</strong> ${Number(order.total_amount).toLocaleString('vi-VN')} VND</p>
-            <p><strong>Phí vận chuyển:</strong> ${Number(order.shipping_fee).toLocaleString('vi-VN')} VND</p>
-            <p><strong>Giảm giá:</strong> ${Number(order.discount_amount).toLocaleString('vi-VN')} VND</p>
-            <p><strong>Thành tiền:</strong> <b>${Number(order.final_amount).toLocaleString('vi-VN')} VND</b></p>
+            <div class="order-success-info">
+                <p><strong>Mã đơn hàng:</strong> #${order.order_id}</p>
+                <p><strong>Người nhận:</strong> ${order.receiver_name}</p>
+                <p><strong>Số điện thoại:</strong> ${order.receiver_phone}</p>
+                <p><strong>Địa chỉ:</strong> ${order.full_address}</p>
+                <p><strong>Phương thức thanh toán:</strong> ${order.method_name || order.payment_method_name || ''}</p>
+                <p><strong>Trạng thái:</strong> ${order.status_name || order.status || ''}</p>
+                <p><strong>Tổng tiền:</strong> ${Number(order.total_amount).toLocaleString('vi-VN')} VND</p>
+                <p><strong>Phí vận chuyển:</strong> ${Number(order.shipping_fee).toLocaleString('vi-VN')} VND</p>
+                <p><strong>Giảm giá:</strong> ${Number(order.discount_amount).toLocaleString('vi-VN')} VND</p>
+                <p><strong>Thành tiền:</strong> <b>${Number(order.final_amount).toLocaleString('vi-VN')} VND</b></p>
+            </div>
             <h3>Chi tiết sản phẩm</h3>
-            <table border="1" style="width:100%;margin-bottom:10px;">
-                <thead>
-                    <tr>
-                        <th>Sản phẩm</th>
-                        <th>Số lượng</th>
-                        <th>Giá</th>
-                        <th>Tổng</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${(order.items || []).map(item => `
+            <div class="order-success-products">
+                <table>
+                    <thead>
                         <tr>
-                            <td>${item.product_name}</td>
-                            <td>${item.quantity}</td>
-                            <td>${Number(item.price).toLocaleString('vi-VN')} VND</td>
-                            <td>${(item.quantity * item.price).toLocaleString('vi-VN')} VND</td>
+                            <th>Sản phẩm</th>
+                            <th>Số lượng</th>
+                            <th>Giá</th>
+                            <th>Tổng</th>
                         </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-            <button id="close-order-modal-btn" class="btn">Đóng</button>
+                    </thead>
+                    <tbody>
+                        ${(order.items || []).map(item => `
+                            <tr>
+                                <td>${item.product_name}</td>
+                                <td>${item.quantity}</td>
+                                <td>${Number(item.price).toLocaleString('vi-VN')} VND</td>
+                                <td>${(item.quantity * item.price).toLocaleString('vi-VN')} VND</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+            <button id="close-order-modal-btn" class="btn order-success-btn">Đóng</button>
         </div>
     </div>
+    <style>
+    .order-success-modal {
+        position: fixed; z-index: 2000; left: 0; top: 0; width: 100vw; height: 100vh;
+        background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center;
+        animation: fadeIn 0.3s;
+    }
+    .order-success-modal-content {
+        background: #fffbe7;
+        border-radius: 16px;
+        padding: 36px 24px 24px 24px;
+        max-width: 480px;
+        width: 95vw;
+        box-shadow: 0 8px 32px rgba(44,44,44,0.18);
+        position: relative;
+        animation: fadeInUp 0.4s;
+    }
+    .order-success-close-btn {
+        position: absolute; right: 18px; top: 12px; font-size: 2rem; color: #D4A017; cursor: pointer; transition: color 0.2s;
+    }
+    .order-success-close-btn:hover { color: #1A2B44; }
+    .order-success-icon {
+        text-align: center; margin-bottom: 12px;
+    }
+    .order-success-icon i {
+        color: #28a745; font-size: 3.5rem; animation: popIn 0.5s;
+    }
+    .order-success-modal-content h2 {
+        color: #D4A017; text-align: center; margin-bottom: 10px; font-size: 2rem;
+    }
+    .order-success-info {
+        margin-bottom: 12px; font-size: 1.05rem;
+    }
+    .order-success-info p { margin: 2px 0; }
+    .order-success-products {
+        overflow-x: auto; margin-bottom: 18px;
+    }
+    .order-success-products table {
+        width: 100%; border-collapse: collapse; font-size: 0.98rem;
+    }
+    .order-success-products th, .order-success-products td {
+        border: 1px solid #e5e5e5; padding: 6px 8px; text-align: center;
+    }
+    .order-success-products th {
+        background: #f8f1e9; color: #D4A017;
+    }
+    .order-success-btn {
+        display: block; margin: 0 auto; background: #D4A017; color: #fff; border-radius: 8px; padding: 10px 32px; font-size: 1.1rem; font-weight: 600; border: none; transition: background 0.2s;
+    }
+    .order-success-btn:hover { background: #1A2B44; color: #fffbe7; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px);} to { opacity: 1; transform: none; } }
+    @keyframes popIn { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    @media (max-width: 600px) {
+        .order-success-modal-content { padding: 18px 4vw 18px 4vw; }
+        .order-success-modal-content h2 { font-size: 1.2rem; }
+    }
+    </style>
     `;
 
     // Xóa modal cũ nếu có
@@ -456,18 +515,19 @@ function showOrderConfirmationModal(order) {
 
     // Show modal
     const modal = document.getElementById('order-confirmation-modal');
-    modal.style.display = 'block';
+    modal.style.display = 'flex';
 
     // Đóng modal khi bấm nút hoặc dấu X
     document.getElementById('close-order-modal').onclick = () => modal.remove();
     document.getElementById('close-order-modal-btn').onclick = () => modal.remove();
 
     // Đóng modal khi click ra ngoài
-    window.onclick = function(event) {
-        if (event.target == modal) {
+    window.addEventListener('mousedown', function handler(event) {
+        if (event.target === modal) {
             modal.remove();
+            window.removeEventListener('mousedown', handler);
         }
-    }
+    });
 }
 
 window.addEventListener("DOMContentLoaded", loadCart);

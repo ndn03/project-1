@@ -25,7 +25,6 @@ const cartController = {
             }
             const userId = req.user.user_id;
             const { code } = req.body;
-            console.log("Received voucher code in controller:", code);
             const discountAmount = await cartService.applyVoucher(userId, code);
             res.status(200).json({
                 message: 'Voucher đã được áp dụng',
@@ -137,7 +136,6 @@ const cartController = {
 
     async getCartData(req, res) {
         try {
-            console.log('Processing /cart/data for user:', req.user);
             if (!req.user || !req.user.user_id) {
                 console.log('User not authenticated');
                 return res.status(401).json({ alert: "Alert: Không tìm thấy thông tin người dùng" });

@@ -6,11 +6,7 @@ const authMiddleware = {
     authenticateToken: async (req, res, next) => {
         // 🆕 Lấy token từ Cookie
         const token = req.cookies.authToken;
-        console.log(`[${req.method} ${req.path}] Cookie hiện tại:`, req.cookies);
-        console.log(`[${req.method} ${req.path}] Received Cookie Token:`, token);
-
         if (!token) {
-            console.log(`[${req.method} ${req.path}] Cookie Token missing`);
             return res.status(401).json({ message: "Cookie Token không hợp lệ hoặc thiếu" });
         }
 
@@ -22,7 +18,6 @@ const authMiddleware = {
             }
 
             const decoded = jwt.verify(token, secretKey);
-            console.log("Decoded JWT:", decoded);
 
             if (!decoded.user_id) {
                 console.log("Token Payload Error: Thiếu user_id trong payload");

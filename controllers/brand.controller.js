@@ -13,7 +13,6 @@ const brandController = {
 
     createBrand: async (req, res) => {
         try {
-            console.log('Request body:', req.body); // Thêm log để kiểm tra
             const { name } = req.body;
     
             if (!name || name.trim() === '') {

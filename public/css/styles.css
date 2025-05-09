@@ -6,7 +6,8 @@
 
 body {
     font-family: 'Poppins', sans-serif;
-    background-color: #2C2C2C; /* Darker background for a more luxurious feel */
+    background-color: #F8F1E9; /* Trắng ngà thay cho #f5f5f5 */
+    color: #2D2D2D; /* Xám than thay cho #333 */
     margin: 0;
     padding: 0;
 }
@@ -14,17 +15,21 @@ body {
 .container {
     width: 80%;
     margin: 0 auto;
+    
+    
 }
 
 header {
-    background-color: #1A1A1A; /* Darker header */
+    background-color: #f5c084; /* Trắng ngà thay cho #ffffff */
+    color: #2D2D2D; /* Xám than thay cho #333 */
     padding: 20px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Thêm bóng nhẹ */
 }
 
 .logo {
-    color: #FFD700; /* Gold color for the logo */
-    font-size: 24px;
-    font-weight: 600;
+    color:#2D2D2D; /* Vàng kim loại thay cho #FFD700 */
+    font-size: 26px; /* Tăng nhẹ kích thước */
+    font-weight: 700; /* Đậm hơn */
     text-transform: uppercase;
     display: inline-block;
 }
@@ -47,13 +52,18 @@ nav ul li {
 }
 
 nav ul li a {
-    color: #FFD700; /* Gold color for navigation links */
+    color: #1A2B44; /* Xanh navy thay cho #007BFF */
     text-decoration: none;
     font-weight: 600;
     font-size: 16px;
     padding: 10px 15px;
     display: block;
     white-space: nowrap;
+    transition: color 0.3s ease; /* Mượt mà hơn */
+}
+
+nav ul li a:hover {
+    color: #D4A017; /* Vàng kim loại thay cho #0056b3 */
 }
 
 nav ul li:hover > .dropdown {
@@ -65,10 +75,11 @@ nav ul .dropdown {
     position: absolute;
     top: 100%;
     left: 0;
-    background-color: #333; /* Darker dropdown background */
+    background-color: #2D2D2D; /* Xám than thay cho #333 */
     padding: 10px;
     z-index: 100;
     min-width: 150px;
+    border-radius: 4px; /* Bo góc nhẹ */
 }
 
 nav ul .dropdown li {
@@ -82,11 +93,11 @@ nav ul .dropdown li {
 nav ul .dropdown li:hover > .dropdown {
     display: block;
     top: 0;
-    left: 100%; /* Position the nested dropdown to the right */
+    left: 100%;
 }
 
 nav ul .dropdown li a {
-    color: #FFD700; /* Gold color for dropdown links */
+    color: #D4A017; /* Vàng kim loại thay cho #FFD700 */
     font-size: 14px;
     padding: 8px 12px;
     display: block;
@@ -94,11 +105,11 @@ nav ul .dropdown li a {
 }
 
 nav ul .dropdown li a:hover {
-    color: #FFA500; /* Lighter gold on hover */
+    color: #F8F1E9; /* Trắng ngà thay cho #FFA500 */
 }
 
 .hero {
-    background-color: #2C2C2C; /* Darker hero section */
+    background-color: #eed5b6;/* Xám nhạt thay cho #e9ecef */
 }
 
 .carousel-inner img {
@@ -106,24 +117,27 @@ nav ul .dropdown li a:hover {
     margin-left: 20%;
     width: 65%;
     height: 400px;
+    object-fit: cover; /* Đảm bảo ảnh không bị méo */
 }
 
 .featured {
     padding: 40px 0;
-    background: #1A1A1A; /* Darker background for featured section */
+    background-color: #F8F1E9; /* Trắng ngà thay cho #ffffff */
 }
 
 .featured h2 {
-    color: #FFD700; /* Gold color for section titles */
+    color: #1A2B44; /* Xanh navy thay cho #007BFF */
     text-align: center;
     margin-bottom: 30px;
+    font-weight: 700; /* Đậm hơn */
 }
 
 .products-carousel {
     position: relative;
     padding: 0 40px;
     width: auto;
-    margin-left: -100px;;
+    margin-left: -100px;
+    background-color: #F8F1E9;
 }
 
 .products {
@@ -132,12 +146,12 @@ nav ul .dropdown li a:hover {
     gap: 25px;
     justify-content: flex-start;
     overflow: hidden;
-    max-height: 560px; /* Limit to one row of products */
+    max-height: 560px;
     transition: max-height 0.3s ease;
 }
 
 .products.expand {
-    max-height: none; /* Remove height limit to show all products */
+    max-height: none;
 }
 
 .products::-webkit-scrollbar {
@@ -145,7 +159,7 @@ nav ul .dropdown li a:hover {
 }
 
 .products.shrink {
-    max-height: 500px; /* Limit the height to show only a few products */
+    max-height: 500px;
     overflow: hidden;
 }
 
@@ -155,8 +169,8 @@ nav ul .dropdown li a:hover {
 }
 
 .toggle-buttons button {
-    background-color: #FFD700; /* Gold color for buttons */
-    color: #333; /* Dark text on buttons */
+    background-color: #D4A017; /* Vàng kim loại thay cho #FFD700 */
+    color: #2D2D2D; /* Xám than thay cho #333 */
     border: none;
     padding: 10px 20px;
     border-radius: 5px;
@@ -167,83 +181,82 @@ nav ul .dropdown li a:hover {
 }
 
 .toggle-buttons button:hover {
-    background-color: #FFA500; /* Lighter gold on hover */
-}
-
-.products.shrink {
-    max-height: 500px; /* Chỉ hiển thị 4 sản phẩm đầu tiên */
+    background-color: #1A2B44; /* Xanh navy thay cho #FFA500 */
+    color: #F8F1E9; /* Trắng ngà */
 }
 
 .product {
-    flex: 1 1 calc(22% - 25px); /* Tăng kích thước sản phẩm (giảm số lượng sản phẩm mỗi hàng) */
-    max-width: calc(22% - 25px); /* Đảm bảo không vượt quá 22% */
-    background: #333; /* Nền tối cho sản phẩm */
-    border-radius: 12px; /* Tăng độ bo góc */
-    padding: 20px; /* Tăng khoảng cách bên trong */
-    transition: transform 0.3s ease;
-    position: relative;
-
+    flex: 1 1 calc(22% - 25px);
+    max-width: calc(22% - 25px);
+    background: #ffffff; /* White background for product cards */
+    border: 1px solid #ddd; /* Light border for product cards */
+    color: #333; /* Dark gray text for better readability */
+    border-radius: 12px;
+    padding: 20px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Thêm bóng khi hover */
 }
 
 .product:nth-child(4n+1) {
-    margin-left: 0; /* Đảm bảo sản phẩm đầu tiên của mỗi hàng không bị thụt vào */
+    margin-left: 0;
 }
 
 .product:hover {
-    transform: translateY(-5px);
+    transform: translateY(-2px); /* Giảm từ -5px xuống -2px */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.07); /* Giảm bóng */
 }
 
 .product img {
     width: 100%;
-    height: 220px; /* Tăng chiều cao ảnh */
+    height: 220px;
     object-fit: cover;
-    border-radius: 10px; /* Tăng độ bo góc cho ảnh */
-    margin-bottom: 20px; /* Tăng khoảng cách dưới ảnh */
+    border-radius: 10px;
+    margin-bottom: 20px;
 }
 
 .product h3 {
-    color: #FFD700; /* Gold color for product names */
-    margin-bottom: 15px; /* Tăng khoảng cách dưới tiêu đề */
-    font-size: 1.2em; /* Tăng kích thước chữ */
+    color: #007BFF; /* Blue color for product titles */
+    margin-bottom: 15px;
+    font-size: 1.2em;
 }
 
 .product .original-price {
-    color: #B0B0B0; /* Light gray for original price */
+    color: #6c757d; /* Muted gray for original price */
     text-decoration: line-through;
-    font-size: 1em; /* Tăng kích thước chữ */
+    font-size: 1em;
 }
 
 .product .discount {
-    color: #FFD700; /* Gold color for discount text */
+    color: #28a745; /* Green for discounts */
     font-weight: bold;
-    margin: 8px 0; /* Tăng khoảng cách trên và dưới */
-    font-size: 1.1em; /* Tăng kích thước chữ */
+    margin: 8px 0;
+    font-size: 1.1em;
 }
 
 .product .discounted-price {
-    color: #FFFFFF; /* White color for discounted price */
+    color: #dc3545; /* Red for discounted price */
     font-weight: bold;
-    font-size: 1.2em; /* Tăng kích thước chữ */
+    font-size: 1.2em;
 }
 
 .cart {
     display: flex;
-    gap: 15px; /* Tăng khoảng cách giữa các nút */
-    margin-top: 20px; /* Tăng khoảng cách trên */
+    gap: 15px;
+    margin-top: 20px;
 }
 
 .cart-form button {
-    background: #FFD700; /* Gold color for buttons */
-    color: #1A1A1A; /* Dark text on buttons */
+    background: #D4A017; /* Vàng kim loại thay cho #FFD700 */
+    color: #2D2D2D; /* Xám than thay cho #1A1A1A */
     border: none;
-    padding: 10px 20px; /* Tăng kích thước nút */
-    border-radius: 8px; /* Tăng độ bo góc */
+    padding: 10px 20px;
+    border-radius: 8px;
     cursor: pointer;
     transition: background 0.3s ease;
 }
 
 .cart-form button:hover {
-    background: #FFA500; /* Lighter gold on hover */
+    background: #1A2B44; /* Xanh navy thay cho #FFA500 */
+    color: #F8F1E9; /* Trắng ngà */
 }
 
 .nav-btn {
@@ -253,19 +266,18 @@ nav ul .dropdown li a:hover {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: #c4a747;
+    background: #D4A017; /* Vàng kim loại thay cho #c4a747 */
     border: none;
-    color: white;
+    color: #F8F1E9; /* Trắng ngà thay cho white */
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: background 0.3s ease;
-    z-index: 1;
 }
 
 .nav-btn:hover {
-    background: #ab9139;
+    background: #1A2B44; /* Xanh navy thay cho #ab9139 */
 }
 
 .prev-btn {
@@ -278,7 +290,7 @@ nav ul .dropdown li a:hover {
 
 @media (max-width: 1200px) {
     .product {
-        flex: 1 1 calc(30% - 25px); /* 3 sản phẩm mỗi hàng trên màn hình nhỏ hơn */
+        flex: 1 1 calc(30% - 25px);
         max-width: calc(30% - 25px);
     }
 }
@@ -289,7 +301,7 @@ nav ul .dropdown li a:hover {
     }
     
     .product {
-        flex: 1 1 calc(45% - 25px); /* 2 sản phẩm mỗi hàng trên màn hình nhỏ hơn */
+        flex: 1 1 calc(45% - 25px);
         max-width: calc(45% - 25px);
         min-width: 240px;
     }
@@ -297,7 +309,7 @@ nav ul .dropdown li a:hover {
 
 @media (max-width: 480px) {
     .product {
-        flex: 1 1 100%; /* 1 sản phẩm mỗi hàng trên màn hình rất nhỏ */
+        flex: 1 1 100%;
         max-width: 100%;
     }
 }
@@ -306,8 +318,8 @@ nav ul .dropdown li a:hover {
     position: absolute;
     top: 10px;
     right: 10px;
-    background-color: #e74c3c;
-    color: white;
+    background-color: #8B0000; /* Đỏ rượu vang thay cho #e74c3c */
+    color: #F8F1E9; /* Trắng ngà thay cho white */
     padding: 5px 10px;
     border-radius: 3px;
     font-weight: bold;
@@ -318,7 +330,7 @@ nav ul .dropdown li a:hover {
     font-size: 15px;
     border-radius: 10px;
     padding: 7px;
-    border-color: antiquewhite;
+    border-color: #F8F1E9; /* Trắng ngà thay cho antiquewhite */
     margin-left: 20px;
 }
 
@@ -332,7 +344,7 @@ nav ul .dropdown li a:hover {
 }
 
 .search-bar {
-    background-color: #1A1A1A; /* Darker search bar */
+    background-color: #f1d1ab;/* Xám than thay cho #1A1A1A */
     padding: 20px;
     display: flex;
 }
@@ -348,9 +360,10 @@ nav ul .dropdown li a:hover {
 .search-container input {
     padding: 15px;
     width: 300px;
-    border: 1px solid #FFD700; /* Gold border for input */
+    border: 1px solid #D4A017; /* Vàng kim loại thay cho #FFD700 */
     border-radius: 5px;
     font-size: 16px;
+    background-color: #F8F1E9; /* Trắng ngà */
 }
 
 .filter-options {
@@ -364,33 +377,30 @@ nav ul .dropdown li a:hover {
     padding: 8px;
     width: 140px;
     height: 55px;
-    border: 1px solid #ddd;
+    border: 1px solid #E5E5E5; /* Xám nhạt thay cho #ddd */
     border-radius: 4px;
-    background-color: white;
+    background-color: #F8F1E9; /* Trắng ngà thay cho white */
 }
 
 .filter-options select:hover {
-    border-color: #007bff;
+    border-color: #1A2B44; /* Xanh navy thay cho #007bff */
 }
 
 .search-container button {
     padding: 15px;
-    background-color: #FFD700; /* Gold color for search button */
+    background-color: #D4A017; /* Vàng kim loại thay cho #FFD700 */
     border: none;
     border-radius: 5px;
-    color: #1A1A1A; /* Dark text on button */
+    color: #2D2D2D; /* Xám than thay cho #1A1A1A */
     cursor: pointer;
     font-size: 16px;
 }
 
 .search-container button:hover {
-    background-color: #FFA500; /* Lighter gold on hover */
+    background-color: #1A2B44; /* Xanh navy thay cho #FFA500 */
+    color: #F8F1E9; /* Trắng ngà */
 }
 
-.quick-search {
-    padding: 30px 0;
-    background-color: #2C2C2C; /* Darker background for quick search */
-}
 
 .quick-search-buttons {
     display: flex;
@@ -401,12 +411,13 @@ nav ul .dropdown li a:hover {
 .quick-search-btn {
     text-decoration: none;
     text-align: center;
-    color: #FFD700; /* Gold color for quick search text */
+    color: #D4A017; /* Vàng kim loại thay cho #FFD700 */
     transition: transform 0.3s ease;
 }
 
 .quick-search-btn:hover {
     transform: translateY(-5px);
+    color: #F8F1E9; /* Trắng ngà */
 }
 
 .quick-search-btn img {
@@ -423,8 +434,8 @@ quick-search-btn span {
 }
 
 footer {
-    background-color: #1A1A1A; /* Darker footer */
-    color: #FFD700; /* Gold color for footer text */
+    background-color: #E5E5E5; /* Xám nhạt thay cho #f8f9fa */
+    color: #2D2D2D; /* Xám than thay cho #333 */
     padding: 20px 0;
 }
 
@@ -449,7 +460,7 @@ footer .container {
 .footer-section h6 {
     margin-bottom: 10px;
     font-size: 18px;
-    border-bottom: 2px solid #00c8ff;
+    border-bottom: 2px solid #1A2B44; /* Xanh navy thay cho #00c8ff */
     padding-bottom: 5px;
 }
 
@@ -463,12 +474,13 @@ footer .container {
 }
 
 .footer-section a {
-    color: #FFD700; /* Gold color for footer links */
+    color: #1A2B44; /* Xanh navy thay cho #007BFF */
     text-decoration: none;
 }
 
 .footer-section a:hover {
     text-decoration: underline;
+    color: #D4A017; /* Vàng kim loại thay cho #0056b3 */
 }
 
 .footer-bottom {
@@ -488,8 +500,9 @@ footer .container {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.6); /* Tăng độ tối */
     z-index: 1000;
+    color: #0c0a0a; 
 }
 
 .popup-content {
@@ -497,39 +510,42 @@ footer .container {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: #333; /* Darker background for popup */
-    color: #FFD700; /* Gold color for popup text */
+    background-color: #fff; /* Đổi sang màu trắng */
+    color: #0c0a0a; /* Đậm hơn, dễ nhìn hơn */
     padding: 40px;
     border-radius: 12px;
-    width: 520px; /* Increased by 30% from the original 400px */
-    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.15);
+    width: 520px;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2); /* Tăng bóng */
 }
+
 .message {
     margin-top: 10px;
     font-size: 14px;
     text-align: center;
 }
+
 .submit-btn:disabled {
-    background-color: #ccc;
+    background-color: #E5E5E5; /* Xám nhạt thay cho #ccc */
     cursor: not-allowed;
 }
+
 .close-btn {
     position: absolute;
     right: 20px;
     top: 15px;
     font-size: 24px;
     cursor: pointer;
-    color: #FFD700; /* Gold color for close button */
+    color: #D4A017; /* Vàng kim loại thay cho #FFD700 */
 }
 
 .close-btn:hover {
-    color: #fff;
+    color: #F8F1E9; /* Trắng ngà thay cho #fff */
 }
 
 .tabs {
     display: flex;
     margin-bottom: 25px;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #E5E5E5; /* Xám nhạt thay cho #ddd */
 }
 
 .tab-btn {
@@ -538,12 +554,11 @@ footer .container {
     background: none;
     font-size: 17px;
     cursor: pointer;
-    color: #FFD700; /* Gold color for tab buttons */
-    position: relative;
+    color: #D4A017; /* Vàng kim loại thay cho #FFD700 */
 }
 
 .tab-btn.active {
-    color: #FFA500; /* Lighter gold for active tab */
+    color: #F8F1E9; /* Trắng ngà thay cho #FFA500 */
 }
 
 .tab-btn.active::after {
@@ -553,7 +568,7 @@ footer .container {
     left: 0;
     width: 100%;
     height: 2px;
-    background-color: #007bff;
+    background-color: #1A2B44; /* Xanh navy thay cho #007bff */
 }
 
 .tab-content {
@@ -572,19 +587,20 @@ footer .container {
     display: block;
     margin-bottom: 5px;
     font-size: 14px;
-    color: #FFD700; /* Gold color for form labels */
+    color: #D4A017; /* Vàng kim loại thay cho #FFD700 */
 }
 
 .form-group input {
     width: 100%;
     padding: 10px;
-    border: 1px solid #FFD700; /* Gold border for form inputs */
+    border: 1px solid #D4A017; /* Vàng kim loại thay cho #FFD700 */
     border-radius: 5px;
     font-size: 14px;
+    background-color: #F8F1E9; /* Trắng ngà */
 }
 
 .form-group input:focus {
-    border-color: #007bff;
+    border-color: #1A2B44; /* Xanh navy thay cho #007bff */
     outline: none;
 }
 
@@ -593,27 +609,27 @@ footer .container {
     align-items: center;
     gap: 5px;
     font-size: 14px;
-    color: #666;
+    color: #E5E5E5; /* Xám nhạt thay cho #666 */
 }
 
 .forgot-password {
     float: right;
     font-size: 14px;
-    color: #007bff;
+    color: #1A2B44; /* Xanh navy thay cho #007bff */
     text-decoration: none;
     margin-top: -30px;
 }
 
 .terms {
     font-size: 14px;
-    color: #666;
+    color: #E5E5E5; /* Xám nhạt thay cho #666 */
 }
 
 .submit-btn {
     width: 100%;
     padding: 10px;
-    background-color: #FFD700; /* Gold color for submit button */
-    color: #333; /* Dark text on button */
+    background-color: #D4A017; /* Vàng kim loại thay cho #FFD700 */
+    color: #2D2D2D; /* Xám than thay cho #333 */
     border: none;
     border-radius: 5px;
     font-size: 16px;
@@ -621,21 +637,21 @@ footer .container {
 }
 
 .submit-btn:hover {
-    background-color: #FFA500; /* Lighter gold on hover */
+    background-color: #1A2B44; /* Xanh navy thay cho #FFA500 */
+    color: #F8F1E9; /* Trắng ngà */
 }
 
 .events {
     padding: 60px 0;
-    background-color: #122a42;
+    background-color: #eed5b6; /* Xanh navy thay cho #122a42 */
 }
 
 .section-title {
     text-align: center;
     font-size: 2.5rem;
-    color: #fff;
+    color: #181716; /* Trắng ngà thay cho #fff */
     margin-bottom: 40px;
     font-weight: 600;
-    position: relative;
 }
 
 .section-title:after {
@@ -643,7 +659,7 @@ footer .container {
     display: block;
     width: 60px;
     height: 3px;
-    background: #c4a747;
+    background: #D4A017; /* Vàng kim loại thay cho #c4a747 */
     margin: 15px auto;
 }
 
@@ -655,7 +671,7 @@ footer .container {
 }
 
 .event-card {
-    background: #333; /* Darker background for event cards */
+    background: #2D2D2D; /* Xám than thay cho #333 */
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
@@ -688,10 +704,10 @@ footer .container {
     position: absolute;
     top: 15px;
     right: 15px;
-    background: rgba(196, 167, 71, 0.8);
+    background: rgba(212, 160, 23, 0.8); /* Vàng kim loại với opacity */
     padding: 10px;
     border-radius: 8px;
-    color: white;
+    color: #f0be86; /* Trắng ngà thay cho white */
     text-align: center;
     min-width: 60px;
 }
@@ -715,13 +731,13 @@ footer .container {
 
 .event-content h3 {
     font-size: 1.25rem;
-    color: #FFD700; /* Gold color for event titles */
+    color: #D4A017; /* Vàng kim loại thay cho #FFD700 */
     margin-bottom: 12px;
     font-weight: 600;
 }
 
 .event-description {
-    color: #B0B0B0; /* Light gray for event descriptions */
+    color: #E5E5E5; /* Xám nhạt thay cho #B0B0B0 */
     font-size: 0.95rem;
     line-height: 1.5;
     margin-bottom: 15px;
@@ -731,7 +747,7 @@ footer .container {
     display: flex;
     justify-content: space-between;
     margin-bottom: 20px;
-    color: #9ba6b4;
+    color: #E5E5E5; /* Xám nhạt thay cho #9ba6b4 */
     font-size: 0.9rem;
 }
 
@@ -742,14 +758,14 @@ footer .container {
 }
 
 .event-info i {
-    color: #FFD700; /* Gold color for event icons */
+    color: #D4A017; /* Vàng kim loại thay cho #FFD700 */
 }
 
 .event-button {
     display: inline-block;
     padding: 10px 20px;
-    background: #FFD700; /* Gold color for event buttons */
-    color: #1A1A1A; /* Dark text on button */
+    background: #D4A017; /* Vàng kim loại thay cho #FFD700 */
+    color: #2D2D2D; /* Xám than thay cho #1A1A1A */
     text-decoration: none;
     border-radius: 25px;
     transition: background 0.3s ease;
@@ -758,9 +774,8 @@ footer .container {
 }
 
 .event-button:hover {
-    background: #FFA500; /* Lighter gold on hover */
-    color: #fff;
-    text-decoration: none;
+    background: #1A2B44; /* Xanh navy thay cho #FFA500 */
+    color: #F8F1E9; /* Trắng ngà */
 }
 
 @media (max-width: 768px) {
@@ -782,7 +797,7 @@ footer .container {
     position: absolute;
     top: 10px;
     right: 10px;
-    background: white;
+    background: #F8F1E9; /* Trắng ngà thay cho white */
     border-radius: 50%;
     width: 35px;
     height: 35px;
@@ -792,11 +807,10 @@ footer .container {
     cursor: pointer;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     transition: all 0.3s ease;
-    z-index: 1;
 }
 
 .favorite-btn i {
-    color: #ff6b81;
+    color: #8B0000; /* Đỏ rượu vang thay cho #ff6b81 */
     font-size: 18px;
 }
 
@@ -805,7 +819,7 @@ footer .container {
 }
 
 .favorite-btn.active i {
-    color: #ff4757;
+    color: #6B0000; /* Đỏ rượu vang đậm hơn thay cho #ff4757 */
 }
 
 .product-stats {
@@ -814,17 +828,18 @@ footer .container {
     align-items: center;
     padding: 8px 0;
     margin: 8px 0;
-    border-top: 1px solid #eee;
-    border-bottom: 1px solid #eee;
+    border-top: 1px solid #E5E5E5; /* Xám nhạt thay cho #eee */
+    border-bottom: 1px solid #E5E5E5;
+    color: #000;
 }
 
 .sales-count {
-    color: #666;
+    color: #000; /* Xám nhạt thay cho #666 */
     font-size: 0.9em;
 }
 
 .sales-count i {
-    color: #2ecc71;
+    color: #000;
     margin-right: 5px;
 }
 
@@ -835,12 +850,12 @@ footer .container {
 }
 
 .stars {
-    color: #ffd700;
+    color: #D4A017; /* Vàng kim loại thay cho #ffd700 */
     font-size: x-small;
 }
 
 .rating-count {
-    color: #666;
+    color: #000;  /* Xám nhạt thay cho #666 */
     font-size: 0.9em;
 }
 
@@ -871,19 +886,30 @@ footer .container {
 }
 
 ul {
-    list-style: none; /* Remove default bullet points */
+    list-style: none;
     padding: 0;
     margin: 0;
 }
 
 li {
-    margin: 5px 0; /* Add spacing between list items */
-    padding: 5px 10px; /* Add padding for better readability */
-    border-radius: 5px; /* Add rounded corners */
-    transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+    margin: 5px 0;
+    padding: 5px 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
 }
 
 li:hover {
-    background-color: #333; /* Darker background on hover */
-    color: #FFD700; /* Gold color for text on hover */
+    background-color: #2D2D2D; /* Xám than */
+    color: #D4A017; /* Vàng kim loại */
+}
+
+.search-result-wrapper {
+    background-color: #F8F1E9;
+    padding: 30px 0;
+}
+
+.search-result-wrapper h1 {
+    font-size: 1.6rem;
+    font-weight: 600;
+    margin: 30px 0 20px 0;
 }

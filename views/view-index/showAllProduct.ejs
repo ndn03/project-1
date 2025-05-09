@@ -5,6 +5,12 @@
                 <% products.forEach(product => { %>
                     <div class="product">
                         <div class="favorite-btn"><i class="far fa-heart"></i></div>
+                        <% if (product.is_new) { %>
+                            <span class="badge badge-new">Mới</span>
+                        <% } %>
+                        <% if (product.is_best_seller) { %>
+                            <span class="badge badge-hot">Bán chạy</span>
+                        <% } %>
                         <img src="<%= product.image_url || '/img/default.jpg' %>" alt="<%= product.name || 'No Name' %>">
                         <h3><%= product.name || 'No Name' %></h3>
                         <p class="original-price">Giá gốc: <%= formatPrice(product.price || 0) %></p>

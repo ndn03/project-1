@@ -117,6 +117,9 @@ app.use('/', orderRoutes);
 // Overview route
 app.get('/admin/api/overview', authMiddleware.authenticateToken, overviewController.getOverview);
 
+app.use('/api/brands', require('./routers/brand.routers'));
+app.use('/api/categories', require('./routers/category.routers'));
+
 app.use((req, res) => {
   res.status(404).json({ success: false, message: "API không tồn tại" });
 });

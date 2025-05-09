@@ -119,7 +119,7 @@ const orderService = {
                     shipping_fee,
                     discount_amount,
                     final_amount,
-                    status_id: 1, // "Đang xử lý"
+                    status_id: 1, // "Chờ xác nhận"
                     payment_method_id: paymentMethodId,
                     payment_status: 'pending',
                     province_id,
@@ -202,10 +202,10 @@ const orderService = {
             let params = [];
             if (status === 'completed') {
                 where = 'WHERE os.status = ?';
-                params = ['Hoàn thành'];
+                params = ['Đã giao hàng'];
             } else if (status === 'pending') {
                 where = 'WHERE os.status != ?';
-                params = ['Hoàn thành'];
+                params = ['Đã giao hàng'];
             } else {
                 where = '';
                 params = [];
@@ -225,7 +225,7 @@ const orderService = {
                 FROM orders o
                 LEFT JOIN order_status os ON o.status_id = os.order_status_id
                 LEFT JOIN users u ON o.user_id = u.user_id
-                LEFT JOIN payment_methods pm ON o.payment_method_id = pm.payment_method_id
+                LEFT JOIN payment_methods pm ON o.payment_method_id = pm.payment_methods_id
                 ${where}
                 ORDER BY o.created_at DESC
             `, params);
@@ -240,7 +240,7 @@ const orderService = {
                 ...order,
                 created_at: new Date(order.created_at).toLocaleString('vi-VN'),
                 final_amount: parseFloat(order.final_amount) || 0,
-                status: order.status || 'Chờ xử lý'
+                status: order.status || 'Chờ xác nhận'
             }));
 
             console.log('[OrderService] Đã format dữ liệu đơn hàng');
@@ -297,6 +297,108 @@ const orderService = {
         } catch (error) {
             console.error('[OrderService] Lỗi khi lấy danh sách trạng thái:', error);
             throw new Error('Không thể lấy danh sách trạng thái: ' + error.message);
+        }
+    },
+
+    async getActualRevenue() {
+        try {
+            const actualRevenue = await orderModel.getActualRevenue();
+            return actualRevenue;
+        } catch (error) {
+            console.error('[OrderService] Lỗi khi lấy doanh thu thực tế:', error.message);
+            throw new Error('Không thể lấy doanh thu thực tế: ' + error.message);
+        }
+    },
+
+    async getExpectedRevenue() {
+        try {
+            const expectedRevenue = await orderModel.getExpectedRevenue();
+            return expectedRevenue;
+        } catch (error) {
+            console.error('[OrderService] Lỗi khi lấy doanh thu dự kiến:', error.message);
+            throw new Error('Không thể lấy doanh thu dự kiến: ' + error.message);
+        }
+    },
+
+    async canUserReviewProduct(userId, productId) {
+        try {
+            const canReview = await orderModel.canUserReviewProduct(userId, productId);
+            if (!canReview) {
+                return false;
+            }
+            const hasReviewed = await orderModel.hasUserReviewedProduct(userId, productId);
+            return !hasReviewed;
+        } catch (error) {
+            console.error(`[OrderService] Lỗi khi kiểm tra khả năng đánh giá sản phẩm: ${error.message}`);
+            throw new Error('Không thể kiểm tra khả năng đánh giá: ' + error.message);
+        }
+    },
+
+    async createReview(userId, productId, rating, comment) {
+        try {
+            // Kiểm tra xem người dùng có thể đánh giá không
+            const canReview = await this.canUserReviewProduct(userId, productId);
+            if (!canReview) {
+                throw new Error('Bạn không thể đánh giá sản phẩm này');
+            }
+
+            // Tạo đánh giá mới
+            const reviewId = await orderModel.createReview(userId, productId, rating, comment);
+            return { reviewId, userId, productId, rating, comment };
+        } catch (error) {
+            console.error(`[OrderService] Lỗi khi tạo đánh giá: ${error.message}`);
+            throw new Error('Không thể tạo đánh giá: ' + error.message);
+        }
+    },
+
+    // Lấy tất cả đơn hàng của một user
+    async getOrdersByUserId(userId) {
+        try {
+            console.log(`[OrderService] Bắt đầu lấy danh sách đơn hàng của userId: ${userId}`);
+            const orders = await orderModel.getOrdersByUserId(userId);
+
+            console.log(`[OrderService] Số lượng đơn hàng: ${orders?.length || 0}`);
+
+            if (!orders || orders.length === 0) {
+                console.log('[OrderService] Không tìm thấy đơn hàng nào');
+                return [];
+            }
+
+            // Kiểm tra khả năng đánh giá cho mỗi sản phẩm
+            for (let order of orders) {
+                for (let item of order.items) {
+                    item.canReview = await this.canUserReviewProduct(userId, item.product_id);
+                }
+            }
+
+            // Định dạng dữ liệu đơn hàng
+            const formattedOrders = orders.map(order => ({
+                order_id: order.order_id,
+                receiver_name: order.receiver_name,
+                receiver_phone: order.receiver_phone,
+                total_amount: parseFloat(order.total_amount) || 0,
+                shipping_fee: parseFloat(order.shipping_fee) || 0,
+                discount_amount: parseFloat(order.discount_amount) || 0,
+                final_amount: parseFloat(order.final_amount) || 0,
+                status: order.status_name || 'Chờ xác nhận',
+                payment_method: order.payment_method_name || 'Không xác định',
+                created_at: new Date(order.created_at).toLocaleString('vi-VN'),
+                full_address: order.full_address || '',
+                items: order.items.map(item => ({
+                    product_id: item.product_id,
+                    product_name: item.product_name,
+                    quantity: item.quantity,
+                    price: parseFloat(item.price) || 0,
+                    image_url: item.image_url || '',
+                    canReview: item.canReview
+                }))
+            }));
+
+            console.log('[OrderService] Đã format dữ liệu đơn hàng');
+            return formattedOrders;
+        } catch (error) {
+            console.error(`[OrderService] Lỗi khi lấy đơn hàng theo userId: ${error.message}`);
+            throw new Error('Không thể lấy đơn hàng của người dùng: ' + error.message);
         }
     }
 };

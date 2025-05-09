@@ -1,6 +1,17 @@
 <div id="cart-container">
     <% if (!cart || typeof cart === 'undefined' || cart.message || !cart.cart_items || cart.cart_items.length === 0) { %>
-        <p><%= (cart && cart.message) ? cart.message : 'Giỏ hàng trống' %></p>
+        <div class="empty-cart">
+            <div class="empty-cart-visual">
+                <img src="/img/empty-cart.png" alt="Giỏ hàng trống" class="empty-cart-icon">
+            </div>
+            <div class="empty-cart-content">
+                <h2>Giỏ hàng của bạn đang trống!</h2>
+                <p>Hãy khám phá các sản phẩm tuyệt vời của chúng tôi và thêm vào giỏ hàng nhé.</p>
+                <a href="/product" class="btn continue-shopping-btn">
+                    <i class="fa fa-arrow-left"></i> Tiếp tục mua sắm
+                </a>
+            </div>
+        </div>
     <% } else { %>
         <h1>Giỏ hàng của bạn</h1>
         <table class="cart-table">

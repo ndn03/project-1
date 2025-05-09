@@ -33,7 +33,11 @@ const homeController = {
             res.render("index", { 
                 productsByCategory, 
                 formatPrice: homeController.formatPrice, 
-                generateStars: homeController.generateStars 
+                generateStars: homeController.generateStars,
+                keyword: '',
+                brandName: '',
+                categoryName: '',
+                sortLabel: ''
             });
         } catch (error) {
             console.error("🔥 Lỗi khi hiển thị sản phẩm:", error);
@@ -65,6 +69,44 @@ const homeController = {
             console.error("🔥 Lỗi khi lấy chi tiết sản phẩm:", error);
             res.status(500).json({ success: false, message: "Lỗi server" });
         }
+    },
+
+    search: async (req, res) => {
+        const { keyword, brand_id, category_id, sort } = req.query;
+        const products = await productService.searchProducts({ keyword, brand_id, category_id, sort });
+        let categoryName = '';
+        let brandName = '';
+        let sortLabel = '';
+
+        if (category_id) {
+            categoryName = await productService.getCategoryNameById(category_id);
+        }
+        if (brand_id) {
+            brandName = await productService.getBrandNameById(brand_id);
+        }
+        // Gán nhãn sắp xếp
+        switch (sort) {
+            case 'price_asc': sortLabel = 'Giá tăng dần'; break;
+            case 'price_desc': sortLabel = 'Giá giảm dần'; break;
+            case 'name_asc': sortLabel = 'Tên A-Z'; break;
+            case 'name_desc': sortLabel = 'Tên Z-A'; break;
+            case 'newest': sortLabel = 'Mới nhất'; break;
+        }
+
+        res.render('index', {
+            searchResults: products,
+            keyword,
+            categoryName,
+            brandName,
+            sortLabel,
+            formatPrice: homeController.formatPrice,
+            generateStars: homeController.generateStars
+        });
+    },
+
+    // Trang tài khoản
+    accountPage: (req, res) => {
+        res.render("account");
     }
 };
 

@@ -1,3 +1,4 @@
+// File: public/js/main.js
 document.addEventListener("DOMContentLoaded", () => {
     console.log("DOM đã tải xong, bắt đầu gán sự kiện...");
     
@@ -30,6 +31,54 @@ document.addEventListener("DOMContentLoaded", () => {
     if (document.querySelector('.review')) {
         showReviews(currentReviewIndex);
     }
+
+    // Lấy danh sách brand
+    fetch('/api/brands')
+        .then(res => res.json())
+        .then(brands => {
+            const select = document.getElementById('searchBrand');
+            if (select) {
+                brands.forEach(b => {
+                    const opt = document.createElement('option');
+                    opt.value = b.brand_id;
+                    opt.textContent = b.name;
+                    select.appendChild(opt);
+                });
+            }
+        });
+
+    // Lấy danh sách category
+    fetch('/api/categories')
+        .then(res => res.json())
+        .then(categories => {
+            const select = document.getElementById('searchCategory');
+            if (select) {
+                categories.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.category_id;
+                    opt.textContent = c.name;
+                    select.appendChild(opt);
+                });
+            }
+        });
+
+    // Bắt sự kiện tìm kiếm
+    document.getElementById('searchSubmit').addEventListener('click', function() {
+        doSearch(getSearchParams());
+    });
+    document.getElementById('searchInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') doSearch(getSearchParams());
+    });
+    document.getElementById('searchBrand').addEventListener('change', function() {
+        doSearch(getSearchParams());
+    });
+    document.getElementById('searchCategory').addEventListener('change', function() {
+        doSearch(getSearchParams());
+    });
+
+    document.getElementById('filter-sort').addEventListener('change', function() {
+        doSearch(getSearchParams());
+    });
 });
 
 document.getElementById("loginForm").addEventListener("submit", async (event) => {
@@ -512,4 +561,71 @@ if (imagePopup) {
             imagePopup.style.display = 'none';
         }
     });
+}
+
+function getSearchParams() {
+    return {
+        keyword: document.getElementById('searchInput').value.trim(),
+        brand_id: document.getElementById('searchBrand').value,
+        category_id: document.getElementById('searchCategory').value,
+        sort: document.getElementById('filter-sort').value
+    };
+}
+
+function doSearch({ keyword = '', brand_id = '', category_id = '', sort = '' }) {
+    const params = new URLSearchParams();
+    if (keyword) params.append('keyword', keyword);
+    if (brand_id) params.append('brand_id', brand_id);
+    if (category_id) params.append('category_id', category_id);
+    if (sort) params.append('sort', sort);
+    window.location.href = `/search?${params.toString()}`;
+}
+
+function renderSearchResults(products) {
+    const resultsDiv = document.getElementById('search-results');
+    if (!resultsDiv) return;
+    if (!products.length) {
+        resultsDiv.innerHTML = '<p>Không tìm thấy sản phẩm phù hợp.</p>';
+        return;
+    }
+    resultsDiv.innerHTML = `
+        <div class="container">
+            <div class="products-carousel">
+                <div class="products">
+                    ${products.map(product => `
+                        <div class="product">
+                            <div class="favorite-btn"><i class="far fa-heart"></i></div>
+                            ${product.is_new ? `<span class="badge badge-new">Mới</span>` : ''}
+                            ${product.is_best_seller ? `<span class="badge badge-hot">Bán chạy</span>` : ''}
+                            <img src="${product.image_url || '/img/default.jpg'}" alt="${product.name || 'No Name'}">
+                            <h3>${product.name || 'No Name'}</h3>
+                            <p class="original-price">Giá gốc: ${formatPrice(product.price || 0)}</p>
+                            ${product.discount ? `
+                                <p class="discount">Giảm giá: ${product.discount}%</p>
+                                <p class="discounted-price">CHỈ CÒN: ${formatPrice(Math.ceil(product.price * (1 - product.discount / 100)))}</p>
+                            ` : ''}
+                            <div class="product-stats">
+                                <span class="sales-count"><i class="fas fa-shopping-cart"></i> ${product.sold_quantity || 0} đã bán</span>
+                                <div class="rating">
+                                    <span class="stars">${generateStars(product.average_rating || 0)}</span>
+                                    <span class="rating-count">(${product.review_count || 0})</span>
+                                </div>
+                            </div>
+                            <div class="cart">
+                                <form action="/product/detail/${product.product_id}" method="GET">
+                                    <button type="submit">Xem chi tiết</button>
+                                </form>
+                                <form class="add-to-cart-form" data-product-id="${product.product_id}">
+                                    <input type="hidden" name="product_id" value="${product.product_id}">
+                                    <button type="submit" title="Thêm vào giỏ hàng">
+                                        <i class="fa-solid fa-cart-shopping"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+    `;
 }

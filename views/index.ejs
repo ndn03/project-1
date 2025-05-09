@@ -51,20 +51,45 @@
         <%- include('view-index/search-bar') %>
     </section>
 
+    <% if (typeof searchResults !== 'undefined') { %>
+        <div class="search-result-wrapper">
+            <h1 style="text-align:center; margin: 30px 0 20px 0;">
+                Kết quả tìm kiếm
+                <% if (keyword) { %>
+                    : "<%= keyword %>"
+                <% } %>
+                <% if (brandName) { %>
+                    <% if (keyword) { %> - <% } %>
+                    Thương hiệu: "<%= brandName %>"
+                <% } %>
+                <% if (categoryName) { %>
+                    <% if (keyword || brandName) { %> - <% } %>
+                    Danh mục: "<%= categoryName %>"
+                <% } %>
+                <% if (sortLabel) { %>
+                    <% if (keyword || brandName || categoryName) { %> - <% } %>
+                    Sắp xếp: <%= sortLabel %>
+                <% } %>
+            </h1>
+            <%- include('view-index/showAllProduct', { products: searchResults, formatPrice: formatPrice, generateStars: generateStars }) %>
+        </div>
+    <% } else { %>
+        <% if (typeof productsByCategory !== "undefined" && Object.keys(productsByCategory).length > 0) { %>
+            <% Object.keys(productsByCategory).forEach(categoryName => { %>
+                <section class="featured <%= categoryName.toLowerCase().replace(/\\s+/g, '-') %>">
+                    <h2><%= categoryName %></h2>
+                    <%- include('./view-index/showAllProduct', { products: productsByCategory[categoryName], formatPrice: formatPrice, generateStars: generateStars }) %>
+                </section>
+            <% }); %>
+        <% } else { %>
+            <p class="no-products">Không có sản phẩm nào hiển thị.</p>
+        <% } %>
+    <% } %>
+
     <section class="quick-search">
         <%- include('view-index/quick-search') %>
     </section>
 
-    <% if (typeof productsByCategory !== "undefined" && Object.keys(productsByCategory).length > 0) { %>
-        <% Object.keys(productsByCategory).forEach(categoryName => { %>
-            <section class="featured <%= categoryName.toLowerCase().replace(/\s+/g, '-') %>">
-                <h2><%= categoryName %></h2>
-                <%- include('./view-index/showAllProduct', { products: productsByCategory[categoryName] }) %>
-            </section>
-        <% }); %>
-    <% } else { %>
-        <p class="no-products">Không có sản phẩm nào hiển thị.</p>
-    <% } %>
     <!-- Footer -->
     <footer><%- include('view-index/footer-index') %></footer>
 

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/account.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css" />
+</head>
+<body style="min-height:100vh;display:flex;flex-direction:column;">
+    <header>
+        <div class="container">
+            <h1 class="logo">Luxury Watches</h1>
+            <nav>
+                <ul>
+                    <li><a href="/">Trang chủ</a></li>
+                    <li>
+                        <a href="#">Sản phẩm</a>
+                        <ul class="dropdown">
+                            <li><a href="#1">Sản phẩm nổi bật</a></li>
+                            <li><a href="#2">Đồng hồ nam</a></li>
+                            <li><a href="#3">Đồng hồ nữ</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#">Liên hệ</a></li>
+                    <li><a href="#" onclick="showLoginPopup(); return false;">Đăng nhập</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <div style="flex:1;display:flex;align-items:stretch;background:#F8F1E9;">
+        <div class="sidebar">
+            <h2>User Dashboard</h2>
+            <ul>
+                <li><a href="#order-history" class="menu-item active">Lịch sử mua hàng</a></li>
+                <li><a href="#change-password" class="menu-item">Đổi mật khẩu</a></li>
+            </ul>
+        </div>
+        <div class="main-content">
+            <div id="order-history" class="section active">
+                <h1>Lịch sử mua hàng</h1>
+                <div class="order-history">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Mã đơn hàng</th>
+                                <th>Ngày đặt</th>
+                                <th>Tổng tiền</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody id="order-table-body">
+                            <!-- Orders will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="change-password" class="section">
+                <h1>Đổi mật khẩu</h1>
+                <div class="change-password">
+                    <form id="password-form">
+                        <input type="password" id="current-password" placeholder="Mật khẩu hiện tại" required>
+                        <input type="password" id="new-password" placeholder="Mật khẩu mới" required>
+                        <input type="password" id="confirm-password" placeholder="Xác nhận mật khẩu mới" required>
+                        <button type="submit">Đổi mật khẩu</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer style="margin-top:auto;">
+        <%- include('view-index/footer-index') %>
+    </footer>
+    <!-- Popup đánh giá sản phẩm -->
+    <div id="review-popup" class="popup" style="display:none;">
+        <div class="popup-content" style="max-width:400px;position:relative;">
+            <span class="close-btn" id="close-review-popup" style="position:absolute;top:10px;right:15px;cursor:pointer;font-size:22px;">&times;</span>
+            <h2>Đánh giá sản phẩm</h2>
+            <form id="review-form">
+                <input type="hidden" id="review-product-id">
+                <div class="form-group">
+                    <label for="review-rating">Số sao:</label>
+                    <select id="review-rating" required>
+                        <option value="">Chọn số sao</option>
+                        <option value="5">5 - Tuyệt vời</option>
+                        <option value="4">4 - Tốt</option>
+                        <option value="3">3 - Bình thường</option>
+                        <option value="2">2 - Kém</option>
+                        <option value="1">1 - Rất tệ</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="review-comment">Nhận xét:</label>
+                    <textarea id="review-comment" rows="3" style="width:100%;" required></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Gửi đánh giá</button>
+            </form>
+        </div>
+    </div>
+    <script src="/js/account.js"></script>
+</body>
+</html>

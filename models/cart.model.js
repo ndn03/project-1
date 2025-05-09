@@ -113,9 +113,7 @@ const cartModel = {
 
     async getPaymentMethods() {
         try {
-            console.log('Executing query to fetch payment methods');
             const [rows] = await pool.query('SELECT payment_method_id, name FROM payment_methods');
-            console.log('Payment methods fetched:', rows);
             return rows;
         } catch (error) {
             console.error('Lỗi khi lấy phương thức thanh toán:', error.message, error.stack);

@@ -1,0 +1,133 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+/* Updated styles to align with index.ejs */
+body {
+    display: flex;
+    min-height: 100vh;
+    background-color: #F8F1E9; /* Match index.ejs background */
+    color: #2D2D2D; /* Match index.ejs text color */
+}
+
+.sidebar {
+    width: 250px;
+    background-color: #f5c084; /* Match index.ejs header background */
+    color: #2D2D2D; /* Match index.ejs text color */
+    padding: 20px;
+    position: fixed;
+    height: 100%;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Add subtle shadow */
+}
+
+.sidebar h2 {
+    margin-bottom: 30px;
+    font-size: 24px;
+    font-weight: 600;
+    color: #1A2B44; /* Match index.ejs link color */
+}
+
+.sidebar ul {
+    list-style: none;
+}
+
+.sidebar ul li {
+    margin: 20px 0;
+}
+
+.sidebar ul li a {
+    color: #1A2B44; /* Match index.ejs link color */
+    text-decoration: none;
+    font-size: 16px;
+    display: block;
+    padding: 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.sidebar ul li a:hover {
+    background-color: #D4A017; /* Match index.ejs hover color */
+    color: #F8F1E9; /* Match index.ejs hover text color */
+}
+
+.main-content {
+    margin-left: 270px;
+    padding: 20px;
+    flex-grow: 1;
+    background-color: #FFFFFF; /* Add white background for contrast */
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add subtle shadow */
+}
+
+.section {
+    display: none;
+    background: #F8F1E9; /* Match index.ejs background */
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.section.active {
+    display: block;
+}
+
+h1 {
+    margin-bottom: 20px;
+    color: #1A2B44; /* Match index.ejs header color */
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.order-history table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: #FFFFFF; /* Add white background */
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.order-history th, .order-history td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.order-history th {
+    background-color: #f5c084; /* Match index.ejs header background */
+    color: #2D2D2D; /* Match index.ejs text color */
+}
+
+.change-password form {
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.change-password input {
+    padding: 10px;
+    border: 1px solid #D4A017; /* Match index.ejs input border */
+    border-radius: 4px;
+    font-size: 16px;
+    background-color: #F8F1E9; /* Match index.ejs input background */
+}
+
+.change-password button {
+    padding: 10px;
+    background-color: #D4A017; /* Match index.ejs button background */
+    color: #2D2D2D; /* Match index.ejs button text color */
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.change-password button:hover {
+    background-color: #1A2B44; /* Match index.ejs button hover background */
+    color: #F8F1E9; /* Match index.ejs button hover text color */
+}

@@ -1,4 +1,5 @@
 const ProductModel = require("../models/product.model");
+const db = require('../config/db');
 
 const ProductService = {
     // Lấy sản phẩm theo danh mục cho trang chủ
@@ -115,6 +116,44 @@ const ProductService = {
         } catch (error) {
             throw new Error("Lỗi khi xóa sản phẩm: " + error.message);
         }
+    },
+
+    searchProducts: async ({ keyword, brand_id, category_id, sort }) => {
+        let sql = `SELECT p.* FROM products p WHERE p.isActive = 1`;
+        let params = [];
+
+        if (keyword) {
+            sql += ' AND p.name LIKE ?';
+            params.push(`%${keyword}%`);
+        }
+        if (brand_id) {
+            sql += ' AND p.brand_id = ?';
+            params.push(brand_id);
+        }
+        if (category_id) {
+            sql += ' AND p.product_id IN (SELECT product_id FROM product_categories WHERE category_id = ?)';
+            params.push(category_id);
+        }
+
+        // Sắp xếp
+        if (sort === 'price_asc') sql += ' ORDER BY p.price ASC';
+        else if (sort === 'price_desc') sql += ' ORDER BY p.price DESC';
+        else if (sort === 'name_asc') sql += ' ORDER BY p.name ASC';
+        else if (sort === 'name_desc') sql += ' ORDER BY p.name DESC';
+        else sql += ' ORDER BY p.created_at DESC';
+
+        const [rows] = await db.query(sql, params);
+        return rows;
+    },
+
+    getCategoryNameById: async (categoryId) => {
+        const [rows] = await db.query('SELECT name FROM categories WHERE category_id = ?', [categoryId]);
+        return rows.length > 0 ? rows[0].name : '';
+    },
+
+    getBrandNameById: async (brandId) => {
+        const [rows] = await db.query('SELECT name FROM brands WHERE brand_id = ?', [brandId]);
+        return rows.length > 0 ? rows[0].name : '';
     }
 };
 

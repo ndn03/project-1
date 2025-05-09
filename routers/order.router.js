@@ -3,13 +3,12 @@ const router = express.Router();
 const orderController = require('../controllers/order.controller');
 const authMiddleware = require('../middleware/auth.middleware');
 
-// Public routes
+// Public routes (dành cho người dùng đã đăng nhập)
 router.get('/checkout', authMiddleware.authenticateToken, orderController.showCheckout);
 router.post('/orders', authMiddleware.authenticateToken, orderController.createOrder);
 router.get('/orders/:orderId', authMiddleware.authenticateToken, orderController.getOrder);
-
-// Route để lấy thông tin doanh thu
-router.get('/api/revenue', orderController.getRevenue);
+router.get('/orders/user', authMiddleware.authenticateToken, orderController.getOrdersByUserId);
+router.post('/orders/review', authMiddleware.authenticateToken, orderController.createReview);
 
 // Admin routes
 router.get('/admin/api/orders', 
@@ -36,6 +35,13 @@ router.delete('/admin/api/orders/:id',
     authMiddleware.authenticateToken, 
     authMiddleware.authorizeRoles('admin'), 
     orderController.deleteOrder
+);
+
+// Admin-only route for revenue
+router.get('/admin/api/revenue', 
+    authMiddleware.authenticateToken, 
+    authMiddleware.authorizeRoles('admin'), 
+    orderController.getRevenue
 );
 
 module.exports = router;
