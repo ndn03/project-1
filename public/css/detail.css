@@ -373,55 +373,6 @@ nav ul .dropdown li a:hover {
     background-color: #FFA500; /* Lighter gold on hover */
 }
 
-.review-form {
-    background-color: #1A1A1A; /* Darker background for review form */
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add shadow for better visual */
-    margin-top: 20px;
-}
-
-.review-form h4 {
-    text-align: center;
-    font-size: 1.5rem;
-    color: #FFD700; /* Gold color for form heading */
-    margin-bottom: 20px;
-}
-
-.review-form label {
-    display: block;
-    margin-bottom: 5px;
-    color: #FFFFFF; /* White text for labels */
-}
-
-.review-form select,
-.review-form textarea {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 20px;
-    border: none;
-    border-radius: 5px;
-    background-color: #333333; /* Darker background for inputs */
-    color: #FFFFFF; /* White text for inputs */
-}
-
-.review-form button {
-    background-color: #FFD700; /* Gold color for submit button */
-    color: #1A1A1A; /* Dark text on button */
-    padding: 15px 30px;
-    border: none;
-    border-radius: 5px;
-    font-size: 1.2em;
-    cursor: pointer;
-    transition: background 0.3s ease;
-    display: block;
-    margin: 0 auto;
-}
-
-.review-form button:hover {
-    background-color: #FFA500; /* Lighter gold on hover */
-}
-
 footer {
     background-color: #333333; /* Darker footer background */
     padding: 40px 0;

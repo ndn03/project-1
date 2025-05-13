@@ -39,7 +39,7 @@
             </ul>
         </div>
         <div class="main-content">
-            <div id="order-history" class="section active">
+               <div id="order-history" class="section active">
                 <h1>Lịch sử mua hàng</h1>
                 <div class="order-history">
                     <table>
@@ -49,13 +49,15 @@
                                 <th>Ngày đặt</th>
                                 <th>Tổng tiền</th>
                                 <th>Trạng thái</th>
+                                <th>Chi tiết</th>
                             </tr>
                         </thead>
                         <tbody id="order-table-body">
-                            <!-- Orders will be populated by JavaScript -->
+                            <!-- Orders will be dynamically populated by JavaScript -->
                         </tbody>
                     </table>
                 </div>
+            </div>
             </div>
             <div id="change-password" class="section">
                 <h1>Đổi mật khẩu</h1>
@@ -66,6 +68,24 @@
                         <input type="password" id="confirm-password" placeholder="Xác nhận mật khẩu mới" required>
                         <button type="submit">Đổi mật khẩu</button>
                     </form>
+                </div>
+            </div>
+            <div id="order-details" class="section" style="display:none;">
+                <h1>Chi tiết đơn hàng</h1>
+                <div class="order-details">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Sản phẩm</th>
+                                <th>Số lượng</th>
+                                <th>Giá</th>
+                            </tr>
+                        </thead>
+                        <tbody id="order-details-body">
+                            <!-- Order details will be dynamically populated by JavaScript -->
+                        </tbody>
+                    </table>
+                    <button id="back-to-orders">Quay lại</button>
                 </div>
             </div>
         </div>
@@ -80,6 +100,7 @@
             <h2>Đánh giá sản phẩm</h2>
             <form id="review-form">
                 <input type="hidden" id="review-product-id">
+                <input type="hidden" id="review-order-id">
                 <div class="form-group">
                     <label for="review-rating">Số sao:</label>
                     <select id="review-rating" required>

@@ -52,6 +52,7 @@ const cartModel = {
     },
 
     async getCartTotal(cartId) {
+        // Lấy tổng giá trị giỏ hàng (KHÔNG trừ voucher ở đây)
         const [result] = await pool.query(
             'SELECT COALESCE(SUM(ci.price * ci.quantity), 0) AS total FROM cart_items ci WHERE ci.cart_id = ?',
             [cartId]
@@ -119,6 +120,13 @@ const cartModel = {
             console.error('Lỗi khi lấy phương thức thanh toán:', error.message, error.stack);
             throw new Error('Không thể lấy danh sách phương thức thanh toán');
         }
+    },
+
+    async decrementVoucherUsage(voucherCode) {
+        await pool.query(
+            'UPDATE vouchers SET usage_limit = usage_limit - 1 WHERE code = ? AND usage_limit > 0',
+            [voucherCode]
+        );
     },
 };
 

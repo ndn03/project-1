@@ -36,6 +36,8 @@ const cartService = {
         }
 
         await cartModel.applyVoucher(cartId, voucherCode);
+        await cartModel.decrementVoucherUsage(voucherCode); // Giảm usage_limit sau khi áp dụng voucher
+
         return voucher.discount_amount;
     },
 
@@ -55,7 +57,8 @@ const cartService = {
         if (voucher && total >= voucher.min_order_value) {
             discountAmount = voucher.discount_amount;
         }
-        const finalTotal = total - discountAmount;
+        const shippingFee = 30000; // Phí vận chuyển cố định
+        const finalTotal = total - discountAmount + shippingFee;
         return {
             cart_id: cartId,
             items: items.map(item => ({
@@ -69,6 +72,7 @@ const cartService = {
             })),
             total: total,
             discount_amount: discountAmount,
+            shipping_fee: shippingFee,
             final_total: finalTotal,
             payment_methods: paymentMethods
         };
@@ -127,7 +131,8 @@ const cartService = {
     if (voucher && total >= voucher.min_order_value) {
         discountAmount = voucher.discount_amount;
     }
-    const finalTotal = total - discountAmount;
+    const shippingFee = 30000; // Phí vận chuyển cố định
+    const finalTotal = total - discountAmount + shippingFee;
     return {
         cart_id: cartId,
         items: items.map(item => ({
@@ -141,6 +146,7 @@ const cartService = {
         })),
         total: total,
         discount_amount: discountAmount,
+        shipping_fee: shippingFee,
         final_total: finalTotal,
         payment_methods: paymentMethods
     };

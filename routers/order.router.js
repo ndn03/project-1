@@ -10,6 +10,12 @@ router.get('/orders/:orderId', authMiddleware.authenticateToken, orderController
 router.get('/orders/user', authMiddleware.authenticateToken, orderController.getOrdersByUserId);
 router.post('/orders/review', authMiddleware.authenticateToken, orderController.createReview);
 
+// Added a new route for reviewing completed orders
+router.post('/orders/:orderId/review', authMiddleware.authenticateToken, orderController.reviewCompletedOrder);
+
+// API lấy danh sách đơn hàng của người dùng
+router.get('/user-orders', authMiddleware.authenticateToken, orderController.getUserOrders);
+
 // Admin routes
 router.get('/admin/api/orders', 
     authMiddleware.authenticateToken, 

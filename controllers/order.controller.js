@@ -2,6 +2,19 @@ const orderService = require('../services/order.service');
 const cartModel = require('../models/cart.model');
 
 const orderController = {
+    async getUserOrders(req, res) {
+        try {
+            const userId = req.user.user_id;
+            const { page = 1, limit = 10 } = req.query;
+
+            const orders = await orderService.getUserOrders(userId, page, limit);
+            res.status(200).json(orders);
+        } catch (error) {
+            console.error('[OrderController] Lỗi khi lấy danh sách đơn hàng của người dùng:', error.message);
+            res.status(500).json({ error: 'Lỗi khi lấy danh sách đơn hàng: ' + error.message });
+        }
+    },
+
     async showCheckout(req, res) {
         try {
             const user = req.user;
@@ -53,7 +66,6 @@ const orderController = {
                 return res.status(400).json({ error: 'orderId không hợp lệ' });
             }
 
-            console.log(`[OrderController] Lấy đơn hàng với orderId: ${orderId}, userId: ${userId}`);
             const order = await orderService.getOrder(userId, orderId);
             if (!order) {
                 return res.status(404).json({ error: 'Đơn hàng không tồn tại hoặc không thuộc về bạn.' });
@@ -145,9 +157,20 @@ const orderController = {
             const userId = req.user.user_id;
             const { product_id, rating, comment } = req.body;
 
-            if (!product_id || !rating || rating < 1 || rating > 5) {
-                return res.status(400).json({ error: 'Thiếu hoặc thông tin đánh giá không hợp lệ' });
+            if (!product_id) {
+                return res.status(400).json({ error: 'Thiếu product_id' });
             }
+            if (!rating || rating < 1 || rating > 5) {
+                return res.status(400).json({ error: 'Rating không hợp lệ (phải từ 1 đến 5)' });
+            }
+            if (!comment || comment.trim() === '') {
+                return res.status(400).json({ error: 'Thiếu comment' });
+            }
+
+            // const hasReviewed = await orderService.hasUserReviewedProduct(userId, product_id);
+            // if (hasReviewed) {
+            //     return res.status(400).json({ error: 'Bạn đã đánh giá sản phẩm này rồi' });
+            // }
 
             const review = await orderService.createReview(userId, product_id, rating, comment);
             res.status(201).json({ message: 'Đánh giá sản phẩm thành công', review });
@@ -160,24 +183,57 @@ const orderController = {
     async getOrdersByUserId(req, res) {
         try {
             const userId = req.user.user_id;
-            console.log(`[OrderController] Lấy đơn hàng cho userId: ${userId}`);
-
             const orders = await orderService.getOrdersByUserId(userId);
-            if (!orders || orders.length === 0) {
-                return res.status(200).json({ message: 'Không có đơn hàng nào', orders: [] });
-            }
-
-            const acceptHeader = req.get('Accept');
-            if (acceptHeader && acceptHeader.includes('text/html')) {
-                res.render('order-history', { orders, user: req.user });
-            } else {
-                res.json(orders);
-            }
+            res.json(orders);
         } catch (error) {
-            console.error('[OrderController] Lỗi khi lấy đơn hàng của user:', error.message);
             res.status(500).json({ error: 'Lỗi khi lấy đơn hàng: ' + error.message });
         }
     },
+
+    async reviewCompletedOrder(req, res) {
+        try {
+            const userId = req.user.user_id;
+            const { orderId } = req.params;
+            const { rating, comment } = req.body;
+
+            if (!rating || !comment) {
+                return res.status(400).json({ message: "Rating and comment are required." });
+            }
+
+            const result = await orderService.addOrderReview(userId, orderId, rating, comment);
+            res.status(201).json({
+                message: "Review added successfully.",
+                result
+            });
+        } catch (error) {
+            console.error("[reviewCompletedOrder] Error while adding review:", error);
+            res.status(500).json({
+                message: "Server error while adding review.",
+                error: error.message
+            });
+        }
+    },
+
+    async getOrderDetails(req, res) {
+        try {
+            const userId = req.user.user_id;
+            const orderId = req.params.orderId;
+
+            if (!orderId || isNaN(orderId)) {
+                return res.status(400).json({ error: 'orderId không hợp lệ' });
+            }
+
+            const orderDetails = await orderService.getOrderDetails(userId, orderId);
+            if (!orderDetails) {
+                return res.status(404).json({ error: 'Đơn hàng không tồn tại hoặc không thuộc về bạn.' });
+            }
+
+            res.status(200).json(orderDetails);
+        } catch (error) {
+            console.error('[OrderController] Lỗi khi lấy chi tiết đơn hàng:', error.message);
+            res.status(500).json({ error: `Lỗi khi lấy chi tiết đơn hàng: ${error.message}` });
+        }
+    }
 };
 
 module.exports = orderController;

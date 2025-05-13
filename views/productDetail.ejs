@@ -123,27 +123,6 @@
                 <button class="nav-btn next-btn"><i class="fas fa-chevron-right"></i></button>
             </div>
 
-            <!-- Form đánh giá -->
-            <div class="review-form">
-                <h4>Viết đánh giá</h4>
-                <form method="POST" action="/product/<%= product.id %>/review">
-                    <label for="rating">Đánh giá (1-5):</label>
-                    <select name="rating" id="rating" required>
-                        <option value="5">5 - Tuyệt vời</option>
-                        <option value="4">4 - Tốt</option>
-                        <option value="3">3 - Trung bình</option>
-                        <option value="2">2 - Kém</option>
-                        <option value="1">1 - Rất kém</option>
-                    </select>
-
-                    <label for="comment">Nhận xét:</label>
-                    <textarea name="comment" id="comment" required></textarea>
-
-                    <button type="submit">Gửi đánh giá</button>
-                </form>
-            </div>
-        </div>
-    </section>
     
     <!-- Popup hiển thị hình ảnh lớn -->
     <div id="imagePopup" class="image-popup">

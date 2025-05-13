@@ -49,7 +49,17 @@ const ProductService = {
                     origin: productDetail.origin || "N/A",
                     warranty: productDetail.warranty || "N/A",
                 },
-                reviews: productDetail.reviews || [],
+                reviews: productDetail.reviews.map(review => ({
+                    review_id: review.review_id,
+                    user_id: review.user_id,
+                    product_id: review.product_id,
+                    rating: review.rating,
+                    comment: review.comment,
+                    isActive: review.isActive,
+                    created_at: review.created_at,
+                    updated_at: review.updated_at,
+                    updated_by: review.updated_by
+                })) || [],
             };
         } catch (error) {
             throw new Error("Lỗi khi lấy chi tiết sản phẩm: " + error.message);
