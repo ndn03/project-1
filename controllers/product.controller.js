@@ -55,87 +55,161 @@ const getProductById = async (req, res) => {
 
 const createProduct = async (req, res) => {
     try {
-        const { product, details, images, categories } = req.body;
+        console.log('Creating product, req.body:', req.body); // Thêm log
+        console.log('Uploaded files:', req.files); // Thêm log
 
-        // Validate required fields
-        if (!product?.name || !product?.price || !product?.brand_id) {
+        const mainImageFile = req.files && req.files['main_image'] && req.files['main_image'][0];
+        const image_url = mainImageFile ? '/img/' + mainImageFile.filename : '';
+
+        // Lấy ảnh phụ
+        const images = req.files && req.files['additional_images']
+            ? req.files['additional_images'].map(f => '/img/' + f.filename)
+            : [];
+
+        if (!req.body.data) {
+            return res.status(400).json({ error: "Thiếu trường data trong yêu cầu" });
+        }
+
+        let parsedData;
+        try {
+            parsedData = JSON.parse(req.body.data);
+            console.log('Parsed data:', parsedData);
+        } catch (parseError) {
+            return res.status(400).json({ error: `Dữ liệu JSON không hợp lệ: ${parseError.message}` });
+        }
+
+        const { product, details, categories, imagesToDelete = [] } = parsedData;
+
+        if (!product) {
+            return res.status(400).json({ error: "Thiếu đối tượng product trong dữ liệu" });
+        }
+
+        if (!product.name || !product.price || !product.brand_id) {
             return res.status(400).json({ 
                 error: "Thiếu thông tin bắt buộc",
                 required: {
                     name: "Tên sản phẩm",
                     price: "Giá sản phẩm",
                     brand_id: "ID thương hiệu"
-                }
+                },
+                received: product
             });
         }
 
-        // Validate price
-        if (isNaN(product.price) || product.price < 0) {
-            return res.status(400).json({ error: "Giá sản phẩm không hợp lệ" });
+        if (typeof product.name !== 'string' || product.name.trim().length < 2) {
+            return res.status(400).json({ error: "Tên sản phẩm phải là chuỗi và dài ít nhất 2 ký tự" });
+        }
+        if (typeof product.price !== 'number' || product.price <= 0) {
+            return res.status(400).json({ error: "Giá sản phẩm phải là số dương" });
+        }
+        if (typeof product.brand_id !== 'number' || product.brand_id <= 0) {
+            return res.status(400).json({ error: "ID thương hiệu phải là số dương" });
         }
 
-        // Validate stock quantity
-        if (product.stock_quantity && (isNaN(product.stock_quantity) || product.stock_quantity < 0)) {
-            return res.status(400).json({ error: "Số lượng tồn kho không hợp lệ" });
-        }
-
-        // Validate discount
-        if (product.discount && (isNaN(product.discount) || product.discount < 0 || product.discount > 100)) {
-            return res.status(400).json({ error: "Giảm giá phải từ 0 đến 100" });
-        }
-
-        const newProduct = await ProductService.createProduct(req.body);
+        const newProduct = await ProductService.createProduct({
+            product: { ...product, image_url },
+            details,
+            images,
+            categories,
+            imagesToDelete
+        });
         res.status(201).json({
             message: "Tạo sản phẩm thành công",
             productId: newProduct.productId
         });
     } catch (error) {
+        console.error('Error in createProduct:', error);
         res.status(400).json({ error: "Lỗi khi tạo sản phẩm: " + error.message });
     }
 };
 
 const updateProduct = async (req, res) => {
     try {
+        console.log('Updating product, req.body:', req.body); // Thêm log
+        console.log('Uploaded files:', req.files); // Thêm log
+
         const productId = parseInt(req.params.id);
         if (isNaN(productId)) {
             return res.status(400).json({ error: "ID sản phẩm không hợp lệ" });
         }
 
-        const { product, details, images, categories } = req.body;
+        // Kiểm tra sản phẩm có tồn tại
+        const existingProduct = await ProductService.getProductById(productId);
+        if (!existingProduct) {
+            return res.status(404).json({ error: "Sản phẩm không tồn tại" });
+        }
 
-        // Validate required fields
-        if (!product?.name || !product?.price || !product?.brand_id) {
+        // Xử lý file ảnh đại diện (main_image)
+        let image_url = null;
+        if (req.files && req.files.length > 0) {
+            // Tìm file main_image (nếu có)
+            const mainImageFile = req.files.find(f => f.fieldname === 'main_image');
+            if (mainImageFile) {
+                image_url = '/img/' + mainImageFile.filename;
+            }
+        }
+
+        // Xử lý ảnh phụ
+        const additionalImages = req.files ? req.files.filter(f => f.fieldname === 'additional_images').map(f => '/img/' + f.filename) : [];
+
+        if (!req.body.data) {
+            return res.status(400).json({ error: "Thiếu trường data trong yêu cầu" });
+        }
+
+        let parsedData;
+        try {
+            parsedData = JSON.parse(req.body.data);
+            console.log('Parsed data:', parsedData);
+        } catch (parseError) {
+            return res.status(400).json({ error: `Dữ liệu JSON không hợp lệ: ${parseError.message}` });
+        }
+
+        const { product, details, categories, imagesToDelete = [] } = parsedData;
+
+        if (!product) {
+            return res.status(400).json({ error: "Thiếu đối tượng product trong dữ liệu" });
+        }
+
+        if (!product.name || !product.price || !product.brand_id) {
             return res.status(400).json({ 
                 error: "Thiếu thông tin bắt buộc",
                 required: {
                     name: "Tên sản phẩm",
                     price: "Giá sản phẩm",
                     brand_id: "ID thương hiệu"
-                }
+                },
+                received: product
             });
         }
 
-        // Validate price
-        if (isNaN(product.price) || product.price < 0) {
-            return res.status(400).json({ error: "Giá sản phẩm không hợp lệ" });
+        if (typeof product.name !== 'string' || product.name.trim().length < 2) {
+            return res.status(400).json({ error: "Tên sản phẩm phải là chuỗi và dài ít nhất 2 ký tự" });
+        }
+        if (typeof product.price !== 'number' || product.price <= 0) {
+            return res.status(400).json({ error: "Giá sản phẩm phải là số dương" });
+        }
+        if (typeof product.brand_id !== 'number' || product.brand_id <= 0) {
+            return res.status(400).json({ error: "ID thương hiệu phải là số dương" });
         }
 
-        // Validate stock quantity
-        if (product.stock_quantity && (isNaN(product.stock_quantity) || product.stock_quantity < 0)) {
-            return res.status(400).json({ error: "Số lượng tồn kho không hợp lệ" });
+        // Nếu không có ảnh đại diện mới thì lấy ảnh cũ từ product.image_url
+        if (!image_url && product.image_url) {
+            image_url = product.image_url;
         }
 
-        // Validate discount
-        if (product.discount && (isNaN(product.discount) || product.discount < 0 || product.discount > 100)) {
-            return res.status(400).json({ error: "Giảm giá phải từ 0 đến 100" });
-        }
-
-        const updatedProduct = await ProductService.updateProduct(productId, req.body);
+        const updatedProduct = await ProductService.updateProduct(productId, {
+            product: { ...product, image_url },
+            details,
+            images: additionalImages,
+            categories,
+            imagesToDelete
+        });
         res.json({
             message: "Cập nhật sản phẩm thành công",
             productId: updatedProduct.productId
         });
     } catch (error) {
+        console.error('Error in updateProduct:', error);
         res.status(400).json({ error: "Lỗi khi cập nhật sản phẩm: " + error.message });
     }
 };

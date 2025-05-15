@@ -248,6 +248,28 @@ const orderModel = {
             throw error;
         }
     },
+
+    // Lấy chi tiết đơn hàng cho admin (không cần userId)
+    async getOrderDetailById(orderId) {
+        const [orders] = await pool.query(
+            `SELECT o.*, os.status AS status_name, pm.name AS payment_method_name, u.username, u.email
+             FROM orders o
+             JOIN order_status os ON o.status_id = os.order_status_id
+             JOIN payment_methods pm ON o.payment_method_id = pm.payment_method_id
+             LEFT JOIN users u ON o.user_id = u.user_id
+             WHERE o.order_id = ?`,
+            [orderId]
+        );
+        if (orders.length === 0) return null;
+        const [items] = await pool.query(
+            `SELECT oi.*, p.name AS product_name, p.image_url
+             FROM order_items oi
+             JOIN products p ON oi.product_id = p.product_id
+             WHERE oi.order_id = ?`,
+            [orderId]
+        );
+        return { ...orders[0], items };
+    },
 };
 
 module.exports = orderModel;

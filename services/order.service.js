@@ -216,17 +216,51 @@ const orderService = {
         }
     },
 
-    async getAllOrders(status) {
+    async getAllOrders(filters) {
         try {
-            let where = '';
+            let where = 'WHERE 1=1';
             let params = [];
-            if (status === 'completed') {
-                where = 'WHERE os.status = ?';
-                params = ['Đã giao hàng'];
-            } else if (status === 'pending') {
-                where = 'WHERE os.status != ?';
-                params = ['Đã giao hàng'];
+
+            if (filters.status_id && filters.status_id !== 'all') {
+                where += ' AND os.order_status_id = ?';
+                params.push(filters.status_id);
             }
+            if (filters.payment_method_id && filters.payment_method_id !== 'all') {
+                where += ' AND o.payment_method_id = ?';
+                params.push(filters.payment_method_id);
+            }
+
+            if (filters.minTotal) {
+                where += ' AND o.final_amount >= ?';
+                params.push(parseFloat(filters.minTotal));
+            }
+
+            if (filters.maxTotal) {
+                where += ' AND o.final_amount <= ?';
+                params.push(parseFloat(filters.maxTotal));
+            }
+
+            if (filters.fromDate) {
+                where += ' AND o.created_at >= ?';
+                params.push(filters.fromDate);
+            }
+
+            if (filters.toDate) {
+                where += ' AND o.created_at <= ?';
+                params.push(filters.toDate);
+            }
+
+            let orderBy = 'o.created_at DESC';
+            if (filters.sortBy === 'created_at_asc') {
+                orderBy = 'o.created_at ASC';
+            } else if (filters.sortBy === 'final_amount_asc') {
+                orderBy = 'o.final_amount ASC';
+            } else if (filters.sortBy === 'final_amount_desc') {
+                orderBy = 'o.final_amount DESC';
+            }
+
+            console.log('[getAllOrders] Query conditions:', { where, params, orderBy });
+
             const [orders] = await db.query(`
                 SELECT o.order_id, o.created_at, o.final_amount, os.status, u.username, u.email, o.payment_status, pm.name as payment_method_name, o.full_address
                 FROM orders o
@@ -234,30 +268,28 @@ const orderService = {
                 LEFT JOIN users u ON o.user_id = u.user_id
                 LEFT JOIN payment_methods pm ON o.payment_method_id = pm.payment_method_id
                 ${where}
-                ORDER BY o.created_at DESC
+                ORDER BY ${orderBy}
             `, params);
-            return orders.map(order => ({
-                ...order,
-                created_at: new Date(order.created_at).toLocaleString('vi-VN'),
-                final_amount: parseFloat(order.final_amount) || 0,
-                status: order.status || 'Chờ xác nhận'
-            }));
+
+            console.log('[getAllOrders] Results:', { orders: orders.length });
+
+            return {
+                orders: orders.map(order => ({
+                    order_id: order.order_id,
+                    created_at: new Date(order.created_at).toLocaleString('vi-VN'),
+                    final_amount: parseFloat(order.final_amount) || 0,
+                    status: order.status || 'Chờ xác nhận',
+                    username: order.username || 'N/A',
+                    email: order.email || 'N/A',
+                    payment_status: order.payment_status || 'Chưa thanh toán',
+                    payment_method_name: order.payment_method_name || 'N/A',
+                    full_address: order.full_address || 'N/A'
+                })),
+                total: orders.length
+            };
         } catch (error) {
             console.error('[OrderService] Lỗi khi lấy danh sách đơn hàng:', error);
             throw new Error('Không thể lấy danh sách đơn hàng: ' + error.message);
-        }
-    },
-
-    async getOrderById(orderId) {
-        try {
-            const order = await orderModel.getOrderById(orderId);
-            if (!order) {
-                throw new Error('Không tìm thấy đơn hàng');
-            }
-            return order;
-        } catch (error) {
-            console.error(`[OrderService] Lỗi khi lấy đơn hàng theo ID: ${error.message}`);
-            throw error;
         }
     },
 
@@ -485,6 +517,11 @@ const orderService = {
             console.error('[OrderService] Lỗi khi lấy chi tiết đơn hàng:', error.message);
             throw new Error('Không thể lấy chi tiết đơn hàng: ' + error.message);
         }
+    },
+
+    // Lấy chi tiết đơn hàng cho admin
+    async getOrderById(orderId) {
+        return await orderModel.getOrderDetailById(orderId);
     }
 };
 

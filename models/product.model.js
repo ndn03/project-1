@@ -90,154 +90,176 @@ const ProductModel = {
     },
 
     // Thêm sản phẩm mới
-    createProduct: async (productData) => {
-        const {
-            name,
-            brand_id,
-            price,
-            discount,
-            image_url,
-            stock_quantity,
-            categories,
-            details
-        } = productData;
+   createProduct: async (productData) => {
+    const {
+        name,
+        brand_id,
+        price,
+        discount,
+        image_url,
+        stock_quantity,
+        categories,
+        details,
+        images = []
+    } = productData;
 
-        const connection = await db.getConnection();
-        try {
-            await connection.beginTransaction();
+    const connection = await db.getConnection();
+    try {
+        await connection.beginTransaction();
 
-            // Insert into products table
-            const [result] = await connection.query(
-                `INSERT INTO products (
-                    name, brand_id, price, discount, image_url, 
-                    stock_quantity, sold_quantity, average_rating
-                ) VALUES (?, ?, ?, ?, ?, ?, 0, 0)`,
-                [name, brand_id, price, discount, image_url, stock_quantity]
+        // Thêm vào bảng products
+        const [result] = await connection.query(
+            `INSERT INTO products (name, brand_id, price, discount, image_url, stock_quantity)
+            VALUES (?, ?, ?, ?, ?, ?)`,
+            [name, brand_id, price, discount, image_url, stock_quantity]
+        );
+        const productId = result.insertId;
+
+        // Thêm vào bảng product_details
+        if (details) {
+            await connection.query(
+                `INSERT INTO product_details (
+                    product_id, diameter, water_resistance_level, thickness,
+                    material_face, material_case, material_strap, size,
+                    movement, origin, warranty
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [
+                    productId,
+                    details.diameter,
+                    details.water_resistance_level,
+                    details.thickness,
+                    details.material_face,
+                    details.material_case,
+                    details.material_strap,
+                    details.size,
+                    details.movement,
+                    details.origin,
+                    details.warranty
+                ]
+            );
+        }
+
+        // Thêm vào bảng product_categories
+        if (categories && categories.length > 0) {
+            const categoryValues = categories.map(categoryId => [productId, categoryId]);
+            await connection.query(
+                'INSERT INTO product_categories (product_id, category_id) VALUES ?',
+                [categoryValues]
+            );
+        }
+
+        // Thêm ảnh phụ vào bảng product_images
+        if (images && images.length > 0) {
+            const imageValues = images.map(imageUrl => [productId, imageUrl]);
+            await connection.query(
+                'INSERT INTO product_images (product_id, image_url) VALUES ?',
+                [imageValues]
+            );
+        }
+
+        await connection.commit();
+        return productId;
+    } catch (error) {
+        await connection.rollback();
+        throw error;
+    } finally {
+        connection.release();
+    }
+},
+
+updateProduct: async (productId, productData) => {
+    const {
+        name,
+        brand_id,
+        price,
+        discount,
+        image_url,
+        stock_quantity,
+        categories,
+        details,
+        images = [],
+        imagesToDelete = []
+    } = productData;
+
+    const connection = await db.getConnection();
+    try {
+        await connection.beginTransaction();
+
+        // Cập nhật bảng products
+        await connection.query(
+            `UPDATE products 
+            SET name = ?, brand_id = ?, price = ?, discount = ?, 
+                image_url = ?, stock_quantity = ?
+            WHERE product_id = ?`,
+            [name, brand_id, price, discount, image_url, stock_quantity, productId]
+        );
+
+        // Cập nhật bảng product_details
+        if (details) {
+            await connection.query(
+                `UPDATE product_details 
+                SET diameter = ?, water_resistance_level = ?, thickness = ?,
+                    material_face = ?, material_case = ?, material_strap = ?,
+                    size = ?, movement = ?, origin = ?, warranty = ?
+                WHERE product_id = ?`,
+                [
+                    details.diameter,
+                    details.water_resistance_level,
+                    details.thickness,
+                    details.material_face,
+                    details.material_case,
+                    details.material_strap,
+                    details.size,
+                    details.movement,
+                    details.origin,
+                    details.warranty,
+                    productId
+                ]
+            );
+        }
+
+        // Cập nhật bảng product_categories
+        if (categories) {
+            await connection.query(
+                'DELETE FROM product_categories WHERE product_id = ?',
+                [productId]
             );
 
-            const productId = result.insertId;
-
-            // Insert product details
-            if (details) {
-                await connection.query(
-                    `INSERT INTO product_details (
-                        product_id, diameter, water_resistance_level, thickness,
-                        material_face, material_case, material_strap, size,
-                        movement, origin, warranty
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                    [
-                        productId,
-                        details.diameter,
-                        details.water_resistance_level,
-                        details.thickness,
-                        details.material_face,
-                        details.material_case,
-                        details.material_strap,
-                        details.size,
-                        details.movement,
-                        details.origin,
-                        details.warranty
-                    ]
-                );
-            }
-
-            // Insert categories
-            if (categories && categories.length > 0) {
+            if (categories.length > 0) {
                 const categoryValues = categories.map(categoryId => [productId, categoryId]);
                 await connection.query(
                     'INSERT INTO product_categories (product_id, category_id) VALUES ?',
                     [categoryValues]
                 );
             }
-
-            await connection.commit();
-            return productId;
-        } catch (error) {
-            await connection.rollback();
-            throw error;
-        } finally {
-            connection.release();
         }
-    },
 
-    // Cập nhật sản phẩm
-    updateProduct: async (productId, productData) => {
-        const {
-            name,
-            brand_id,
-            price,
-            discount,
-            image_url,
-            stock_quantity,
-            categories,
-            details
-        } = productData;
-
-        const connection = await db.getConnection();
-        try {
-            await connection.beginTransaction();
-
-            // Update products table
+        // Xóa ảnh trong imagesToDelete
+        if (imagesToDelete.length > 0) {
             await connection.query(
-                `UPDATE products 
-                SET name = ?, brand_id = ?, price = ?, discount = ?, 
-                    image_url = ?, stock_quantity = ?
-                WHERE product_id = ?`,
-                [name, brand_id, price, discount, image_url, stock_quantity, productId]
+                'DELETE FROM product_images WHERE product_id = ? AND image_url IN (?)',
+                [productId, imagesToDelete]
             );
-
-            // Update product details
-            if (details) {
-                await connection.query(
-                    `UPDATE product_details 
-                    SET diameter = ?, water_resistance_level = ?, thickness = ?,
-                        material_face = ?, material_case = ?, material_strap = ?,
-                        size = ?, movement = ?, origin = ?, warranty = ?
-                    WHERE product_id = ?`,
-                    [
-                        details.diameter,
-                        details.water_resistance_level,
-                        details.thickness,
-                        details.material_face,
-                        details.material_case,
-                        details.material_strap,
-                        details.size,
-                        details.movement,
-                        details.origin,
-                        details.warranty,
-                        productId
-                    ]
-                );
-            }
-
-            // Update categories
-            if (categories) {
-                // Delete existing categories
-                await connection.query(
-                    'DELETE FROM product_categories WHERE product_id = ?',
-                    [productId]
-                );
-
-                // Insert new categories
-                if (categories.length > 0) {
-                    const categoryValues = categories.map(categoryId => [productId, categoryId]);
-                    await connection.query(
-                        'INSERT INTO product_categories (product_id, category_id) VALUES ?',
-                        [categoryValues]
-                    );
-                }
-            }
-
-            await connection.commit();
-            return true;
-        } catch (error) {
-            await connection.rollback();
-            throw error;
-        } finally {
-            connection.release();
         }
-    },
 
+        // Thêm ảnh mới
+        if (images.length > 0) {
+            const imageValues = images.map(imageUrl => [productId, imageUrl]);
+            await connection.query(
+                'INSERT INTO product_images (product_id, image_url) VALUES ?',
+                [imageValues]
+            );
+        }
+
+        await connection.commit();
+        return true;
+    } catch (error) {
+        await connection.rollback();
+        throw error;
+    } finally {
+        connection.release();
+    }
+},
     // Xóa sản phẩm (xóa mềm)
     deleteProduct: async (productId) => {
         const query = `UPDATE products SET isActive = 0 WHERE product_id = ?`;

@@ -10,6 +10,7 @@ const paymentMethodController = require('../controllers/paymentMethod.controller
 const userController = require('../controllers/user.controller');
 const voucherController = require('../controllers/voucher.controller');
 const commentController = require('../controllers/comment.controller');
+const upload = require('../middleware/upload.middleware');
 
 // Middleware kiểm tra vai trò admin
 const restrictToAdminMiddleware = (req, res, next) => {
@@ -35,8 +36,22 @@ router.get('/api/overview', overviewController.getOverview);
 // Product API routes
 router.get('/api/products', productController.getAllProducts);
 router.get('/api/products/:id', productController.getProductById);
-router.post('/api/products', productController.createProduct);
-router.put('/api/products/:id', productController.updateProduct);
+router.post(
+    '/api/products',
+    upload.fields([
+        { name: 'main_image', maxCount: 1 },
+        { name: 'additional_images', maxCount: 10 }
+    ]),
+    productController.createProduct
+);
+router.put(
+    '/api/products/:id',
+    upload.fields([
+        { name: 'main_image', maxCount: 1 },
+        { name: 'additional_images', maxCount: 10 }
+    ]),
+    productController.updateProduct
+);
 router.delete('/api/products/:id', productController.deleteProduct);
 
 // Brand API routes
@@ -56,7 +71,6 @@ router.get('/api/orders', orderController.getAllOrders);
 router.get('/api/orders/:id', orderController.getOrderById);
 router.put('/api/orders/:id', orderController.updateOrderStatus);
 router.delete('/api/orders/:id', orderController.deleteOrder);
-
 router.get('/api/order-statuses', orderController.getAllStatuses);
 
 // Payment Method API routes
@@ -72,18 +86,15 @@ router.put('/api/users/:id/status', userController.updateUserStatus);
 router.post('/api/users', userController.createUser);
 router.delete('/api/users/:id', userController.deleteUser);
 
+// Voucher API routes
 router.get('/api/vouchers', voucherController.getAllVouchers);
 router.post('/api/vouchers', voucherController.createVoucher);
 router.put('/api/vouchers/:id', voucherController.updateVoucher);
 router.delete('/api/vouchers/:id', voucherController.deleteVoucher);
 
-// Route lấy danh sách đánh giá
+// Comment API routes
 router.get('/api/comments', commentController.getAllComments);
-
-// Route xóa đánh giá
 router.delete('/api/comments/:id', commentController.deleteComment);
-
-// Route ẩn đánh giá
 router.put('/api/comments/:id/hide', commentController.hideComment);
 
 module.exports = router;

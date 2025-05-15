@@ -260,13 +260,35 @@
         <section id="donhang" class="content-section" style="display: none;">
             <div class="order">
                 <h2>Quản Lý Đơn Hàng</h2>
+                <div class="order-filter-bar" style="margin-bottom:16px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+                    <label>Trạng thái:
+                        <select id="order-status-filter">
+                            <option value="all">Tất cả</option>
+                            <!-- Các option trạng thái sẽ được render động bằng JS -->
+                        </select>
+                    </label>
+                    <label>Phương thức TT:
+                        <select id="order-payment-filter">
+                            <option value="all">Tất cả</option>
+                            <!-- Các option phương thức sẽ được render động bằng JS -->
+                        </select>
+                    </label>
+                    <label>Sắp xếp:
+                        <select id="order-sort-filter">
+                            <option value="created_at_desc">Ngày tạo: Mới nhất</option>
+                            <option value="created_at_asc">Ngày tạo: Cũ nhất</option>
+                            <option value="final_amount_asc">Tổng tiền: Thấp đến cao</option>
+                            <option value="final_amount_desc">Tổng tiền: Cao đến thấp</option>
+                        </select>
+                    </label>
+                    <button id="order-filter-btn" class="btn-primary" style="padding:6px 18px;">Lọc</button>
+                </div>
                 <div class="order-table-container">
                     <table class="order-table">
                         <thead>
                             <tr>
                                 <th>ID</th>
                                 <th>Khách Hàng</th>
-                        
                                 <th>Địa Chỉ</th>
                                 <th>Phương Thức TT</th>
                                 <th>Trạng Thái</th>
@@ -279,6 +301,11 @@
                             <!-- Danh sách đơn hàng sẽ được thêm bằng JavaScript -->
                         </tbody>
                     </table>
+                </div>
+                <div class="pagination" id="order-pagination" style="margin-top:16px;display:none;gap:8px;align-items:center;">
+                    <button id="order-prev-page" class="btn-secondary"><i class="fas fa-chevron-left"></i> Trước</button>
+                    <span id="order-page-info">Trang 1</span>
+                    <button id="order-next-page" class="btn-secondary">Sau <i class="fas fa-chevron-right"></i></button>
                 </div>
             </div>
         </section>
@@ -460,6 +487,21 @@
         </div>
     </div>
 
+    <!-- Modal chi tiết đơn hàng -->
+    <div id="order-detail-modal" class="form-container" style="display:none;">
+        <div class="form-content" style="max-width: 600px;">
+            <div class="form-header">
+                <h3>Chi tiết đơn hàng</h3>
+                <button type="button" class="close-form" onclick="hideOrderDetail()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="order-detail-content">
+                <!-- Nội dung chi tiết đơn hàng sẽ được render bằng JS -->
+            </div>
+        </div>
+    </div>
+
     <!-- Modal doanh thu chi tiết -->
     <div id="revenue-detail-modal" class="form-container">
         <div class="form-content" style="max-width: 400px;">
@@ -542,5 +584,12 @@
     </div>
 
     <script src="/js/admin.js"></script>
+    <script>
+    const filterBtn = document.getElementById('order-filter-btn');
+    if (filterBtn) filterBtn.addEventListener('click', () => {
+        console.log('Btn Lọc click!');
+        loadOrders(getOrderFiltersFromUI());
+    });
+    </script>
 </body>
 </html>

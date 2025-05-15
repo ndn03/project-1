@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,117 +9,111 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css" />
 </head>
-<body style="min-height:100vh;display:flex;flex-direction:column;">
-    <header>
-        <div class="container">
-            <h1 class="logo">Luxury Watches</h1>
-            <nav>
-                <ul>
-                    <li><a href="/">Trang chủ</a></li>
-                    <li>
-                        <a href="#">Sản phẩm</a>
-                        <ul class="dropdown">
-                            <li><a href="#1">Sản phẩm nổi bật</a></li>
-                            <li><a href="#2">Đồng hồ nam</a></li>
-                            <li><a href="#3">Đồng hồ nữ</a></li>
-                        </ul>
-                    </li>
-                    <li><a href="#">Liên hệ</a></li>
-                    <li><a href="#" onclick="showLoginPopup(); return false;">Đăng nhập</a></li>
-                </ul>
-            </nav>
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <h2>Admin</h2>
         </div>
-    </header>
-    <div style="flex:1;display:flex;align-items:stretch;background:#F8F1E9;">
-        <div class="sidebar">
-            <h2>User Dashboard</h2>
-            <ul>
-                <li><a href="#order-history" class="menu-item active">Lịch sử mua hàng</a></li>
-                <li><a href="#change-password" class="menu-item">Đổi mật khẩu</a></li>
-            </ul>
-        </div>
-        <div class="main-content">
-               <div id="order-history" class="section active">
-                <h1>Lịch sử mua hàng</h1>
-                <div class="order-history">
-                    <table>
+        <ul class="menu">
+            <li class="menu-item">
+                <a href="#" onclick="showSection('product-info')">
+                    <i class="fas fa-home"></i> Tổng quan
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="#" onclick="showSection('add-product')">
+                    <i class="fas fa-edit"></i> Quản lý sản phẩm
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="#" onclick="showSection('donhang')">
+                    <i class="fab fa-first-order"></i> Quản lý đơn hàng
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="#" onclick="showSection('user')">
+                    <i class="fas fa-user-circle"></i> Tài khoản
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="#" onclick="showSection('voucher-management')">
+                    <i class="fas fa-ticket-alt"></i> Quản lý voucher
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="#" onclick="showSection('comment')">
+                    <i class="fas fa-comment"></i> Quản lý đánh giá
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="#" onclick="showSection('list-info')">
+                    <i class="fas fa-list"></i> Khác
+                </a>
+            </li>
+        </ul>
+    </div>
+    
+    <div class="main-content">
+        <header>
+            <h1>TỔNG QUAN</h1>
+            <a href="/" class="btn-back-home">Quay lại trang chủ</a>
+        </header>
+
+        <!-- Section Quản lý đơn hàng -->
+        <section id="donhang" class="content-section" style="display: none;">
+            <div class="order">
+                <h2>Quản Lý Đơn Hàng</h2>
+                <div class="order-table-container">
+                    <table class="order-table">
                         <thead>
                             <tr>
-                                <th>Mã đơn hàng</th>
-                                <th>Ngày đặt</th>
-                                <th>Tổng tiền</th>
-                                <th>Trạng thái</th>
-                                <th>Chi tiết</th>
+                                <th>ID</th>
+                                <th>Khách Hàng</th>
+                                <th>Địa Chỉ</th>
+                                <th>Phương Thức TT</th>
+                                <th>Trạng Thái</th>
+                                <th>Tổng Tiền</th>
+                                <th>Ngày Tạo</th>
+                                <th>Thao Tác</th>
                             </tr>
                         </thead>
-                        <tbody id="order-table-body">
-                            <!-- Orders will be dynamically populated by JavaScript -->
+                        <tbody id="ordersList">
+                            <!-- Danh sách đơn hàng sẽ được thêm bằng JavaScript -->
                         </tbody>
                     </table>
                 </div>
-            </div>
-            </div>
-            <div id="change-password" class="section">
-                <h1>Đổi mật khẩu</h1>
-                <div class="change-password">
-                    <form id="password-form">
-                        <input type="password" id="current-password" placeholder="Mật khẩu hiện tại" required>
-                        <input type="password" id="new-password" placeholder="Mật khẩu mới" required>
-                        <input type="password" id="confirm-password" placeholder="Xác nhận mật khẩu mới" required>
-                        <button type="submit">Đổi mật khẩu</button>
-                    </form>
+                <div class="pagination">
+                    <button id="prev-page" class="btn-secondary">
+                        <i class="fas fa-chevron-left"></i> Trước
+                    </button>
+                    <span id="page-info">Trang 1</span>
+                    <button id="next-page" class="btn-secondary">
+                        Sau <i class="fas fa-chevron-right"></i>
+                    </button>
                 </div>
             </div>
-            <div id="order-details" class="section" style="display:none;">
-                <h1>Chi tiết đơn hàng</h1>
-                <div class="order-details">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Sản phẩm</th>
-                                <th>Số lượng</th>
-                                <th>Giá</th>
-                            </tr>
-                        </thead>
-                        <tbody id="order-details-body">
-                            <!-- Order details will be dynamically populated by JavaScript -->
-                        </tbody>
-                    </table>
-                    <button id="back-to-orders">Quay lại</button>
+        </section>
+
+        <!-- Modal chi tiết đơn hàng -->
+        <div id="order-detail-modal" class="form-container" style="display: none;">
+            <div class="form-content" style="max-width: 700px;">
+                <div class="form-header">
+                    <h3>Chi tiết đơn hàng</h3>
+                    <button type="button" class="close-form" onclick="hideOrderDetail()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div id="order-detail-content">
+                    <!-- Nội dung chi tiết sẽ được render bằng JS -->
                 </div>
             </div>
         </div>
+
+        <!-- Other sections (product, user, voucher, etc.) remain unchanged -->
+        <!-- Include them here if needed -->
+
     </div>
-    <footer style="margin-top:auto;">
-        <%- include('view-index/footer-index') %>
-    </footer>
-    <!-- Popup đánh giá sản phẩm -->
-    <div id="review-popup" class="popup" style="display:none;">
-        <div class="popup-content" style="max-width:400px;position:relative;">
-            <span class="close-btn" id="close-review-popup" style="position:absolute;top:10px;right:15px;cursor:pointer;font-size:22px;">&times;</span>
-            <h2>Đánh giá sản phẩm</h2>
-            <form id="review-form">
-                <input type="hidden" id="review-product-id">
-                <input type="hidden" id="review-order-id">
-                <div class="form-group">
-                    <label for="review-rating">Số sao:</label>
-                    <select id="review-rating" required>
-                        <option value="">Chọn số sao</option>
-                        <option value="5">5 - Tuyệt vời</option>
-                        <option value="4">4 - Tốt</option>
-                        <option value="3">3 - Bình thường</option>
-                        <option value="2">2 - Kém</option>
-                        <option value="1">1 - Rất tệ</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="review-comment">Nhận xét:</label>
-                    <textarea id="review-comment" rows="3" style="width:100%;" required></textarea>
-                </div>
-                <button type="submit" class="submit-btn">Gửi đánh giá</button>
-            </form>
-        </div>
-    </div>
-    <script src="/js/account.js"></script>
+
+    <script src="/js/admin.js"></script>
 </body>
 </html>

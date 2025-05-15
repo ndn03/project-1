@@ -1,8 +1,8 @@
-// Quản lý sản phẩm
 const productForm = document.getElementById('product-form-content');
 const productList = document.getElementById('product-list');
 let currentPage = 1;
 let currentFilters = {};
+let orderStatuses = [];
 
 // Tải danh sách sản phẩm với phân trang và bộ lọc
 async function loadProducts(page = 1, filters = {}) {
@@ -25,8 +25,19 @@ async function loadProducts(page = 1, filters = {}) {
         }
         
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Failed to fetch products');
+            let errorData;
+            try {
+                errorData = await response.json();
+            } catch (e) {
+                // Nếu không phải JSON, lấy text (có thể là HTML)
+                const text = await response.text();
+                console.error('Error response (not JSON):', text);
+                showNotification('Lỗi server: ' + text.slice(0, 100), 'error');
+                return;
+            }
+            console.error('Error response from server:', errorData);
+            showNotification(errorData.error || 'Lỗi khi lưu sản phẩm', 'error');
+            return;
         }
         
         const data = await response.json();
@@ -166,11 +177,15 @@ async function editProduct(productId) {
     try {
         const response = await fetch(`/admin/api/products/${productId}`);
         if (!response.ok) throw new Error('Không thể lấy thông tin sản phẩm');
-        
-        const product = await response.json();
-        showProductForm(product); // Gọi hàm hiển thị form với dữ liệu sản phẩm
+        const data = await response.json();
+        const product = {
+            ...data.product,
+            details: data.details || {},
+            additional_images: data.images || [],
+            categories: data.product?.categories || []
+        };
+        showProductForm(product);
     } catch (error) {
-        console.error('Lỗi khi tải thông tin sản phẩm:', error);
         showNotification('Lỗi khi tải thông tin sản phẩm', 'error');
     }
 }
@@ -182,13 +197,28 @@ function showProductForm(product = null) {
 
     title.textContent = product ? 'Sửa Sản Phẩm' : 'Thêm Sản Phẩm Mới';
 
+    // Reset các biến quản lý ảnh
+    oldImages = [];
+    imagesToDelete = [];
+    selectedAdditionalImages = [];
+    if (additionalImagesInput) additionalImagesInput.value = '';
+
     if (product) {
         document.getElementById('product-id').value = product.product_id || '';
-        document.getElementById('product-name').value = product.name || 'Tên sản phẩm chưa xác định'; // Lấy tên sản phẩm
+        document.getElementById('product-name').value = product.name || 'Tên sản phẩm chưa xác định';
         document.getElementById('product-price').value = product.price || '';
         document.getElementById('product-discount').value = product.discount || '';
         document.getElementById('product-stock').value = product.stock_quantity || '';
         document.getElementById('product-brand').value = product.brand_id || '';
+        window.currentImageUrl = product.image_url || '';
+
+        // Gán thương hiệu
+        if (product.brand_id) {
+            const brandSelect = document.getElementById('product-brand');
+            if (brandSelect) {
+                brandSelect.value = product.brand_id;
+            }
+        }
 
         // Gán danh mục
         if (product.categories) {
@@ -198,14 +228,15 @@ function showProductForm(product = null) {
             });
         }
 
-        // Gán hình ảnh bổ sung
-        const additionalImagesContainer = document.getElementById('additional-images-container');
-        additionalImagesContainer.innerHTML = (product.additional_images || []).map(img => `
-            <div class="image-preview">
-                <img src="${img}" alt="Additional Image">
-                <button type="button" class="btn-delete" onclick="removeImage('${img}')">Xóa</button>
-            </div>
-        `).join('');
+        // Gán hình ảnh bổ sung cũ
+        oldImages = (product.additional_images || []).map(img => {
+            if (img.startsWith('/img/')) return img; // Path is already correct
+            if (img.startsWith('DonghoVip/') || img.startsWith('DonghoNam/') || img.startsWith('DonghoNu/')) {
+                return '/img/' + img; // Add '/img/' for subdirectories
+            }
+            return img; // Return as is for other cases
+        });
+        renderAdditionalImagesPreview();
 
         // Gán thông tin chi tiết sản phẩm
         const details = product.details || {};
@@ -219,6 +250,10 @@ function showProductForm(product = null) {
         document.getElementById('product-movement').value = details.movement || '';
         document.getElementById('product-origin').value = details.origin || '';
         document.getElementById('product-warranty').value = details.warranty || '';
+    } else {
+        document.getElementById('product-id').value = '';
+        window.currentImageUrl = '';
+        renderAdditionalImagesPreview();
     }
 
     form.style.display = 'block';
@@ -239,54 +274,185 @@ function hideProductForm() {
     document.getElementById('product-form-content').reset();
 }
 
-// Xử lý khi gửi form sản phẩm
+// --- Preview nhiều ảnh khi chọn file ---
+const additionalImagesInput = document.getElementById('additional-images');
+const additionalImagesContainer = document.getElementById('additional-images-container');
+let selectedAdditionalImages = [];
+let oldImages = [];
+let imagesToDelete = [];
+
+if (additionalImagesInput) {
+    additionalImagesInput.addEventListener('change', function (e) {
+        selectedAdditionalImages = Array.from(e.target.files);
+        renderAdditionalImagesPreview();
+    });
+}
+
+function renderAdditionalImagesPreview() {
+    additionalImagesContainer.innerHTML = '';
+    console.log('Debugging oldImages:', oldImages); // Debugging log
+
+    // Preview ảnh cũ (nếu có)
+    oldImages.forEach((imgUrl, idx) => {
+        if (!imagesToDelete.includes(imgUrl)) {
+            const div = document.createElement('div');
+            div.className = 'image-preview old-image';
+            div.innerHTML = `
+                <img src="${imgUrl}" alt="Ảnh cũ">
+                <button type="button" class="btn-delete" data-idx="${idx}">Xóa</button>
+            `;
+            div.querySelector('.btn-delete').onclick = function() {
+                imagesToDelete.push(imgUrl);
+                div.remove();
+            };
+            additionalImagesContainer.appendChild(div);
+        }
+    });
+
+    // Preview ảnh mới
+    selectedAdditionalImages.forEach((file, idx) => {
+        const reader = new FileReader();
+        reader.onload = function (ev) {
+            const div = document.createElement('div');
+            div.className = 'image-preview new-image';
+            div.innerHTML = `
+                <img src="${ev.target.result}" alt="Additional Image">
+                <button type="button" class="btn-delete" data-idx="${idx}">Xóa</button>
+            `;
+            div.querySelector('.btn-delete').onclick = function() {
+                selectedAdditionalImages.splice(idx, 1);
+                const dt = new DataTransfer();
+                selectedAdditionalImages.forEach(f => dt.items.add(f));
+                additionalImagesInput.files = dt.files;
+                div.remove();
+            };
+            additionalImagesContainer.appendChild(div);
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+// --- Sửa handleProductSubmit để gửi danh sách ảnh cần xóa ---
 async function handleProductSubmit(event) {
     event.preventDefault();
     
     const formData = new FormData(event.target);
-    const productId = formData.get('product-id');
+    const productId = formData.get('product-id')?.trim();
     
-    // Lấy danh mục đã chọn
+    // Thu thập dữ liệu sản phẩm
     const selectedCategories = Array.from(document.querySelectorAll('input[name="product-categories"]:checked'))
         .map(checkbox => parseInt(checkbox.value));
-    
+
     const productData = {
-        name: formData.get('product-name'),
+        name: formData.get('product-name')?.trim(),
         price: parseFloat(formData.get('product-price')),
         discount: parseFloat(formData.get('product-discount')) || 0,
         stock_quantity: parseInt(formData.get('product-stock')),
-        brand_id: parseInt(formData.get('product-brand')),
-        categories: selectedCategories
+        brand_id: parseInt(formData.get('product-brand'))
     };
-    
+
+    // Lấy file ảnh đại diện mới nếu có
+    const productImagesInput = document.getElementById('product-images');
+    let hasNewMainImage = false;
+    if (productImagesInput && productImagesInput.files && productImagesInput.files.length > 0) {
+        hasNewMainImage = true;
+    }
+    if (!hasNewMainImage && window.currentImageUrl) {
+        productData.image_url = window.currentImageUrl;
+    }
+
+    const details = {
+        diameter: formData.get('product-diameter'),
+        water_resistance_level: formData.get('product-water-resistance'),
+        thickness: formData.get('product-thickness'),
+        material_face: formData.get('product-material-face'),
+        material_case: formData.get('product-material-case'),
+        material_strap: formData.get('product-material-strap'),
+        size: formData.get('product-size'),
+        movement: formData.get('product-movement'),
+        origin: formData.get('product-origin'),
+        warranty: formData.get('product-warranty')
+    };
+
+    // Kiểm tra các trường bắt buộc
+    if (!productData.name || productData.name.length < 2) {
+        showNotification('Tên sản phẩm phải dài ít nhất 2 ký tự', 'error');
+        return;
+    }
+    if (!productData.price || isNaN(productData.price) || productData.price <= 0) {
+        showNotification('Giá sản phẩm phải là số dương', 'error');
+        return;
+    }
+    if (!productData.brand_id || isNaN(productData.brand_id) || productData.brand_id <= 0) {
+        showNotification('Vui lòng chọn thương hiệu hợp lệ', 'error');
+        return;
+    }
+
+    // Tạo dữ liệu gửi lên backend
+    const data = {
+        product: productData,
+        details,
+        categories: selectedCategories,
+        imagesToDelete: Array.isArray(imagesToDelete) ? imagesToDelete : []
+    };
+
+    // Chuẩn bị FormData
+    const sendData = new FormData();
+    sendData.append('data', JSON.stringify(data));
+
+    // Thêm tệp ảnh đại diện mới nếu có
+    if (hasNewMainImage) {
+        sendData.append('main_image', productImagesInput.files[0]);
+    }
+
+    // Thêm tệp ảnh phụ
+    const files = additionalImagesInput?.files;
+    if (files && files.length > 0) {
+        for (let i = 0; i < files.length; i++) {
+            sendData.append('additional_images', files[i]);
+        }
+    }
+
+    // Log dữ liệu để kiểm tra
+    console.log('Action:', productId ? 'Updating product' : 'Creating product');
+    console.log('Product ID from form:', productId);
+    console.log('Data to send:', JSON.stringify(data, null, 2));
+    for (let pair of sendData.entries()) {
+        console.log('FormData:', pair[0], pair[1]);
+    }
+
     try {
         const url = productId ? `/admin/api/products/${productId}` : '/admin/api/products';
         const method = productId ? 'PUT' : 'POST';
-        
+        console.log('Sending request to:', url, 'Method:', method);
+
         const response = await fetch(url, {
-            method,
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            credentials: 'include',
-            body: JSON.stringify(productData)
+            method: method,
+            body: sendData,
+            credentials: 'include'
         });
-        
+
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Failed to save product');
+            let errorData;
+            try {
+                errorData = await response.json();
+            } catch (e) {
+                console.error('Error parsing JSON response:', e);
+                showNotification('Lỗi server: Không thể phân tích phản hồi JSON', 'error');
+                return;
+            }
+            console.error('Error response from server:', errorData);
+            showNotification(errorData.error || 'Lỗi khi lưu sản phẩm', 'error');
+            return;
         }
-        
-        showNotification(
-            productId ? 'Cập nhật sản phẩm thành công' : 'Thêm sản phẩm thành công',
-            'success'
-        );
-        
+
+        const responseData = await response.json();
+        showNotification(productId ? 'Cập nhật sản phẩm thành công' : 'Tạo sản phẩm thành công', 'success');
         hideProductForm();
         loadProducts(currentPage, currentFilters);
     } catch (error) {
-        console.error('Error saving product:', error);
-        showNotification(error.message || 'Lỗi khi lưu sản phẩm', 'error');
+        console.error('Error while sending request:', error);
+        showNotification('Lỗi khi lưu sản phẩm', 'error');
     }
 }
 
@@ -325,18 +491,15 @@ function showNotification(message, type = 'info') {
 
 // Quản lý menu
 function showSection(sectionId) {
-    // Ẩn tất cả các phần
     document.querySelectorAll('.content-section').forEach(section => {
         section.style.display = 'none';
     });
     
-    // Hiển thị phần được chọn
     const selectedSection = document.getElementById(sectionId);
     if (selectedSection) {
         selectedSection.style.display = 'block';
     }
     
-    // Cập nhật mục menu đang hoạt động
     document.querySelectorAll('.menu-item').forEach(item => {
         item.classList.remove('active');
     });
@@ -346,7 +509,6 @@ function showSection(sectionId) {
         activeMenuItem.parentElement.classList.add('active');
     }
     
-    // Tải dữ liệu cụ thể cho từng phần
     switch(sectionId) {
         case 'product-info':
             loadOverview();
@@ -356,7 +518,7 @@ function showSection(sectionId) {
             loadFilters();
             break;
         case 'donhang':
-            loadOrders();
+            loadOrderStatuses().then(() => loadOrders());
             break;
         case 'user':
             loadUsers();
@@ -367,6 +529,9 @@ function showSection(sectionId) {
             break;
         case 'voucher-management':
             loadVouchers();
+            break;
+        case 'comment':
+            loadComments();
             break;
     }
 }
@@ -398,12 +563,10 @@ async function loadOverview() {
         }
         
         const data = await response.json();
-        // Cập nhật các phần tử tổng quan và các bảng khác
         updateOverview(data);
     } catch (error) {
         console.error('Error loading overview:', error);
         showNotification(error.message || 'Lỗi khi tải dữ liệu tổng quan', 'error');
-        // Gán giá trị mặc định trong trường hợp lỗi
         document.getElementById('total-products').textContent = '0';
         document.getElementById('total-customers').textContent = '0';
         document.getElementById('pending-orders').textContent = '0';
@@ -415,7 +578,6 @@ async function loadOverview() {
 // Tải bộ lọc (thương hiệu và danh mục)
 async function loadFilters() {
     try {
-        // Tải thương hiệu
         const brandsResponse = await fetch('/admin/api/brands', {
             credentials: 'include'
         });
@@ -426,15 +588,12 @@ async function loadFilters() {
         
         const brands = await brandsResponse.json();
         
-        // Cập nhật danh sách thương hiệu
         const brandSelects = document.querySelectorAll('select[id*="brand"]');
         brandSelects.forEach(select => {
-            select.innerHTML = '<option value="">Chọn thương hiệu</option>';
             select.innerHTML = '<option value="">Chọn thương hiệu</option>' +
                 brands.map(brand => `<option value="${brand.brand_id}">${brand.name}</option>`).join('');
         });
         
-        // Load categories
         const categoriesResponse = await fetch('/admin/api/categories', {
             credentials: 'include'
         });
@@ -445,17 +604,14 @@ async function loadFilters() {
         
         const categories = await categoriesResponse.json();
         
-        // Update category selects and checkboxes
         const categorySelects = document.querySelectorAll('select[id*="category"]');
         categorySelects.forEach(select => {
             if (select.id === 'filter-category') {
-                // For filter, use single select
                 select.innerHTML = '<option value="">Tất cả danh mục</option>' +
                     categories.map(category => `<option value="${category.category_id}">${category.name}</option>`).join('');
             }
         });
 
-        // Update category checkboxes in product form
         const categoriesContainer = document.getElementById('product-categories-container');
         if (categoriesContainer) {
             categoriesContainer.innerHTML = categories.map(category => `
@@ -470,157 +626,6 @@ async function loadFilters() {
         showNotification('Lỗi khi tải dữ liệu bộ lọc', 'error');
     }
 }
-
-// Initialize page
-document.addEventListener('DOMContentLoaded', () => {
-    // Show default section
-    showSection('product-info');
-    
-    // Add event listeners for menu items
-    document.querySelectorAll('.menu-item a').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const sectionId = link.getAttribute('onclick').match(/'([^']+)'/)[1];
-            showSection(sectionId);
-        });
-    });
-    
-    // Add event listeners for other elements
-    document.getElementById('add-product-btn')?.addEventListener('click', () => showProductForm());
-    document.getElementById('product-form-content')?.addEventListener('submit', handleProductSubmit);
-    
-    // Pagination
-    document.getElementById('prev-page').addEventListener('click', () => {
-        if (currentPage > 1) {
-            currentPage--;
-            loadProducts(currentPage, currentFilters);
-        }
-    });
-    
-    document.getElementById('next-page').addEventListener('click', () => {
-        currentPage++;
-        loadProducts(currentPage, currentFilters);
-    });
-    
-    // Search and filters
-    const searchInput = document.getElementById('search-product');
-    const brandFilter = document.getElementById('filter-brand');
-    const categoryFilter = document.getElementById('filter-category');
-    const sortFilter = document.getElementById('filter-sort');
-    
-    let searchTimeout;
-    searchInput.addEventListener('input', (e) => {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            currentFilters.search = e.target.value;
-            currentPage = 1;
-            loadProducts(currentPage, currentFilters);
-        }, 500);
-    });
-    
-    brandFilter.addEventListener('change', (e) => {
-        currentFilters.brandId = e.target.value;
-        currentPage = 1;
-        loadProducts(currentPage, currentFilters);
-    });
-    
-    categoryFilter.addEventListener('change', (e) => {
-        currentFilters.categoryId = e.target.value;
-        currentPage = 1;
-        loadProducts(currentPage, currentFilters);
-    });
-    
-    sortFilter.addEventListener('change', (e) => {
-        currentFilters.sortBy = e.target.value;
-        currentPage = 1;
-        loadProducts(currentPage, currentFilters);
-    });
-});
-
-async function showProductDetail(productId) {
-    try {
-        const response = await fetch(`/admin/api/products/${productId}`, { credentials: 'include' });
-        if (!response.ok) throw new Error('Không lấy được chi tiết sản phẩm');
-        const data = await response.json();
-
-        let html = `
-            <div style=\"display:flex;gap:20px;flex-wrap:wrap;\">
-                <div style=\"min-width:120px;max-width:120px;\">
-                    <img src=\"${data.product.image_url || '/img/no-image.png'}\" style=\"width:120px;height:120px;object-fit:cover;border-radius:8px;\">
-                </div>
-                <div style=\"flex:1;min-width:200px;\">
-                    <h4>${data.product.name}</h4>
-                    <p><b>Giá:</b> ${formatPrice(data.product.price)}</p>
-                    <p><b>Giảm giá:</b> ${data.product.discount || 0}%</p>
-                    <p><b>Tồn kho:</b> ${data.product.stock_quantity}</p>
-                    <hr>
-                    <h5>Thông số kỹ thuật:</h5>
-                    <ul>
-                        <li>Đường kính: ${data.details.diameter}</li>
-                        <li>Độ chống nước: ${data.details.water_resistance_level}</li>
-                        <li>Độ dày: ${data.details.thickness}</li>
-                        <li>Mặt kính: ${data.details.material_face}</li>
-                        <li>Vỏ: ${data.details.material_case}</li>
-                        <li>Dây: ${data.details.material_strap}</li>
-                        <li>Kích thước: ${data.details.size}</li>
-                        <li>Bộ máy: ${data.details.movement}</li>
-                        <li>Xuất xứ: ${data.details.origin}</li>
-                        <li>Bảo hành: ${data.details.warranty}</li>
-                    </ul>
-                </div>
-            </div>
-            <div style=\"margin-top:18px;display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-start;align-items:center;\">
-                ${data.images && data.images.length > 0 ? data.images.map(img => `<img src=\"${img}\" style=\"width:80px;height:80px;object-fit:cover;border-radius:4px;\">`).join('') : ''}
-            </div>
-            <div style="margin-top:24px;display:flex;gap:10px;justify-content:flex-end;">
-                <button class="btn-edit" onclick="editProduct(${data.product.product_id}); hideProductDetail();">
-                    <i class="fas fa-edit"></i> Sửa
-                </button>
-                <button class="btn-delete" onclick="deleteProductFromDetail(${data.product.product_id})">
-                    <i class="fas fa-trash"></i> Xóa
-                </button>
-            </div>
-        `;
-        document.getElementById('product-detail-content').innerHTML = html;
-        document.getElementById('product-detail-modal').style.display = 'block';
-    } catch (err) {
-        showNotification('Lỗi khi lấy chi tiết sản phẩm', 'error');
-    }
-}
-
-function hideProductDetail() {
-    document.getElementById('product-detail-modal').style.display = 'none';
-    document.getElementById('product-detail-content').innerHTML = '';
-}
-
-// Đóng modal khi bấm nền tối
-const detailModal = document.getElementById('product-detail-modal');
-detailModal.addEventListener('click', function(e) {
-    if (e.target === detailModal) hideProductDetail();
-});
-// Đóng modal khi bấm ESC
-window.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') hideProductDetail();
-});
-
-function deleteProductFromDetail(productId) {
-    if (!confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) return;
-    fetch(`/admin/api/products/${productId}`, {
-        method: 'DELETE',
-        credentials: 'include'
-    })
-    .then(res => {
-        if (!res.ok) throw new Error('Lỗi khi xóa sản phẩm');
-        showNotification('Xóa sản phẩm thành công', 'success');
-        hideProductDetail();
-        loadProducts(currentPage, currentFilters);
-    })
-    .catch(err => {
-        showNotification('Lỗi khi xóa sản phẩm', 'error');
-    });
-}
-
-let orderStatuses = [];
 
 // Load order statuses
 async function loadOrderStatuses() {
@@ -657,7 +662,7 @@ async function updateOrderStatus(orderId, statusId) {
         }
 
         showNotification('Cập nhật trạng thái đơn hàng thành công', 'success');
-        loadOrders(); // Reload danh sách đơn hàng
+        loadOrders();
     } catch (error) {
         console.error('Lỗi khi cập nhật trạng thái:', error);
         showNotification('Lỗi khi cập nhật trạng thái đơn hàng', 'error');
@@ -665,7 +670,7 @@ async function updateOrderStatus(orderId, statusId) {
 }
 
 // Function to load and display orders
-async function loadOrders() {
+async function loadOrders(filters = {}) {
     const ordersList = document.getElementById('ordersList');
     if (!ordersList) {
         console.error('Không tìm thấy element ordersList');
@@ -673,7 +678,14 @@ async function loadOrders() {
     }
 
     try {
-        const response = await fetch('/admin/api/orders', {
+        // Không phân trang: không truyền limit/offset
+        const queryParams = new URLSearchParams({
+            ...filters
+        });
+
+        console.log(`[loadOrders] Requesting all orders, filters:`, filters);
+
+        const response = await fetch(`/admin/api/orders?${queryParams}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -683,55 +695,42 @@ async function loadOrders() {
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error || 'Lỗi khi tải danh sách đơn hàng');
+            throw new Error(errorData.error || `HTTP error ${response.status}`);
         }
 
         const data = await response.json();
-        const orders = data.orders || [];
-        
-        if (!orders || orders.length === 0) {
-            ordersList.innerHTML = '<tr><td colspan="9" class="no-orders">Không có đơn hàng nào</td></tr>';
+        console.log('[loadOrders] Server response:', data);
+
+        if (!data || !Array.isArray(data.orders) || typeof data.total !== 'number') {
+            throw new Error('Dữ liệu trả về từ server không hợp lệ');
+        }
+
+        const orders = data.orders;
+
+        if (orders.length === 0) {
+            ordersList.innerHTML = '<tr><td colspan="8" class="no-orders">Không có đơn hàng nào</td></tr>';
             return;
         }
 
         ordersList.innerHTML = orders.map(order => `
             <tr>
                 <td>${order.order_id}</td>
-                <td>
-                    <div class="customer-info">
-                        <span class="customer-name">${order.username || 'N/A'}</span>
-                        <span class="customer-email">${order.email || 'N/A'}</span>
-                    </div>
-                </td>
+                <td>${order.username || 'N/A'}</td>
                 <td>${order.full_address || 'N/A'}</td>
                 <td>${order.payment_method_name || 'N/A'}</td>
+                <td>${order.status}</td>
+                <td>${order.final_amount.toLocaleString('vi-VN')} VND</td>
+                <td>${order.created_at}</td>
                 <td>
-                    <select class="status-select" onchange="updateOrderStatus(${order.order_id}, this.value)" 
-                            style="padding: 6px 12px; border-radius: 20px; border: 1px solid #dee2e6; font-size: 12px; font-weight: 500;">
-                        ${orderStatuses.map(status => `
-                            <option value="${status.order_status_id}" 
-                                    ${status.order_status_id === order.status_id ? 'selected' : ''}
-                                    style="background-color: ${getStatusColor(status.order_status_id)}; color: ${getStatusTextColor(status.order_status_id)};">
-                                ${status.status}
-                            </option>
-                        `).join('')}
-                    </select>
-                </td>
-                <td class="price">${formatPrice(order.final_amount)}</td>
-                <td class="date">${order.created_at}</td>
-                <td>
-                    <button class="btn-action btn-view" onclick="viewOrder(${order.order_id})">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button class="btn-action btn-delete" onclick="deleteOrder(${order.order_id})">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                    <button class="btn btn-primary btn-sm" onclick="showOrderDetails(${order.order_id})">Chi tiết</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteOrder(${order.order_id})">Xóa</button>
                 </td>
             </tr>
         `).join('');
     } catch (error) {
-        console.error('Error:', error);
-        ordersList.innerHTML = `<tr><td colspan="9" class="no-orders text-danger">${error.message}</td></tr>`;
+        console.error('[loadOrders] Error:', error);
+        ordersList.innerHTML = `<tr><td colspan="8" class="no-orders text-danger">${error.message}</td></tr>`;
+        showNotification(error.message, 'error');
     }
 }
 
@@ -760,8 +759,70 @@ function getStatusTextColor(statusId) {
 }
 
 // Function to view order details
-function viewOrder(orderId) {
-    alert(`Xem chi tiết đơn hàng: ${orderId}`);
+async function viewOrder(orderId) {
+    try {
+        const response = await fetch(`/admin/api/orders/${orderId}`, {
+            credentials: 'include'
+        });
+        if (!response.ok) throw new Error('Không lấy được chi tiết đơn hàng');
+        const order = await response.json();
+
+        let html = `
+            <div>
+                <div><strong>Mã đơn hàng:</strong> #${order.order_id}</div>
+                <div><strong>Người nhận:</strong> ${order.receiver_name || 'Không xác định'}</div>
+                <div><strong>Số điện thoại:</strong> ${order.receiver_phone || 'Không xác định'}</div>
+                <div><strong>Địa chỉ:</strong> ${order.full_address || 'Không xác định'}</div>
+                <div><strong>Phương thức thanh toán:</strong> ${order.payment_method_name || 'Không xác định'}</div>
+                <div><strong>Trạng thái:</strong> ${order.status || 'Không xác định'}</div>
+                <div><strong>Thành tiền:</strong> ${formatPrice(order.final_amount || 0)}</div>
+                <div><strong>Phí vận chuyển:</strong> ${formatPrice(order.shipping_fee || 0)}</div>
+                <div><strong>Giảm giá:</strong> ${formatPrice(order.discount_amount || 0)}</div>
+                <div><strong>Tổng tiền:</strong> ${formatPrice(order.total_amount || 0)}</div>
+                <div><strong>Ghi chú:</strong> ${order.note || 'Không có ghi chú'}</div>
+                <div><strong>Ngày tạo:</strong> ${new Date(order.created_at).toLocaleString('vi-VN')}</div>
+                <h4 style="margin-top: 16px;">Sản phẩm:</h4>
+                <table class="order-details-table" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background-color: #f8f9fa;">
+                            <th style="padding: 8px; text-align: left;">Sản phẩm</th>
+                            <th style="padding: 8px; text-align: left;">Số lượng</th>
+                            <th style="padding: 8px; text-align: left;">Giá</th>
+                            <th style="padding: 8px; text-align: left;">Tổng</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${order.items.map(item => `
+                            <tr>
+                                <td style="padding: 8px;">
+                                    <img src="${item.image_url || '/images/placeholder.jpg'}" alt="${item.product_name || 'Sản phẩm'}" style="width: 50px; height: 50px; object-fit: cover; margin-right: 10px;">
+                                    ${item.product_name || 'Sản phẩm'}
+                                </td>
+                                <td style="padding: 8px;">${item.quantity || 0}</td>
+                                <td style="padding: 8px;">${formatPrice(item.price || 0)}</td>
+                                <td style="padding: 8px;">${formatPrice((item.quantity || 0) * (item.price || 0))}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+            <div style="margin-top: 24px; display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="btn-delete" onclick="deleteOrder(${order.order_id}); hideOrderDetail();">
+                    <i class="fas fa-trash"></i> Xóa
+                </button>
+            </div>
+        `;
+        document.getElementById('order-detail-content').innerHTML = html;
+        document.getElementById('order-detail-modal').style.display = 'block';
+    } catch (err) {
+        showNotification('Lỗi khi lấy chi tiết đơn hàng', 'error');
+    }
+}
+
+// Function to hide order detail modal
+function hideOrderDetail() {
+    document.getElementById('order-detail-modal').style.display = 'none';
+    document.getElementById('order-detail-content').innerHTML = '';
 }
 
 // Function to delete an order
@@ -770,7 +831,8 @@ async function deleteOrder(orderId) {
 
     try {
         const response = await fetch(`/admin/api/orders/${orderId}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            credentials: 'include'
         });
 
         if (!response.ok) throw new Error('Lỗi khi xóa đơn hàng');
@@ -783,15 +845,86 @@ async function deleteOrder(orderId) {
     }
 }
 
-// Add event listener to load orders when the section is shown
-document.addEventListener('DOMContentLoaded', () => {
-    const orderSection = document.getElementById('donhang');
-    if (orderSection) {
-        loadOrderStatuses().then(() => loadOrders());
-    }
-});
+// Hiển thị chi tiết sản phẩm
+async function showProductDetail(productId) {
+    try {
+        const response = await fetch(`/admin/api/products/${productId}`, { credentials: 'include' });
+        if (!response.ok) throw new Error('Không lấy được chi tiết sản phẩm');
+        const data = await response.json();
 
-// Hiển thị modal doanh thu chi tiết khi click vào tổng doanh thu hoặc nút 'Xem chi tiết'
+        let html = `
+            <div style="display:flex;gap:20px;flex-wrap:wrap;">
+                <div style="min-width:120px;max-width:120px;">
+                    <img src="${data.product.image_url || '/img/no-image.png'}" style="width:120px;height:120px;object-fit:cover;border-radius:8px;">
+                </div>
+                <div style="flex:1;min-width:200px;">
+                    <h4>${data.product.name}</h4>
+                    <p><b>Giá:</b> ${formatPrice(data.product.price)}</p>
+                    <p><b>Giảm giá:</b> ${data.product.discount || 0}%</p>
+                    <p><b>Tồn kho:</b> ${data.product.stock_quantity}</p>
+                    <hr>
+                    <h5>Thông số kỹ thuật:</h5>
+                    <ul>
+                        <li>Đường kính: ${data.details.diameter}</li>
+                        <li>Độ chống nước: ${data.details.water_resistance_level}</li>
+                        <li>Độ dày: ${data.details.thickness}</li>
+                        <li>Mặt kính: ${data.details.material_face}</li>
+                        <li>Vỏ: ${data.details.material_case}</li>
+                        <li>Dây: ${data.details.material_strap}</li>
+                        <li>Kích thước: ${data.details.size}</li>
+                        <li>Bộ máy: ${data.details.movement}</li>
+                        <li>Xuất xứ: ${data.details.origin}</li>
+                        <li>Bảo hành: ${data.details.warranty}</li>
+                    </ul>
+                </div>
+            </div>
+            <div style="margin-top:18px;display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-start;align-items:center;">
+                ${data.images && data.images.length > 0
+                  ? data.images.map(img => {
+                      const cleanImg = img.startsWith('img/') ? img.slice(4) : img;
+                      return `<img src="/img/${cleanImg}" style="width:80px;height:80px;object-fit:cover;border-radius:4px;">`;
+                    }).join('')
+                  : ''}
+            </div>
+            <div style="margin-top:24px;display:flex;gap:10px;justify-content:flex-end;">
+                <button class="btn-edit" onclick="editProduct(${data.product.product_id}); hideProductDetail();">
+                    <i class="fas fa-edit"></i> Sửa
+                </button>
+                <button class="btn-delete" onclick="deleteProductFromDetail(${data.product.product_id})">
+                    <i class="fas fa-trash"></i> Xóa
+                </button>
+            </div>
+        `;
+        document.getElementById('product-detail-content').innerHTML = html;
+        document.getElementById('product-detail-modal').style.display = 'block';
+    } catch (err) {
+        showNotification('Lỗi khi lấy chi tiết sản phẩm', 'error');
+    }
+}
+
+function hideProductDetail() {
+    document.getElementById('product-detail-modal').style.display = 'none';
+    document.getElementById('product-detail-content').innerHTML = '';
+}
+
+function deleteProductFromDetail(productId) {
+    if (!confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) return;
+    fetch(`/admin/api/products/${productId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+    })
+    .then(res => {
+        if (!res.ok) throw new Error('Lỗi khi xóa sản phẩm');
+        showNotification('Xóa sản phẩm thành công', 'success');
+        hideProductDetail();
+        loadProducts(currentPage, currentFilters);
+    })
+    .catch(err => {
+        showNotification('Lỗi khi xóa sản phẩm', 'error');
+    });
+}
+
+// Hiển thị modal doanh thu chi tiết
 function showRevenueDetailModal() {
     document.getElementById('modal-today-revenue').textContent = document.getElementById('today-revenue')?.textContent || '0 VND';
     document.getElementById('modal-yesterday-revenue').textContent = document.getElementById('yesterday-revenue')?.textContent || '0 VND';
@@ -799,204 +932,9 @@ function showRevenueDetailModal() {
     document.getElementById('modal-month-revenue').textContent = document.getElementById('month-revenue')?.textContent || '0 VND';
     document.getElementById('revenue-detail-modal').style.display = 'block';
 }
+
 function hideRevenueDetail() {
     document.getElementById('revenue-detail-modal').style.display = 'none';
-}
-// Đóng modal khi bấm nền tối
-const revenueDetailModal = document.getElementById('revenue-detail-modal');
-if (revenueDetailModal) {
-    revenueDetailModal.addEventListener('click', function(e) {
-        if (e.target === this) hideRevenueDetail();
-    });
-}
-// Gán sự kiện click cho tổng doanh thu và nút 'Xem chi tiết'
-document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('total-revenue')?.addEventListener('click', showRevenueDetailModal);
-    document.getElementById('show-revenue-detail')?.addEventListener('click', showRevenueDetailModal);
-});
-
-function renderListInfo(categories, brands, paymentMethods) {
-    // Danh mục
-    const categoryList = document.getElementById('category-list');
-    if (categoryList) {
-        if (categories && categories.length > 0) {
-            categoryList.innerHTML = categories.map(c => `
-                <tr>
-                    <td>${c.name}</td>
-                    <td>
-                        <button class="btn-edit" onclick="showCategoryModal(${c.category_id}, '${c.name.replace(/'/g, "\\'")}')"><i class='fas fa-edit'></i></button>
-                        <button class="btn-delete" onclick="deleteCategory(${c.category_id})"><i class='fas fa-trash'></i></button>
-                    </td>
-                </tr>
-            `).join('');
-        } else {
-            categoryList.innerHTML = '<tr><td colspan="2">Không có danh mục nào.</td></tr>';
-        }
-    }
-    // Thương hiệu
-    const brandList = document.getElementById('brand-list');
-    if (brandList) {
-        if (brands && brands.length > 0) {
-            brandList.innerHTML = brands.map(b => `
-                <tr>
-                    <td>${b.name}</td>
-                    <td>
-                        <button class="btn-edit" onclick="showBrandModal(${b.brand_id}, '${b.name.replace(/'/g, "\\'")}')"><i class='fas fa-edit'></i></button>
-                        <button class="btn-delete" onclick="deleteBrand(${b.brand_id})"><i class='fas fa-trash'></i></button>
-                    </td>
-                </tr>
-            `).join('');
-        } else {
-            brandList.innerHTML = '<tr><td colspan="2">Không có thương hiệu nào.</td></tr>';
-        }
-    }
-    // Phương thức thanh toán
-    const paymentList = document.getElementById('payment-method-list');
-    if (paymentList) {
-        if (paymentMethods && paymentMethods.length > 0) {
-            paymentList.innerHTML = paymentMethods.map(p => `
-                <tr>
-                    <td>${p.name}</td>
-                    <td>
-                        <button class="btn-edit" onclick="showPaymentModal(${p.payment_method_id}, '${p.name.replace(/'/g, "\\'")}')"><i class='fas fa-edit'></i></button>
-                        <button class="btn-delete" onclick="deletePaymentMethod(${p.payment_method_id})"><i class='fas fa-trash'></i></button>
-                    </td>
-                </tr>
-            `).join('');
-        } else {
-            paymentList.innerHTML = '<tr><td colspan="2">Không có phương thức nào.</td></tr>';
-        }
-    }
-}
-
-// ===== Modal Danh mục =====
-window.showCategoryModal = function(id = '', name = '') {
-    document.getElementById('category-modal-id').value = id || '';
-    document.getElementById('category-modal-name').value = name || '';
-    document.getElementById('category-modal-title').textContent = id ? 'Sửa Danh Mục' : 'Thêm Danh Mục';
-    document.getElementById('category-modal').style.display = 'block';
-}
-window.hideCategoryModal = function() {
-    document.getElementById('category-modal').style.display = 'none';
-}
-document.getElementById('add-category-btn2').onclick = () => showCategoryModal();
-document.getElementById('category-modal-form').onsubmit = async function(e) {
-    e.preventDefault();
-    const id = document.getElementById('category-modal-id').value;
-    const name = document.getElementById('category-modal-name').value.trim();
-    if (!name) return showNotification('Tên danh mục không được để trống', 'error');
-    try {
-        const method = id ? 'PUT' : 'POST';
-        const url = id ? `/admin/api/categories/${id}` : '/admin/api/categories';
-        const res = await fetch(url, {
-            method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name })
-        });
-        if (!res.ok) throw new Error('Lỗi khi lưu danh mục');
-        showNotification(id ? 'Cập nhật thành công' : 'Thêm thành công', 'success');
-        hideCategoryModal();
-        loadOverview();
-    } catch (err) {
-        showNotification(err.message, 'error');
-    }
-}
-window.deleteCategory = async function(id) {
-    if (!confirm('Bạn có chắc chắn muốn xóa danh mục này?')) return;
-    try {
-        const res = await fetch(`/admin/api/categories/${id}`, { method: 'DELETE' });
-        if (!res.ok) throw new Error('Lỗi khi xóa danh mục');
-        showNotification('Xóa thành công', 'success');
-        loadOverview();
-    } catch (err) {
-        showNotification(err.message, 'error');
-    }
-}
-// ===== Modal Thương hiệu =====
-window.showBrandModal = function(id = '', name = '') {
-    document.getElementById('brand-modal-id').value = id || '';
-    document.getElementById('brand-modal-name').value = name || '';
-    document.getElementById('brand-modal-title').textContent = id ? 'Sửa Thương Hiệu' : 'Thêm Thương Hiệu';
-    document.getElementById('brand-modal').style.display = 'block';
-}
-window.hideBrandModal = function() {
-    document.getElementById('brand-modal').style.display = 'none';
-}
-document.getElementById('add-brand-btn2').onclick = () => showBrandModal();
-document.getElementById('brand-modal-form').onsubmit = async function(e) {
-    e.preventDefault();
-    const id = document.getElementById('brand-modal-id').value;
-    const name = document.getElementById('brand-modal-name').value.trim();
-    if (!name) return showNotification('Tên thương hiệu không được để trống', 'error');
-    try {
-        const method = id ? 'PUT' : 'POST';
-        const url = id ? `/admin/api/brands/${id}` : '/admin/api/brands';
-        const res = await fetch(url, {
-            method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name })
-        });
-        if (!res.ok) throw new Error('Lỗi khi lưu thương hiệu');
-        showNotification(id ? 'Cập nhật thành công' : 'Thêm thành công', 'success');
-        hideBrandModal();
-        loadOverview();
-    } catch (err) {
-        showNotification(err.message, 'error');
-    }
-}
-window.deleteBrand = async function(id) {
-    if (!confirm('Bạn có chắc chắn muốn xóa thương hiệu này?')) return;
-    try {
-        const res = await fetch(`/admin/api/brands/${id}`, { method: 'DELETE' });
-        if (!res.ok) throw new Error('Lỗi khi xóa thương hiệu');
-        showNotification('Xóa thành công', 'success');
-        loadOverview();
-    } catch (err) {
-        showNotification(err.message, 'error');
-    }
-}
-// ===== Modal Phương thức thanh toán =====
-window.showPaymentModal = function(id = '', name = '') {
-    document.getElementById('payment-modal-id').value = id || '';
-    document.getElementById('payment-modal-name').value = name || '';
-    document.getElementById('payment-modal-title').textContent = id ? 'Sửa Phương Thức' : 'Thêm Phương Thức';
-    document.getElementById('payment-modal').style.display = 'block';
-}
-window.hidePaymentModal = function() {
-    document.getElementById('payment-modal').style.display = 'none';
-}
-document.getElementById('add-payment-btn').onclick = () => showPaymentModal();
-document.getElementById('payment-modal-form').onsubmit = async function(e) {
-    e.preventDefault();
-    const id = document.getElementById('payment-modal-id').value;
-    const name = document.getElementById('payment-modal-name').value.trim();
-    if (!name) return showNotification('Tên phương thức không được để trống', 'error');
-    try {
-        const method = id ? 'PUT' : 'POST';
-        const url = id ? `/admin/api/payment-methods/${id}` : '/admin/api/payment-methods';
-        const res = await fetch(url, {
-            method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name })
-        });
-        if (!res.ok) throw new Error('Lỗi khi lưu phương thức');
-        showNotification(id ? 'Cập nhật thành công' : 'Thêm thành công', 'success');
-        hidePaymentModal();
-        loadOverview();
-    } catch (err) {
-        showNotification(err.message, 'error');
-    }
-}
-window.deletePaymentMethod = async function(id) {
-    if (!confirm('Bạn có chắc chắn muốn xóa phương thức này?')) return;
-    try {
-        const res = await fetch(`/admin/api/payment-methods/${id}`, { method: 'DELETE' });
-        if (!res.ok) throw new Error('Lỗi khi xóa phương thức');
-        showNotification('Xóa thành công', 'success');
-        loadOverview();
-    } catch (err) {
-        showNotification(err.message, 'error');
-    }
 }
 
 // Hiển thị danh sách người dùng
@@ -1081,6 +1019,7 @@ window.updateUserRole = async function(userId, newRole) {
         showNotification(err.message, 'error');
     }
 }
+
 // Cập nhật trạng thái người dùng
 window.updateUserStatus = async function(userId, newStatus) {
     try {
@@ -1149,10 +1088,12 @@ window.showAddUserModal = function() {
     }
     modal.style.display = 'block';
 }
+
 window.hideAddUserModal = function() {
     const modal = document.getElementById('add-user-modal');
     if (modal) modal.style.display = 'none';
 }
+
 async function handleAddUserSubmit(e) {
     e.preventDefault();
     const form = e.target;
@@ -1185,7 +1126,7 @@ async function handleAddUserSubmit(e) {
     }
 }
 
-// Thêm nút Thêm người dùng vào phía trên bảng
+// Thêm nút Thêm người dùng
 function renderAddUserButton() {
     const userContainer = document.querySelector('.user-management');
     if (!userContainer) return;
@@ -1221,7 +1162,6 @@ async function loadVouchers() {
     const voucherList = document.getElementById('voucher-list');
     if (!voucherList) return;
     const voucherContainer = document.querySelector('.voucher-list-container');
-    // Thêm nút Thêm voucher
     let btn = document.getElementById('add-voucher-btn');
     if (!btn) {
         btn = document.createElement('button');
@@ -1310,10 +1250,12 @@ window.showVoucherModal = function(voucher = null) {
     document.getElementById('voucher-form').onsubmit = handleVoucherSubmit;
     modal.style.display = 'flex';
 }
+
 window.hideVoucherModal = function() {
     const modal = document.getElementById('voucher-modal');
     if (modal) modal.style.display = 'none';
 }
+
 async function handleVoucherSubmit(e) {
     e.preventDefault();
     const form = e.target;
@@ -1349,6 +1291,7 @@ async function handleVoucherSubmit(e) {
         showNotification(err.message, 'error');
     }
 }
+
 window.deleteVoucher = async function(id) {
     if (!confirm('Bạn có chắc chắn muốn xóa voucher này?')) return;
     try {
@@ -1373,7 +1316,6 @@ async function loadComments() {
 
         const comments = await response.json();
 
-        // Hiển thị danh sách đánh giá
         commentTableBody.innerHTML = comments.map(comment => `
             <tr>
                 <td>${comment.comment_id}</td>
@@ -1393,11 +1335,6 @@ async function loadComments() {
     }
 }
 
-// Gọi hàm loadComments khi trang admin được tải
-document.addEventListener('DOMContentLoaded', () => {
-    loadComments();
-});
-
 // Xóa đánh giá
 async function deleteComment(commentId) {
     if (!confirm('Bạn có chắc chắn muốn xóa đánh giá này?')) return;
@@ -1411,11 +1348,11 @@ async function deleteComment(commentId) {
             throw new Error('Lỗi khi xóa đánh giá');
         }
 
-        alert('Xóa đánh giá thành công');
-        loadComments(); // Tải lại danh sách đánh giá
+        showNotification('Xóa đánh giá thành công', 'success');
+        loadComments();
     } catch (error) {
         console.error('Error deleting comment:', error);
-        alert('Không thể xóa đánh giá');
+        showNotification('Không thể xóa đánh giá', 'error');
     }
 }
 
@@ -1432,11 +1369,11 @@ async function hideComment(commentId) {
             throw new Error('Lỗi khi ẩn đánh giá');
         }
 
-        alert('Ẩn đánh giá thành công');
-        loadComments(); // Tải lại danh sách đánh giá
+        showNotification('Ẩn đánh giá thành công', 'success');
+        loadComments();
     } catch (error) {
         console.error('Error hiding comment:', error);
-        alert('Không thể ẩn đánh giá');
+        showNotification('Không thể ẩn đánh giá', 'error');
     }
 }
 
@@ -1465,4 +1402,439 @@ async function loadOrderHistory() {
     } catch (err) {
         historyList.innerHTML = `<tr><td colspan="6" class="text-danger">${err.message}</td></tr>`;
     }
+}
+
+function renderListInfo(categories, brands, paymentMethods) {
+    const categoryList = document.getElementById('category-list');
+    if (categoryList) {
+        if (categories && categories.length > 0) {
+            categoryList.innerHTML = categories.map(c => `
+                <tr>
+                    <td>${c.name}</td>
+                    <td>
+                        <button class="btn-edit" onclick="showCategoryModal(${c.category_id}, '${c.name.replace(/'/g, "\\'")}')"><i class='fas fa-edit'></i></button>
+                        <button class="btn-delete" onclick="deleteCategory(${c.category_id})"><i class='fas fa-trash'></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        } else {
+            categoryList.innerHTML = '<tr><td colspan="2">Không có danh mục nào.</td></tr>';
+        }
+    }
+    const brandList = document.getElementById('brand-list');
+    if (brandList) {
+        if (brands && brands.length > 0) {
+            brandList.innerHTML = brands.map(b => `
+                <tr>
+                    <td>${b.name}</td>
+                    <td>
+                        <button class="btn-edit" onclick="showBrandModal(${b.brand_id}, '${b.name.replace(/'/g, "\\'")}')"><i class='fas fa-edit'></i></button>
+                        <button class="btn-delete" onclick="deleteBrand(${b.brand_id})"><i class='fas fa-trash'></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        } else {
+            brandList.innerHTML = '<tr><td colspan="2">Không có thương hiệu nào.</td></tr>';
+        }
+    }
+    const paymentList = document.getElementById('payment-method-list');
+    if (paymentList) {
+        if (paymentMethods && paymentMethods.length > 0) {
+            paymentList.innerHTML = paymentMethods.map(p => `
+                <tr>
+                    <td>${p.name}</td>
+                    <td>
+                        <button class="btn-edit" onclick="showPaymentModal(${p.payment_method_id}, '${p.name.replace(/'/g, "\\'")}')"><i class='fas fa-edit'></i></button>
+                        <button class="btn-delete" onclick="deletePaymentMethod(${p.payment_method_id})"><i class='fas fa-trash'></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        } else {
+            paymentList.innerHTML = '<tr><td colspan="2">Không có phương thức nào.</td></tr>';
+        }
+    }
+}
+
+// Modal Danh mục
+window.showCategoryModal = function(id = '', name = '') {
+    document.getElementById('category-modal-id').value = id || '';
+    document.getElementById('category-modal-name').value = name || '';
+    document.getElementById('category-modal-title').textContent = id ? 'Sửa Danh Mục' : 'Thêm Danh Mục';
+    document.getElementById('category-modal').style.display = 'block';
+}
+
+window.hideCategoryModal = function() {
+    document.getElementById('category-modal').style.display = 'none';
+}
+
+document.getElementById('add-category-btn2').onclick = () => showCategoryModal();
+
+document.getElementById('category-modal-form').onsubmit = async function(e) {
+    e.preventDefault();
+    const id = document.getElementById('category-modal-id').value;
+    const name = document.getElementById('category-modal-name').value.trim();
+    if (!name) return showNotification('Tên danh mục không được để trống', 'error');
+    try {
+        const method = id ? 'PUT' : 'POST';
+        const url = id ? `/admin/api/categories/${id}` : '/admin/api/categories';
+        const res = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name })
+        });
+        if (!res.ok) throw new Error('Lỗi khi lưu danh mục');
+        showNotification(id ? 'Cập nhật thành công' : 'Thêm thành công', 'success');
+        hideCategoryModal();
+        loadOverview();
+    } catch (err) {
+        showNotification(err.message, 'error');
+    }
+}
+
+window.deleteCategory = async function(id) {
+    if (!confirm('Bạn có chắc chắn muốn xóa danh mục này?')) return;
+    try {
+        const res = await fetch(`/admin/api/categories/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Lỗi khi xóa danh mục');
+        showNotification('Xóa thành công', 'success');
+        loadOverview();
+    } catch (err) {
+        showNotification(err.message, 'error');
+    }
+}
+
+// Modal Thương hiệu
+window.showBrandModal = function(id = '', name = '') {
+    document.getElementById('brand-modal-id').value = id || '';
+    document.getElementById('brand-modal-name').value = name || '';
+    document.getElementById('brand-modal-title').textContent = id ? 'Sửa Thương Hiệu' : 'Thêm Thương Hiệu';
+    document.getElementById('brand-modal').style.display = 'block';
+}
+
+window.hideBrandModal = function() {
+    document.getElementById('brand-modal').style.display = 'none';
+}
+
+document.getElementById('add-brand-btn2').onclick = () => showBrandModal();
+
+document.getElementById('brand-modal-form').onsubmit = async function(e) {
+    e.preventDefault();
+    const id = document.getElementById('brand-modal-id').value;
+    const name = document.getElementById('brand-modal-name').value.trim();
+    if (!name) return showNotification('Tên thương hiệu không được để trống', 'error');
+    try {
+        const method = id ? 'PUT' : 'POST';
+        const url = id ? `/admin/api/brands/${id}` : '/admin/api/brands';
+        const res = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name })
+        });
+        if (!res.ok) throw new Error('Lỗi khi lưu thương hiệu');
+        showNotification(id ? 'Cập nhật thành công' : 'Thêm thành công', 'success');
+        hideBrandModal();
+        loadOverview();
+    } catch (err) {
+        showNotification(err.message, 'error');
+    }
+}
+
+window.deleteBrand = async function(id) {
+    if (!confirm('Bạn có chắc chắn muốn xóa thương hiệu này?')) return;
+    try {
+        const res = await fetch(`/admin/api/brands/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Lỗi khi xóa thương hiệu');
+        showNotification('Xóa thành công', 'success');
+        loadOverview();
+    } catch (err) {
+        showNotification(err.message, 'error');
+    }
+}
+
+// Modal Phương thức thanh toán
+window.showPaymentModal = function(id = '', name = '') {
+    document.getElementById('payment-modal-id').value = id || '';
+    document.getElementById('payment-modal-name').value = name || '';
+    document.getElementById('payment-modal-title').textContent = id ? 'Sửa Phương Thức' : 'Thêm Phương Thức';
+    document.getElementById('payment-modal').style.display = 'block';
+}
+
+window.hidePaymentModal = function() {
+    document.getElementById('payment-modal').style.display = 'none';
+}
+
+document.getElementById('add-payment-btn').onclick = () => showPaymentModal();
+
+document.getElementById('payment-modal-form').onsubmit = async function(e) {
+    e.preventDefault();
+    const id = document.getElementById('payment-modal-id').value;
+    const name = document.getElementById('payment-modal-name').value.trim();
+    if (!name) return showNotification('Tên phương thức không được để trống', 'error');
+    try {
+        const method = id ? 'PUT' : 'POST';
+        const url = id ? `/admin/api/payment-methods/${id}` : '/admin/api/payment-methods';
+        const res = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name })
+        });
+        if (!res.ok) throw new Error('Lỗi khi lưu phương thức');
+        showNotification(id ? 'Cập nhật thành công' : 'Thêm thành công', 'success');
+        hidePaymentModal();
+        loadOverview();
+    } catch (err) {
+        showNotification(err.message, 'error');
+    }
+}
+
+window.deletePaymentMethod = async function(id) {
+    if (!confirm('Bạn có chắc chắn muốn xóa phương thức này?')) return;
+    try {
+        const res = await fetch(`/admin/api/payment-methods/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Lỗi khi xóa phương thức');
+        showNotification('Xóa thành công', 'success');
+        loadOverview();
+    } catch (err) {
+        showNotification(err.message, 'error');
+    }
+}
+
+// --- FILTER FOR ORDER MANAGEMENT ---
+async function renderOrderPaymentFilter() {
+    const paymentSelect = document.getElementById('order-payment-filter');
+    if (!paymentSelect) return;
+    try {
+        const res = await fetch('/admin/api/payment-methods', { credentials: 'include' });
+        if (!res.ok) return;
+        const methods = await res.json();
+        paymentSelect.innerHTML = '<option value="all">Tất cả</option>';
+        methods.forEach(pm => {
+            const opt = document.createElement('option');
+            opt.value = pm.payment_method_id || pm.payment_methods_id || pm.id || pm.name;
+            opt.textContent = pm.name;
+            paymentSelect.appendChild(opt);
+        });
+    } catch {}
+}
+
+function getOrderFiltersFromUI() {
+    const filters = {};
+    const statusFilter = document.getElementById('order-status-filter');
+    const orderSortFilter = document.getElementById('order-sort-filter');
+    const paymentFilter = document.getElementById('order-payment-filter');
+    if (statusFilter && statusFilter.value && statusFilter.value !== 'all') filters.status_id = statusFilter.value;
+    if (paymentFilter && paymentFilter.value && paymentFilter.value !== 'all') filters.payment_method_id = paymentFilter.value;
+    if (orderSortFilter && orderSortFilter.value) filters.sortBy = orderSortFilter.value;
+    return filters;
+}
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', () => {
+    showSection('product-info');
+    
+    document.querySelectorAll('.menu-item a').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const sectionId = link.getAttribute('onclick').match(/'([^']+)'/)[1];
+            showSection(sectionId);
+        });
+    });
+    
+    document.getElementById('add-product-btn')?.addEventListener('click', () => showProductForm());
+    document.getElementById('product-form-content')?.addEventListener('submit', handleProductSubmit);
+    
+    document.getElementById('prev-page').addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            loadProducts(currentPage, currentFilters);
+        }
+    });
+    
+    document.getElementById('next-page').addEventListener('click', () => {
+        currentPage++;
+        loadProducts(currentPage, currentFilters);
+    });
+    
+    const searchInput = document.getElementById('search-product');
+    const brandFilter = document.getElementById('filter-brand');
+    const categoryFilter = document.getElementById('filter-category');
+    const sortFilter = document.getElementById('filter-sort');
+    
+    let searchTimeout;
+    searchInput.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            currentFilters.search = e.target.value;
+            currentPage = 1;
+            loadProducts(currentPage, currentFilters);
+        }, 500);
+    });
+    
+    brandFilter.addEventListener('change', (e) => {
+        currentFilters.brandId = e.target.value;
+        currentPage = 1;
+        loadProducts(currentPage, currentFilters);
+    });
+    
+    categoryFilter.addEventListener('change', (e) => {
+        currentFilters.categoryId = e.target.value;
+        currentPage = 1;
+        loadProducts(currentPage, currentFilters);
+    });
+    
+    sortFilter.addEventListener('change', (e) => {
+        currentFilters.sortBy = e.target.value;
+        currentPage = 1;
+        loadProducts(currentPage, currentFilters);
+    });
+
+    const detailModal = document.getElementById('product-detail-modal');
+    detailModal.addEventListener('click', function(e) {
+        if (e.target === detailModal) hideProductDetail();
+    });
+
+    const orderDetailModal = document.getElementById('order-detail-modal');
+    if (orderDetailModal) {
+        orderDetailModal.addEventListener('click', function(e) {
+            if (e.target === orderDetailModal) hideOrderDetail();
+        });
+    }
+
+    window.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            hideProductDetail();
+            hideOrderDetail();
+        }
+    });
+
+    const revenueDetailModal = document.getElementById('revenue-detail-modal');
+    if (revenueDetailModal) {
+        revenueDetailModal.addEventListener('click', function(e) {
+            if (e.target === this) hideRevenueDetail();
+        });
+    }
+
+    document.getElementById('total-revenue')?.addEventListener('click', showRevenueDetailModal);
+    document.getElementById('show-revenue-detail')?.addEventListener('click', showRevenueDetailModal);
+
+    renderOrderStatusFilter();
+    renderOrderPaymentFilter();
+    // Thêm sự kiện cho filter đơn hàng
+    const statusFilter = document.getElementById('order-status-filter');
+    const orderSortFilter = document.getElementById('order-sort-filter');
+    const paymentFilter = document.getElementById('order-payment-filter');
+    const filterBtn = document.getElementById('order-filter-btn');
+    [statusFilter, orderSortFilter, paymentFilter].forEach(el => {
+        if (el) el.addEventListener('change', () => {
+            loadOrders(getOrderFiltersFromUI());
+        });
+    });
+    if (filterBtn) filterBtn.addEventListener('click', () => {
+        loadOrders(getOrderFiltersFromUI());
+    });
+
+    // Khi chuyển sang section donhang, ẩn phân trang đơn hàng
+    const donhangSection = document.getElementById('donhang');
+    const orderPagination = document.getElementById('order-pagination');
+    if (donhangSection && orderPagination) {
+        const observer = new MutationObserver(() => {
+            if (donhangSection.style.display !== 'none') {
+                orderPagination.style.display = 'none';
+            }
+        });
+        observer.observe(donhangSection, { attributes: true, attributeFilter: ['style'] });
+    }
+});
+
+// Hiển thị chi tiết đơn hàng cho admin
+window.showOrderDetails = async function(orderId) {
+    try {
+        // Đảm bảo đã có danh sách trạng thái
+        if (!orderStatuses || orderStatuses.length === 0) {
+            await loadOrderStatuses();
+        }
+        const res = await fetch(`/admin/api/orders/${orderId}`, { credentials: 'include' });
+        if (!res.ok) throw new Error('Không lấy được chi tiết đơn hàng');
+        const order = await res.json();
+        let statusOptions = orderStatuses.map(st => `
+            <option value="${st.order_status_id}" ${st.order_status_id === order.status_id ? 'selected' : ''}>${st.status}</option>
+        `).join('');
+        let html = `
+            <div><strong>Mã đơn hàng:</strong> #${order.order_id}</div>
+            <div><strong>Khách hàng:</strong> ${order.username || 'N/A'} (${order.email || ''})</div>
+            <div><strong>Người nhận:</strong> ${order.receiver_name || 'Không xác định'}</div>
+            <div><strong>Số điện thoại:</strong> ${order.receiver_phone || 'Không xác định'}</div>
+            <div><strong>Địa chỉ:</strong> ${order.full_address || 'Không xác định'}</div>
+            <div><strong>Phương thức thanh toán:</strong> ${order.payment_method_name || 'Không xác định'}</div>
+            <div><strong>Trạng thái:</strong> 
+                <select id="order-status-select" style="margin-left:8px;">
+                    ${statusOptions}
+                </select>
+                <button id="save-order-status-btn" class="btn-primary" style="margin-left:8px;">Lưu</button>
+            </div>
+            <div><strong>Thành tiền:</strong> ${formatPrice(order.final_amount || 0)}</div>
+            <div><strong>Phí vận chuyển:</strong> ${formatPrice(order.shipping_fee || 0)}</div>
+            <div><strong>Giảm giá:</strong> ${formatPrice(order.discount_amount || 0)}</div>
+            <div><strong>Tổng tiền:</strong> ${formatPrice(order.total_amount || 0)}</div>
+            <div><strong>Ghi chú:</strong> ${order.note || 'Không có ghi chú'}</div>
+            <div><strong>Ngày tạo:</strong> ${new Date(order.created_at).toLocaleString('vi-VN')}</div>
+            <h4 style="margin-top: 16px;">Sản phẩm:</h4>
+            <table class="order-details-table" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background-color: #f8f9fa;">
+                        <th style="padding: 8px; text-align: left;">Sản phẩm</th>
+                        <th style="padding: 8px; text-align: left;">Số lượng</th>
+                        <th style="padding: 8px; text-align: left;">Giá</th>
+                        <th style="padding: 8px; text-align: left;">Tổng</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${(order.items || []).map(item => `
+                        <tr>
+                            <td style="padding: 8px;">
+                                <img src="${item.image_url || '/images/placeholder.jpg'}" alt="${item.product_name || 'Sản phẩm'}" style="width: 50px; height: 50px; object-fit: cover; margin-right: 10px;">
+                                ${item.product_name || 'Sản phẩm'}
+                            </td>
+                            <td style="padding: 8px;">${item.quantity || 0}</td>
+                            <td style="padding: 8px;">${formatPrice(item.price || 0)}</td>
+                            <td style="padding: 8px;">${formatPrice((item.quantity || 0) * (item.price || 0))}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+        document.getElementById('order-detail-content').innerHTML = html;
+        document.getElementById('order-detail-modal').style.display = 'block';
+        // Gán sự kiện lưu trạng thái
+        document.getElementById('save-order-status-btn').onclick = async function() {
+            const newStatusId = document.getElementById('order-status-select').value;
+            if (parseInt(newStatusId) === order.status_id) {
+                showNotification('Trạng thái không thay đổi', 'info');
+                return;
+            }
+            await updateOrderStatus(order.order_id, parseInt(newStatusId));
+            // Sau khi cập nhật, reload lại chi tiết đơn hàng
+            showOrderDetails(order.order_id);
+            loadOrders();
+        };
+    } catch (err) {
+        showNotification('Lỗi khi lấy chi tiết đơn hàng', 'error');
+    }
+}
+
+async function renderOrderStatusFilter() {
+    const statusSelect = document.getElementById('order-status-filter');
+    if (!statusSelect) return;
+    try {
+        const res = await fetch('/admin/api/order-statuses', { credentials: 'include' });
+        if (!res.ok) return;
+        const statuses = await res.json();
+        statusSelect.innerHTML = '<option value="all">Tất cả</option>';
+        statuses.forEach(st => {
+            const opt = document.createElement('option');
+            opt.value = st.order_status_id;
+            opt.textContent = st.status;
+            statusSelect.appendChild(opt);
+        });
+    } catch {}
 }

@@ -77,21 +77,26 @@ const orderController = {
         }
     },
 
-    async getAllOrders(req, res) {
-        try {
-            const status = req.query.status;
-            const orders = await orderService.getAllOrders(status);
-            res.json(orders);
-        } catch (error) {
-            console.error('[OrderController] Lỗi khi lấy danh sách đơn hàng:', error.message);
-            res.status(500).json({ error: 'Lỗi khi lấy danh sách đơn hàng: ' + error.message });
-        }
-    },
-
+   async getAllOrders(req, res) {
+    try {
+        const { status_id, sortBy, payment_method_id } = req.query;
+        const filters = { status_id, sortBy, payment_method_id };
+        console.log('[getAllOrders] Filters:', filters);
+        const { orders, total } = await orderService.getAllOrders(filters);
+        res.json({
+            orders: orders || [],
+            total: total || 0
+        });
+    } catch (error) {
+        console.error('[OrderController] Lỗi khi lấy danh sách đơn hàng:', error.message);
+        res.status(500).json({ error: 'Lỗi khi lấy danh sách đơn hàng: ' + error.message });
+    }
+},
     async getOrderById(req, res) {
         try {
             const orderId = req.params.id;
             const order = await orderService.getOrderById(orderId);
+            if (!order) return res.status(404).json({ error: 'Không tìm thấy đơn hàng' });
             res.json(order);
         } catch (error) {
             console.error('[OrderController] Lỗi khi lấy chi tiết đơn hàng:', error.message);

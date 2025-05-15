@@ -86,35 +86,50 @@ const ProductService = {
 
     // Thêm sản phẩm mới
     createProduct: async (data) => {
-        try {
-            const { product, details, images, categories } = data;
-            if (!product?.name || !product?.price || !product?.brand_id) {
-                throw new Error("Thiếu thông tin bắt buộc: name, price, hoặc brand_id");
-            }
-            const productId = await ProductModel.createProduct(product, details || {}, images || [], categories || []);
-            return { productId };
-        } catch (error) {
-            throw new Error("Lỗi khi tạo sản phẩm: " + error.message);
+    try {
+        const { product, details, images, categories, imagesToDelete = [] } = data;
+        if (!product?.name || !product?.price || !product?.brand_id) {
+            throw new Error("Thiếu thông tin bắt buộc: name, price, hoặc brand_id");
         }
-    },
+        const productId = await ProductModel.createProduct({
+            ...product,
+            details,
+            images,
+            categories,
+            imagesToDelete
+        });
+        return { productId };
+    } catch (error) {
+        throw new Error("Lỗi khi tạo sản phẩm: " + error.message);
+    }
+},
 
-    // Cập nhật sản phẩm
-    updateProduct: async (productId, data) => {
-        try {
-            const { product, details, images, categories } = data;
-            if (!product?.name || !product?.price || !product?.brand_id) {
-                throw new Error("Thiếu thông tin bắt buộc: name, price, hoặc brand_id");
-            }
-            const success = await ProductModel.updateProduct(productId, product, details || {}, images || [], categories || []);
-            if (!success) {
-                throw new Error("Sản phẩm không tồn tại");
-            }
-            return { productId };
-        } catch (error) {
-            throw new Error("Lỗi khi cập nhật sản phẩm: " + error.message);
+updateProduct: async (productId, data) => {
+    try {
+        let { product, details, images, categories, imagesToDelete = [] } = data;
+        if (!product?.name || !product?.price || !product?.brand_id) {
+            throw new Error("Thiếu thông tin bắt buộc: name, price, hoặc brand_id");
         }
-    },
-
+        // Nếu không có image_url, lấy từ DB
+        if (!product.image_url) {
+            const oldProduct = await ProductModel.getProductById(productId);
+            product.image_url = oldProduct?.image_url || '';
+        }
+        const success = await ProductModel.updateProduct(productId, {
+            ...product,
+            details,
+            images,
+            categories,
+            imagesToDelete
+        });
+        if (!success) {
+            throw new Error("Sản phẩm không tồn tại");
+        }
+        return { productId };
+    } catch (error) {
+        throw new Error("Lỗi khi cập nhật sản phẩm: " + error.message);
+    }
+},
     // Xóa sản phẩm
     deleteProduct: async (productId) => {
         try {
