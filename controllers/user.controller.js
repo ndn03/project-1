@@ -3,9 +3,10 @@ const VoucherService = require('../services/user.service').VoucherService;
 
 const getAllUsers = async (req, res) => {
     try {
-        const limit = parseInt(req.query.limit) || 10;
-        const offset = parseInt(req.query.offset) || 0;
-        const result = await UserService.getAllUsers(limit, offset);
+        // Loại bỏ username và email khỏi filters
+        const { role, isActive, sortBy } = req.query;
+        const filters = { role, isActive, sortBy };
+        const result = await UserService.getAllUsers(filters);
         res.json(result);
     } catch (error) {
         console.error('Lỗi trong getAllUsers controller:', error);
@@ -68,11 +69,26 @@ const getAllVouchers = async (req, res) => {
     }
 };
 
+const getUserMeta = (req, res) => {
+    // Enum role và trạng thái lấy từ DB hoặc hardcode đúng với DB
+    res.json({
+        roles: [
+            { value: 'admin', label: 'Admin' },
+            { value: 'customer', label: 'Khách hàng' }
+        ],
+        statuses: [
+            { value: 1, label: 'Hoạt động' },
+            { value: 0, label: 'Khoá' }
+        ]
+    });
+};
+
 module.exports = {
     getAllUsers,
     updateUserRole,
     updateUserStatus,
     createUser,
     deleteUser,
-    getAllVouchers
-}; 
+    getAllVouchers,
+    getUserMeta
+};

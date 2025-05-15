@@ -11,6 +11,17 @@ const commentController = {
         }
     },
 
+    async getCommentsWithFilters(req, res) {
+        try {
+            const { id, date, rating, status } = req.query;
+            const comments = await commentService.getCommentsWithFilters({ id, date, rating, status });
+            res.json(comments);
+        } catch (error) {
+            console.error('[CommentController] Lỗi khi lọc đánh giá:', error);
+            res.status(500).json({ error: 'Không thể lọc đánh giá' });
+        }
+    },
+
     async deleteComment(req, res) {
         const { id } = req.params;
         try {
@@ -26,18 +37,20 @@ const commentController = {
         }
     },
 
-    async hideComment(req, res) {
+    async updateCommentStatus(req, res) {
         const { id } = req.params;
+        const { isActive } = req.body;
+        console.log('Update comment', id, 'to isActive:', isActive);
         try {
-            const success = await commentService.hideComment(id);
+            const success = await commentService.updateCommentStatus(id, isActive);
             if (success) {
-                res.json({ message: 'Ẩn đánh giá thành công' });
+                res.json({ message: 'Cập nhật trạng thái đánh giá thành công' });
             } else {
-                res.status(404).json({ error: 'Không tìm thấy đánh giá để ẩn' });
+                res.status(404).json({ error: 'Không tìm thấy đánh giá để cập nhật' });
             }
         } catch (error) {
-            console.error('[CommentController] Lỗi khi ẩn đánh giá:', error);
-            res.status(500).json({ error: 'Không thể ẩn đánh giá' });
+            console.error('[CommentController] Lỗi khi cập nhật trạng thái đánh giá:', error);
+            res.status(500).json({ error: 'Không thể cập nhật trạng thái đánh giá' });
         }
     }
 };

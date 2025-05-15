@@ -1,12 +1,24 @@
 const db = require('../config/db');
 
 const UserService = {
-    getAllUsers: async (limit = 10, offset = 0) => {
+    getAllUsers: async (filters = {}) => {
         try {
-            const [users] = await db.query(
-                'SELECT user_id, username, email, role, isActive FROM users LIMIT ? OFFSET ?',
-                [parseInt(limit), parseInt(offset)]
-            );
+            let sql = 'SELECT user_id, username, full_name, email, role, isActive, created_at, updated_at FROM users WHERE 1=1';
+            const params = [];
+            if (filters.role) {
+                sql += ' AND role = ?';
+                params.push(filters.role);
+            }
+            if (filters.isActive !== undefined && filters.isActive !== "") {
+                sql += ' AND isActive = ?';
+                params.push(filters.isActive);
+            }
+            if (filters.sortBy === 'created_at_asc') {
+                sql += ' ORDER BY created_at ASC';
+            } else {
+                sql += ' ORDER BY created_at DESC';
+            }
+            const [users] = await db.query(sql, params);
             const [countResult] = await db.query('SELECT COUNT(*) as total FROM users');
             return { users, total: countResult[0].total };
         } catch (error) {
@@ -51,4 +63,4 @@ const UserService = {
     }
 };
 
-module.exports = UserService; 
+module.exports = UserService;

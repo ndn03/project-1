@@ -260,28 +260,27 @@
         <section id="donhang" class="content-section" style="display: none;">
             <div class="order">
                 <h2>Quản Lý Đơn Hàng</h2>
-                <div class="order-filter-bar" style="margin-bottom:16px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
-                    <label>Trạng thái:
-                        <select id="order-status-filter">
+                <div class="order-filter-bar order-filter-bar-css" style="display:flex;gap:18px;align-items:center;margin-bottom:16px;flex-wrap:wrap;background:#f8f9fa;padding:14px 18px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.04);">
+                    <label style="font-weight:500;font-size:15px;display:flex;flex-direction:column;gap:4px;min-width:150px;">Trạng thái:
+                        <select id="order-status-filter" style="padding:6px 12px;border-radius:6px;border:1px solid #ccc;">
                             <option value="all">Tất cả</option>
                             <!-- Các option trạng thái sẽ được render động bằng JS -->
                         </select>
                     </label>
-                    <label>Phương thức TT:
-                        <select id="order-payment-filter">
+                    <label style="font-weight:500;font-size:15px;display:flex;flex-direction:column;gap:4px;min-width:150px;">Phương thức TT:
+                        <select id="order-payment-filter" style="padding:6px 12px;border-radius:6px;border:1px solid #ccc;">
                             <option value="all">Tất cả</option>
                             <!-- Các option phương thức sẽ được render động bằng JS -->
                         </select>
                     </label>
-                    <label>Sắp xếp:
-                        <select id="order-sort-filter">
+                    <label style="font-weight:500;font-size:15px;display:flex;flex-direction:column;gap:4px;min-width:150px;">Sắp xếp:
+                        <select id="order-sort-filter" style="padding:6px 12px;border-radius:6px;border:1px solid #ccc;">
                             <option value="created_at_desc">Ngày tạo: Mới nhất</option>
                             <option value="created_at_asc">Ngày tạo: Cũ nhất</option>
                             <option value="final_amount_asc">Tổng tiền: Thấp đến cao</option>
                             <option value="final_amount_desc">Tổng tiền: Cao đến thấp</option>
                         </select>
                     </label>
-                    <button id="order-filter-btn" class="btn-primary" style="padding:6px 18px;">Lọc</button>
                 </div>
                 <div class="order-table-container">
                     <table class="order-table">
@@ -313,7 +312,51 @@
         <!-- Section Tài khoản -->
         <section id="user" class="content-section" style="display: none;">
             <div class="user-management">
-                <!-- Nội dung quản lý tài khoản sẽ được thêm vào đây -->
+                <div class="user-filter-bar" id="user-filter-bar" style="display:flex;gap:12px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+                    <input type="text" id="filter-username" placeholder="Tìm theo username" style="padding:5px 10px; border-radius:5px; border:1px solid #bbb; margin-right:8px;">
+                    <input type="text" id="filter-email" placeholder="Tìm theo email" style="padding:5px 10px; border-radius:5px; border:1px solid #bbb; margin-right:8px;">
+                    <label>Vai trò:
+                        <select id="filter-role">
+                            <option value="">Tất cả</option>
+                            <option value="admin">Admin</option>
+                            <option value="customer">Khách hàng</option>
+                        </select>
+                    </label>
+                    <label>Trạng thái:
+                        <select id="filter-status">
+                            <option value="">Tất cả</option>
+                            <option value="1">Hoạt động</option>
+                            <option value="0">Khoá</option>
+                        </select>
+                    </label>
+                    <label>Sắp xếp:
+                        <select id="filter-user-sort">
+                            <option value="created_at_desc">Ngày tạo: Mới nhất</option>
+                            <option value="created_at_asc">Ngày tạo: Cũ nhất</option>
+                        </select>
+                    </label>
+                    <button id="filter-user-btn" class="btn-primary" style="padding:6px 18px;">Lọc</button>
+                </div>
+                <div class="user-table-container">
+                    <table class="user-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tên đăng nhập</th>
+                                <th>Email</th>
+                                <th>Họ tên</th>
+                                <th>Vai trò</th>
+                                <th>Trạng thái</th>
+                                <th>Ngày tạo</th>
+                                <th>Cập nhật</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-list">
+                            <!-- Dữ liệu user sẽ được render bằng JS -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </section>
 
@@ -321,6 +364,32 @@
         <section id="voucher-management" class="content-section" style="display: none;">
             <h2>Quản Lý Voucher</h2>
             <div class="voucher-list-container">
+                <div class="voucher-filter-bar voucher-filter-bar-css" style="display:flex;gap:18px;align-items:center;margin-bottom:16px;flex-wrap:wrap;background:#f8f9fa;padding:14px 18px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.04);">
+                    <label style="font-weight:500;font-size:15px;display:flex;flex-direction:column;gap:4px;min-width:150px;">
+                        Sắp xếp % giảm giá:
+                        <select id="filter-voucher-sort-discount" style="padding:6px 12px;border-radius:6px;border:1px solid #ccc;">
+                            <option value="">--</option>
+                            <option value="discount_desc">Giảm giá cao nhất</option>
+                            <option value="discount_asc">Giảm giá thấp nhất</option>
+                        </select>
+                    </label>
+                    <label style="font-weight:500;font-size:15px;display:flex;flex-direction:column;gap:4px;min-width:150px;">
+                        Sắp xếp số lượt sử dụng:
+                        <select id="filter-voucher-sort-usage" style="padding:6px 12px;border-radius:6px;border:1px solid #ccc;">
+                            <option value="">--</option>
+                            <option value="usage_desc">Nhiều nhất</option>
+                            <option value="usage_asc">Ít nhất</option>
+                        </select>
+                    </label>
+                    <label style="font-weight:500;font-size:15px;display:flex;flex-direction:column;gap:4px;min-width:150px;">
+                        Sắp xếp hạn sử dụng:
+                        <select id="filter-voucher-sort-enddate" style="padding:6px 12px;border-radius:6px;border:1px solid #ccc;">
+                            <option value="">--</option>
+                            <option value="end_date_asc">Gần nhất</option>
+                            <option value="end_date_desc">Xa nhất</option>
+                        </select>
+                    </label>
+                </div>
                 <table class="voucher-table">
                     <thead>
                         <tr>
@@ -344,6 +413,32 @@
         <section id="comment" class="content-section" style="display: none;">
             <h2>Quản Lý Đánh Giá</h2>
             <div class="comment-management">
+                <div class="comment-filter-bar" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
+                    <label>STT:
+                        <input type="text" id="filter-comment-id" style="width:80px;">
+                    </label>
+                    <label>Ngày đánh giá:
+                        <input type="date" id="filter-comment-date">
+                    </label>
+                    <label>Đánh giá:
+                        <select id="filter-comment-rating">
+                            <option value="">Tất cả</option>
+                            <option value="5">5 sao</option>
+                            <option value="4">4 sao</option>
+                            <option value="3">3 sao</option>
+                            <option value="2">2 sao</option>
+                            <option value="1">1 sao</option>
+                        </select>
+                    </label>
+                    <label>Trạng thái:
+                        <select id="filter-comment-status">
+                            <option value="">Tất cả</option>
+                            <option value="1">Hiển thị</option>
+                            <option value="0">Ẩn</option>
+                        </select>
+                    </label>
+                    <button class="btn-primary" id="filter-comment-btn" style="padding:6px 18px;">Lọc</button>
+                </div>
                 <table class="comment-table">
                     <thead>
                         <tr>
@@ -353,6 +448,7 @@
                             <th>Người dùng</th>
                             <th>Sản phẩm</th>
                             <th>Ngày tạo</th>
+                            <th>Thao tác</th>
                         </tr>
                     </thead>
                     <tbody id="comment-table-body">
@@ -396,24 +492,6 @@
                         </tbody>
                     </table>
                 </div>
-            </div>
-            <div class="order-history-container">
-                <h3>Lịch sử đơn hàng đã hoàn thành</h3>
-                <table class="info-table order-history-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Khách Hàng</th>
-                            <th>Địa Chỉ</th>
-                            <th>Phương Thức TT</th>
-                            <th>Tổng Tiền</th>
-                            <th>Ngày Tạo</th>
-                        </tr>
-                    </thead>
-                    <tbody id="order-history-list">
-                        <!-- Lịch sử đơn hàng sẽ được render bằng JS -->
-                    </tbody>
-                </table>
             </div>
         </section>
     </div>
@@ -584,12 +662,5 @@
     </div>
 
     <script src="/js/admin.js"></script>
-    <script>
-    const filterBtn = document.getElementById('order-filter-btn');
-    if (filterBtn) filterBtn.addEventListener('click', () => {
-        console.log('Btn Lọc click!');
-        loadOrders(getOrderFiltersFromUI());
-    });
-    </script>
 </body>
 </html>

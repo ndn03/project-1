@@ -204,6 +204,7 @@ function showProductForm(product = null) {
     if (additionalImagesInput) additionalImagesInput.value = '';
 
     if (product) {
+        // Gán đúng product_id khi sửa
         document.getElementById('product-id').value = product.product_id || '';
         document.getElementById('product-name').value = product.name || 'Tên sản phẩm chưa xác định';
         document.getElementById('product-price').value = product.price || '';
@@ -251,6 +252,7 @@ function showProductForm(product = null) {
         document.getElementById('product-origin').value = details.origin || '';
         document.getElementById('product-warranty').value = details.warranty || '';
     } else {
+        // Chỉ reset product-id khi thêm mới
         document.getElementById('product-id').value = '';
         window.currentImageUrl = '';
         renderAdditionalImagesPreview();
@@ -938,69 +940,43 @@ function hideRevenueDetail() {
 }
 
 // Hiển thị danh sách người dùng
-async function loadUsers() {
-    const userContainer = document.querySelector('.user-management');
-    if (!userContainer) return;
+async function loadUsers(filters = {}) {
+    const userList = document.getElementById('user-list');
+    if (!userList) return;
     try {
-        const response = await fetch('/admin/api/users', {
+        const params = new URLSearchParams();
+        if (filters.role) params.append('role', filters.role);
+        if (filters.isActive !== undefined && filters.isActive !== "") params.append('isActive', filters.isActive);
+        if (filters.sortBy) params.append('sortBy', filters.sortBy);
+
+        const response = await fetch('/admin/api/users' + (params.toString() ? '?' + params.toString() : ''), {
             credentials: 'include'
         });
         if (!response.ok) throw new Error('Lỗi khi lấy danh sách người dùng');
         const data = await response.json();
         const users = data.users || [];
         if (!Array.isArray(users) || users.length === 0) {
-            userContainer.innerHTML = '<div class="no-users">Không có tài khoản nào.</div>';
-            renderAddUserButton();
+            userList.innerHTML = '<tr><td colspan="9" class="text-center">Không có tài khoản nào.</td></tr>';
             return;
         }
-        const roleOptions = [
-            { value: 'admin', label: 'Admin' },
-            { value: 'customer', label: 'Khách hàng' }
-        ];
-        const statusOptions = [
-            { value: 1, label: 'Hoạt động' },
-            { value: 0, label: 'Khoá' }
-        ];
-        userContainer.innerHTML = `
-            <table class="user-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Tên đăng nhập</th>
-                        <th>Email</th>
-                        <th>Vai trò</th>
-                        <th>Trạng thái</th>
-                        <th>Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${users.map(u => `
-                        <tr>
-                            <td>${u.user_id}</td>
-                            <td>${u.username}</td>
-                            <td>${u.email}</td>
-                            <td>
-                                <select onchange="updateUserRole(${u.user_id}, this.value)">
-                                    ${roleOptions.map(opt => `<option value="${opt.value}" ${u.role === opt.value ? 'selected' : ''}>${opt.label}</option>`).join('')}
-                                </select>
-                            </td>
-                            <td>
-                                <select onchange="updateUserStatus(${u.user_id}, this.value)">
-                                    ${statusOptions.map(opt => `<option value="${opt.value}" ${u.isActive == opt.value ? 'selected' : ''}>${opt.label}</option>`).join('')}
-                                </select>
-                            </td>
-                            <td>
-                                <button class="btn-delete" onclick="deleteUser(${u.user_id})"><i class="fas fa-trash"></i> Xóa</button>
-                            </td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        `;
-        renderAddUserButton();
+        userList.innerHTML = users.map(u => `
+            <tr>
+                <td>${u.user_id}</td>
+                <td>${u.username}</td>
+                <td>${u.email}</td>
+                <td>${u.full_name || ''}</td>
+                <td>${u.role}</td>
+                <td>${u.isActive == 1 ? 'Hoạt động' : 'Khoá'}</td>
+                <td>${u.created_at ? new Date(u.created_at).toLocaleString('vi-VN') : ''}</td>
+                <td>${u.updated_at ? new Date(u.updated_at).toLocaleString('vi-VN') : ''}</td>
+                <td>
+                    <button onclick="editUser(${u.user_id})" class="btn-edit">Sửa</button>
+                    <button onclick="deleteUser(${u.user_id})" class="btn-delete">Xóa</button>
+                </td>
+            </tr>
+        `).join('');
     } catch (err) {
-        userContainer.innerHTML = `<div class="no-users text-danger">${err.message}</div>`;
-        renderAddUserButton();
+        userList.innerHTML = `<tr><td colspan="9" class="text-danger">${err.message}</td></tr>`;
     }
 }
 
@@ -1307,15 +1283,29 @@ window.deleteVoucher = async function(id) {
 // Hiển thị danh sách đánh giá
 const commentTableBody = document.getElementById('comment-table-body');
 
-async function loadComments() {
+// --- FILTER FOR COMMENT MANAGEMENT ---
+function getCommentFiltersFromUI() {
+    return {
+        id: document.getElementById('filter-comment-id')?.value.trim(),
+        date: document.getElementById('filter-comment-date')?.value,
+        rating: document.getElementById('filter-comment-rating')?.value,
+        status: document.getElementById('filter-comment-status')?.value
+    };
+}
+
+async function loadComments(filters = {}) {
     try {
-        const response = await fetch('/admin/api/comments');
+        // Tạo query string từ filters
+        const params = new URLSearchParams();
+        if (filters.id) params.append('id', filters.id);
+        if (filters.date) params.append('date', filters.date);
+        if (filters.rating) params.append('rating', filters.rating);
+        if (filters.status !== undefined && filters.status !== "") params.append('status', filters.status);
+        const response = await fetch('/admin/api/comments' + (params.toString() ? '?' + params.toString() : ''));
         if (!response.ok) {
             throw new Error('Lỗi khi tải danh sách đánh giá');
         }
-
         const comments = await response.json();
-
         commentTableBody.innerHTML = comments.map(comment => `
             <tr>
                 <td>${comment.comment_id}</td>
@@ -1326,7 +1316,10 @@ async function loadComments() {
                 <td>${new Date(comment.created_at).toLocaleString('vi-VN')}</td>
                 <td>
                     <button class="btn-delete" onclick="deleteComment(${comment.comment_id})">Xóa</button>
-                    <button class="btn-hide" onclick="hideComment(${comment.comment_id})">Ẩn</button>
+                    <select onchange="updateCommentStatus(${comment.comment_id}, this.value)" style="padding:4px 8px;border-radius:5px;border:1px solid #bbb;">
+                        <option value="1" ${comment.isActive == 1 ? 'selected' : ''}>Hiển thị</option>
+                        <option value="0" ${comment.isActive == 0 ? 'selected' : ''}>Ẩn</option>
+                    </select>
                 </td>
             </tr>
         `).join('');
@@ -1335,74 +1328,42 @@ async function loadComments() {
     }
 }
 
-// Xóa đánh giá
-async function deleteComment(commentId) {
-    if (!confirm('Bạn có chắc chắn muốn xóa đánh giá này?')) return;
-
-    try {
-        const response = await fetch(`/admin/api/comments/${commentId}`, {
-            method: 'DELETE'
-        });
-
-        if (!response.ok) {
-            throw new Error('Lỗi khi xóa đánh giá');
-        }
-
-        showNotification('Xóa đánh giá thành công', 'success');
-        loadComments();
-    } catch (error) {
-        console.error('Error deleting comment:', error);
-        showNotification('Không thể xóa đánh giá', 'error');
-    }
+// Gắn sự kiện cho filter
+function setupCommentFilters() {
+    const idInput = document.getElementById('filter-comment-id');
+    const dateInput = document.getElementById('filter-comment-date');
+    const ratingInput = document.getElementById('filter-comment-rating');
+    const statusInput = document.getElementById('filter-comment-status');
+    const filterBtn = document.getElementById('filter-comment-btn');
+    [idInput, dateInput, ratingInput, statusInput].forEach(el => {
+        if (el) el.addEventListener('change', () => loadComments(getCommentFiltersFromUI()));
+    });
+    if (filterBtn) filterBtn.addEventListener('click', () => loadComments(getCommentFiltersFromUI()));
 }
 
-// Ẩn đánh giá
-async function hideComment(commentId) {
-    if (!confirm('Bạn có chắc chắn muốn ẩn đánh giá này?')) return;
+// Gọi setup khi DOMContentLoaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupCommentFilters);
+} else {
+    setupCommentFilters();
+}
 
+// Thay đổi trạng thái hiển thị đánh giá
+window.updateCommentStatus = async function(commentId, newStatus) {
     try {
         const response = await fetch(`/admin/api/comments/${commentId}/hide`, {
-            method: 'PUT'
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ isActive: parseInt(newStatus) })
         });
-
-        if (!response.ok) {
-            throw new Error('Lỗi khi ẩn đánh giá');
-        }
-
-        showNotification('Ẩn đánh giá thành công', 'success');
+        if (!response.ok) throw new Error('Lỗi khi cập nhật trạng thái đánh giá');
+        showNotification('Cập nhật trạng thái đánh giá thành công', 'success');
         loadComments();
     } catch (error) {
-        console.error('Error hiding comment:', error);
-        showNotification('Không thể ẩn đánh giá', 'error');
+        showNotification('Không thể cập nhật trạng thái đánh giá', 'error');
     }
 }
 
-// Hiển thị lịch sử đơn hàng đã hoàn thành
-async function loadOrderHistory() {
-    const historyList = document.getElementById('order-history-list');
-    if (!historyList) return;
-    try {
-        const response = await fetch('/admin/api/orders?status=completed', { credentials: 'include' });
-        if (!response.ok) throw new Error('Lỗi khi lấy lịch sử đơn hàng');
-        const orders = await response.json();
-        if (!orders || orders.length === 0) {
-            historyList.innerHTML = '<tr><td colspan="6" class="text-center">Không có đơn hàng hoàn thành</td></tr>';
-            return;
-        }
-        historyList.innerHTML = orders.map(order => `
-            <tr>
-                <td>${order.order_id}</td>
-                <td>${order.username || 'N/A'}</td>
-                <td>${order.full_address || 'N/A'}</td>
-                <td>${order.payment_method_name || 'N/A'}</td>
-                <td>${formatPrice(order.final_amount)}</td>
-                <td>${order.created_at}</td>
-            </tr>
-        `).join('');
-    } catch (err) {
-        historyList.innerHTML = `<tr><td colspan="6" class="text-danger">${err.message}</td></tr>`;
-    }
-}
 
 function renderListInfo(categories, brands, paymentMethods) {
     const categoryList = document.getElementById('category-list');
@@ -1744,6 +1705,49 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         observer.observe(donhangSection, { attributes: true, attributeFilter: ['style'] });
     }
+
+    // Thêm sự kiện lắng nghe cho dropdown trạng thái và vai trò
+    function setupUserFilters() {
+        const roleFilter = document.getElementById('role-filter');
+        const statusFilter = document.getElementById('status-filter');
+        const dateFilter = document.getElementById('date-filter');
+
+        if (roleFilter) {
+            roleFilter.addEventListener('change', () => {
+                const filters = getUserFiltersFromUI();
+                loadUsers(filters);
+            });
+        }
+
+        if (statusFilter) {
+            statusFilter.addEventListener('change', () => {
+                const filters = getUserFiltersFromUI();
+                loadUsers(filters);
+            });
+        }
+
+        if (dateFilter) {
+            dateFilter.addEventListener('change', () => {
+                const filters = getUserFiltersFromUI();
+                loadUsers(filters);
+            });
+        }
+    }
+
+    // Cập nhật hàm getUserFiltersFromUI để chỉ lấy giá trị từ trạng thái, vai trò và ngày tháng
+    function getUserFiltersFromUI() {
+        const roleFilter = document.getElementById('role-filter');
+        const statusFilter = document.getElementById('status-filter');
+        const dateFilter = document.getElementById('date-filter');
+
+        return {
+            role: roleFilter ? roleFilter.value : '',
+            isActive: statusFilter ? statusFilter.value : '',
+            date: dateFilter ? dateFilter.value : ''
+        };
+    }
+
+    setupUserFilters();
 });
 
 // Hiển thị chi tiết đơn hàng cho admin
@@ -1838,3 +1842,301 @@ async function renderOrderStatusFilter() {
         });
     } catch {}
 }
+
+function getUserFiltersFromUI() {
+    const roleFilter = document.getElementById('role-filter');
+    const statusFilter = document.getElementById('status-filter');
+    const dateFilter = document.getElementById('date-filter');
+
+    return {
+        role: roleFilter ? roleFilter.value : '',
+        isActive: statusFilter ? statusFilter.value : '',
+        date: dateFilter ? dateFilter.value : ''
+    };
+}
+
+async function loadUsersWithFilters() {
+    const filters = getUserFiltersFromUI();
+    try {
+        const queryParams = new URLSearchParams(filters);
+        const response = await fetch(`/admin/api/users?${queryParams}`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Error loading users with filters:', errorData);
+            showNotification(errorData.error || 'Lỗi khi tải danh sách tài khoản', 'error');
+            return;
+        }
+
+        const { users } = await response.json();
+        const userListContainer = document.getElementById('user-list');
+        if (!userListContainer) {
+            console.error('User list container not found');
+            return;
+        }
+
+        if (users.length === 0) {
+            userListContainer.innerHTML = '<tr><td colspan="9" class="text-center">Không có tài khoản nào</td></tr>';
+            return;
+        }
+
+        userListContainer.innerHTML = users.map(user => `
+            <tr>
+                <td>${user.user_id}</td>
+                <td>${user.username}</td>
+                <td>${user.email}</td>
+                <td>${user.full_name || ''}</td>
+                <td>${user.role}</td>
+                <td>${user.isActive == 1 ? 'Hoạt động' : 'Khoá'}</td>
+                <td>${user.created_at ? new Date(user.created_at).toLocaleString('vi-VN') : ''}</td>
+                <td>${user.updated_at ? new Date(user.updated_at).toLocaleString('vi-VN') : ''}</td>
+                <td>
+                    <button onclick="editUser(${user.user_id})" class="btn-edit">Sửa</button>
+                    <button onclick="deleteUser(${user.user_id})" class="btn-delete">Xóa</button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading users with filters:', error);
+        showNotification('Lỗi khi tải danh sách tài khoản', 'error');
+    }
+}
+
+// Quản lý sự kiện cho các filter người dùng
+function setupUserFilters() {
+    const roleFilter = document.getElementById('role-filter');
+    const statusFilter = document.getElementById('status-filter');
+    const dateFilter = document.getElementById('date-filter');
+
+    if (roleFilter) {
+        roleFilter.addEventListener('change', () => {
+            const filters = getUserFiltersFromUI();
+            loadUsers(filters);
+        });
+    }
+
+    if (statusFilter) {
+        statusFilter.addEventListener('change', () => {
+            const filters = getUserFiltersFromUI();
+            loadUsers(filters);
+        });
+    }
+
+    if (dateFilter) {
+        dateFilter.addEventListener('change', () => {
+            const filters = getUserFiltersFromUI();
+            loadUsers(filters);
+        });
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        setupUserFilters();
+        loadUsersWithFilters();
+    });
+} else {
+    setupUserFilters();
+    loadUsersWithFilters();
+}
+
+// Thêm filter bar phía trên bảng user (nếu chưa có)
+function renderUserFilterBar() {
+    const userContainer = document.querySelector('.user-management');
+    if (!userContainer) return;
+    let filterBar = document.getElementById('user-filter-bar');
+    if (!filterBar) {
+        filterBar = document.createElement('div');
+        filterBar.className = 'user-filter-bar';
+        filterBar.id = 'user-filter-bar';
+        filterBar.innerHTML = `
+            <label>Vai trò:
+                <select id="filter-user-role">
+                    <option value="">Tất cả</option>
+                    <option value="admin">Admin</option>
+                    <option value="customer">Khách hàng</option>
+                </select>
+            </label>
+            <label>Trạng thái:
+                <select id="filter-user-status">
+                    <option value="">Tất cả</option>
+                    <option value="1">Hoạt động</option>
+                    <option value="0">Khoá</option>
+                </select>
+            </label>
+            <label>Sắp xếp:
+                <select id="filter-user-sort">
+                    <option value="created_at_desc">Ngày tạo: Mới nhất</option>
+                    <option value="created_at_asc">Ngày tạo: Cũ nhất</option>
+                </select>
+            </label>
+            <button id="filter-user-btn" class="btn-primary" style="padding:6px 18px;">Lọc</button>
+        `;
+        userContainer.prepend(filterBar);
+    }
+}
+
+// Xóa các phần liên quan đến username và email trong bộ lọc
+// Xóa các input và nút lọc không cần thiết
+const usernameFilter = document.getElementById('filter-username');
+const emailFilter = document.getElementById('filter-email');
+if (usernameFilter) usernameFilter.remove();
+if (emailFilter) emailFilter.remove();
+
+const filterUserBtn = document.getElementById('filter-user-btn');
+if (filterUserBtn) filterUserBtn.remove();
+
+// --- TỰ ĐỘNG RENDER USER KHI ĐỔI FILTER ---
+document.addEventListener('DOMContentLoaded', function() {
+    // Lấy các filter đúng theo giao diện hiện tại
+    const roleFilter = document.getElementById('filter-role');
+    const statusFilter = document.getElementById('filter-status');
+    const sortFilter = document.getElementById('filter-user-sort');
+    // Nếu có các filter này thì gán sự kiện tự động loadUsers
+    if (roleFilter) {
+        roleFilter.addEventListener('change', function() {
+            const filters = {
+                role: roleFilter.value,
+                isActive: statusFilter ? statusFilter.value : '',
+                sortBy: sortFilter ? sortFilter.value : ''
+            };
+            loadUsers(filters);
+        });
+    }
+    if (statusFilter) {
+        statusFilter.addEventListener('change', function() {
+            const filters = {
+                role: roleFilter ? roleFilter.value : '',
+                isActive: statusFilter.value,
+                sortBy: sortFilter ? sortFilter.value : ''
+            };
+            loadUsers(filters);
+        });
+    }
+    if (sortFilter) {
+        sortFilter.addEventListener('change', function() {
+            const filters = {
+                role: roleFilter ? roleFilter.value : '',
+                isActive: statusFilter ? statusFilter.value : '',
+                sortBy: sortFilter.value
+            };
+            loadUsers(filters);
+        });
+    }
+    // Xóa sự kiện click của nút lọc nếu còn
+    const filterUserBtn = document.getElementById('filter-user-btn');
+    if (filterUserBtn) {
+        filterUserBtn.onclick = null;
+        filterUserBtn.style.display = 'none';
+    }
+});
+
+// --- FILTER FOR VOUCHER MANAGEMENT ---
+function getVoucherFiltersFromUI() {
+    return {
+        sort_discount: document.getElementById('filter-voucher-sort-discount')?.value,
+        sort_usage: document.getElementById('filter-voucher-sort-usage')?.value,
+        sort_enddate: document.getElementById('filter-voucher-sort-enddate')?.value
+    };
+}
+
+async function loadVouchers(filters = {}) {
+    const voucherList = document.getElementById('voucher-list');
+    if (!voucherList) return;
+    const voucherContainer = document.querySelector('.voucher-list-container');
+    let btn = document.getElementById('add-voucher-btn');
+    if (!btn) {
+        btn = document.createElement('button');
+        btn.id = 'add-voucher-btn';
+        btn.className = 'btn-primary';
+        btn.innerHTML = '<i class="fas fa-plus"></i> Thêm voucher';
+        btn.style.marginBottom = '12px';
+        btn.onclick = () => showVoucherModal();
+        voucherContainer.prepend(btn);
+    }
+    try {
+        const response = await fetch('/admin/api/vouchers', { credentials: 'include' });
+        if (!response.ok) throw new Error('Lỗi khi lấy danh sách voucher');
+        let vouchers = await response.json();
+        // Sắp xếp ưu tiên: discount > usage > enddate
+        if (filters) {
+            if (filters.sort_discount) {
+                switch (filters.sort_discount) {
+                    case 'discount_desc':
+                        vouchers = vouchers.sort((a, b) => parseFloat(b.discount_amount) - parseFloat(a.discount_amount));
+                        break;
+                    case 'discount_asc':
+                        vouchers = vouchers.sort((a, b) => parseFloat(a.discount_amount) - parseFloat(b.discount_amount));
+                        break;
+                }
+            } else if (filters.sort_usage) {
+                switch (filters.sort_usage) {
+                    case 'usage_desc':
+                        vouchers = vouchers.sort((a, b) => (b.usage_limit ?? 0) - (a.usage_limit ?? 0));
+                        break;
+                    case 'usage_asc':
+                        vouchers = vouchers.sort((a, b) => (a.usage_limit ?? 0) - (b.usage_limit ?? 0));
+                        break;
+                }
+            } else if (filters.sort_enddate) {
+                switch (filters.sort_enddate) {
+                    case 'end_date_asc':
+                        vouchers = vouchers.sort((a, b) => new Date(a.end_date || '9999-12-31') - new Date(b.end_date || '9999-12-31'));
+                        break;
+                    case 'end_date_desc':
+                        vouchers = vouchers.sort((a, b) => new Date(b.end_date || '0001-01-01') - new Date(a.end_date || '0001-01-01'));
+                        break;
+                }
+            }
+        }
+        if (!vouchers || vouchers.length === 0) {
+            voucherList.innerHTML = '<tr><td colspan="7" class="text-center">Không có voucher nào</td></tr>';
+            return;
+        }
+        voucherList.innerHTML = vouchers.map(v => `
+            <tr>
+                <td>${v.code}</td>
+                <td>${v.discount_amount}</td>
+                <td>${v.min_order_value}</td>
+                <td>${v.start_date ? v.start_date.slice(0,10) : ''}</td>
+                <td>${v.end_date ? v.end_date.slice(0,10) : ''}</td>
+                <td>${v.usage_limit ?? ''}</td>
+                <td>
+                    <button class="btn-edit" onclick='showVoucherModal(${JSON.stringify(v)})'><i class="fas fa-edit"></i> Sửa</button>
+                    <button class="btn-delete" onclick="deleteVoucher(${v.voucher_id})"><i class="fas fa-trash"></i> Xóa</button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (err) {
+        voucherList.innerHTML = `<tr><td colspan="7" class="text-danger">${err.message}</td></tr>`;
+    }
+}
+
+// --- SỰ KIỆN FILTER VOUCHER ---
+document.addEventListener('DOMContentLoaded', function() {
+    const sortDiscount = document.getElementById('filter-voucher-sort-discount');
+    const sortUsage = document.getElementById('filter-voucher-sort-usage');
+    const sortEnddate = document.getElementById('filter-voucher-sort-enddate');
+    [sortDiscount, sortUsage, sortEnddate].forEach(el => {
+        if (el) el.addEventListener('change', function() {
+            // Reset các dropdown khác về "--" khi chọn 1 dropdown
+            if (el === sortDiscount) {
+                if (sortUsage) sortUsage.value = '';
+                if (sortEnddate) sortEnddate.value = '';
+            } else if (el === sortUsage) {
+                if (sortDiscount) sortDiscount.value = '';
+                if (sortEnddate) sortEnddate.value = '';
+            } else if (el === sortEnddate) {
+                if (sortDiscount) sortDiscount.value = '';
+                if (sortUsage) sortUsage.value = '';
+            }
+            loadVouchers(getVoucherFiltersFromUI());
+        });
+    });
+});

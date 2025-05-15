@@ -85,6 +85,7 @@ router.put('/api/users/:id/role', userController.updateUserRole);
 router.put('/api/users/:id/status', userController.updateUserStatus);
 router.post('/api/users', userController.createUser);
 router.delete('/api/users/:id', userController.deleteUser);
+router.get('/api/users/meta', userController.getUserMeta);
 
 // Voucher API routes
 router.get('/api/vouchers', voucherController.getAllVouchers);
@@ -93,8 +94,8 @@ router.put('/api/vouchers/:id', voucherController.updateVoucher);
 router.delete('/api/vouchers/:id', voucherController.deleteVoucher);
 
 // Comment API routes
-router.get('/api/comments', commentController.getAllComments);
+router.get('/api/comments', commentController.getCommentsWithFilters);
 router.delete('/api/comments/:id', commentController.deleteComment);
-router.put('/api/comments/:id/hide', commentController.hideComment);
+router.put('/api/comments/:id/hide', commentController.updateCommentStatus);
 
 module.exports = router;
