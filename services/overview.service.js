@@ -45,19 +45,19 @@ const OverviewService = {
                 `SELECT 
                     COALESCE(SUM(final_amount), 0) as total_revenue,
                     COALESCE(SUM(CASE 
-                        WHEN DATE(created_at) = CURDATE() THEN final_amount 
+                        WHEN DATE(CONVERT_TZ(created_at, '+00:00', '+07:00')) = CURDATE() THEN final_amount 
                         ELSE 0 
                     END), 0) as today_revenue,
                     COALESCE(SUM(CASE 
-                        WHEN DATE(created_at) = DATE_SUB(CURDATE(), INTERVAL 1 DAY) THEN final_amount 
+                        WHEN DATE(CONVERT_TZ(created_at, '+00:00', '+07:00')) = DATE_SUB(CURDATE(), INTERVAL 1 DAY) THEN final_amount 
                         ELSE 0 
                     END), 0) as yesterday_revenue,
                     COALESCE(SUM(CASE 
-                        WHEN DATE(created_at) >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) THEN final_amount 
+                        WHEN DATE(CONVERT_TZ(created_at, '+00:00', '+07:00')) >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) THEN final_amount 
                         ELSE 0 
                     END), 0) as week_revenue,
                     COALESCE(SUM(CASE 
-                        WHEN DATE(created_at) >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) THEN final_amount 
+                        WHEN DATE(CONVERT_TZ(created_at, '+00:00', '+07:00')) >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) THEN final_amount 
                         ELSE 0 
                     END), 0) as month_revenue
                 FROM orders o 

@@ -199,13 +199,14 @@ const orderController = {
         try {
             const userId = req.user.user_id;
             const { orderId } = req.params;
-            const { rating, comment } = req.body;
+            const { rating, comment, product_id } = req.body;
 
-            if (!rating || !comment) {
-                return res.status(400).json({ message: "Rating and comment are required." });
+            if (!rating || !comment || !product_id) {
+                return res.status(400).json({ message: "Rating, comment, and product_id are required." });
             }
 
-            const result = await orderService.addOrderReview(userId, orderId, rating, comment);
+            // Gọi service với product_id
+            const result = await orderService.addOrderReview(userId, orderId, rating, comment, product_id);
             res.status(201).json({
                 message: "Review added successfully.",
                 result

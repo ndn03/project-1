@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const orderController = require('../controllers/order.controller');
 const authMiddleware = require('../middleware/auth.middleware');
+const commentController = require('../controllers/comment.controller');
 
 // Public routes (dành cho người dùng đã đăng nhập)
 router.get('/checkout', authMiddleware.authenticateToken, orderController.showCheckout);
@@ -15,6 +16,11 @@ router.post('/orders/:orderId/review', authMiddleware.authenticateToken, orderCo
 
 // API lấy danh sách đơn hàng của người dùng
 router.get('/user-orders', authMiddleware.authenticateToken, orderController.getUserOrders);
+
+// API cho user lấy và sửa đánh giá của mình
+router.get('/user/reviews', authMiddleware.authenticateToken, commentController.getUserComments);
+router.put('/user/reviews/:id', authMiddleware.authenticateToken, commentController.updateUserComment);
+router.delete('/user/reviews/:id', authMiddleware.authenticateToken, commentController.deleteUserComment);
 
 // Admin routes
 router.get('/admin/api/orders', 

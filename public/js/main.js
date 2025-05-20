@@ -173,6 +173,7 @@ function updateHeader(user) {
                         <li><a href="/account">Tài khoản</a></li>
                     ` : `
                         <li><a href="/admin">Quản trị hệ thống</a></li>
+                        <li><a href="/cart" class="cart-link">Giỏ hàng</a></li>
                     `}
                     <li><a href="#" onclick="logout(); return false;">Đăng xuất</a></li>
                 </ul>
@@ -437,138 +438,12 @@ function showAllProducts(button) {
     toggleButtons.querySelector(".show-less").style.display = "inline-block"; // Hiển thị nút "Thu nhỏ"
 }
 
-// Thu nhỏ sản phẩm
-function shrinkProducts(button) {
-    const toggleButtons = button.closest(".toggle-buttons"); // Find the toggle-buttons div
-    if (!toggleButtons) {
-        console.error("Không tìm thấy .toggle-buttons");
-        return;
-    }
-
-    const container = toggleButtons.previousElementSibling; // Assume the container is the previous sibling
-    if (!container || !container.classList.contains("container")) {
-        console.error("Không tìm thấy .container");
-        return;
-    }
-
-    const productsContainer = container.querySelector(".products-carousel .products");
-    if (!productsContainer) {
-        console.error("Không tìm thấy .products bên trong .products-carousel");
-        return;
-    }
-
-    productsContainer.classList.remove("expand"); // Thu nhỏ danh sách sản phẩm
-    toggleButtons.querySelector(".show-less").style.display = "none"; // Ẩn nút "Thu nhỏ"
-    toggleButtons.querySelector(".show-more").style.display = "inline-block"; // Hiển thị nút "Hiển thị tất cả"
-}
-// Script để thay đổi hình ảnh chính khi ảnh thu nhỏ được nhấp
-document.querySelectorAll('.product-thumbnails img').forEach(thumbnail => {
-    thumbnail.addEventListener('click', function() {
-        document.getElementById('product-image').src = this.src;
-    });
-});
-
-// Script để tự động thay đổi hình ảnh chính mỗi 2 giây
-const thumbnails = document.querySelectorAll('.product-thumbnails img');
-let currentIndex = 0;
-
-function autoSlide() {
-    if (thumbnails.length > 0) {
-        currentIndex = (currentIndex + 1) % thumbnails.length; // Chuyển sang ảnh tiếp theo
-        document.getElementById('product-image').src = thumbnails[currentIndex].src;
-    }
-}
-
-setInterval(autoSlide, 2000); // Thay đổi ảnh mỗi 3 giây
-
-// Script để điều hướng đánh giá với hiệu ứng lướt mượt mà
-let currentReviewIndex = 0;
-const reviews = document.querySelectorAll('.review');
-const totalReviews = reviews.length;
-const reviewsPerPage = 4;
-
-function showReviews(startIndex) {
-    reviews.forEach((review, i) => {
-        review.style.display = (i >= startIndex && i < startIndex + reviewsPerPage) ? 'block' : 'none';
-    });
-    const reviewsList = document.getElementById('reviews-list');
-    if (reviewsList && reviews.length > 0) {
-        reviewsList.scrollTo({
-            top: 0,
-            left: startIndex * reviews[0].offsetWidth,
-            behavior: 'smooth'
-        });
-    }
-}
-
-const prevBtn2 = document.querySelector('.prev-btn');
-if (prevBtn2) {
-    prevBtn2.addEventListener('click', () => {
-        currentReviewIndex = (currentReviewIndex - reviewsPerPage + totalReviews) % totalReviews;
-        showReviews(currentReviewIndex);
-    });
-}
-
-const nextBtn2 = document.querySelector('.next-btn');
-if (nextBtn2) {
-    nextBtn2.addEventListener('click', () => {
-        currentReviewIndex = (currentReviewIndex + reviewsPerPage) % totalReviews;
-        showReviews(currentReviewIndex);
-    });
-}
-
-showReviews(currentReviewIndex);
-
-// Script để hiển thị popup khi click vào ảnh
-const productImage = document.getElementById('product-image');
-const imagePopup = document.getElementById('imagePopup');
-const popupImage = document.getElementById('popupImage');
-const closePopup = document.querySelector('.close-popup');
-const prevPopup = document.querySelector('.prev-popup');
-const nextPopup = document.querySelector('.next-popup');
-
-if (productImage) {
-    productImage.addEventListener('click', () => {
-        popupImage.src = productImage.src;
-        currentIndex = Array.from(thumbnails).findIndex(img => img.src === productImage.src);
-        imagePopup.style.display = 'block';
-    });
-}
-
-if (closePopup) {
-    closePopup.addEventListener('click', () => {
-        imagePopup.style.display = 'none';
-    });
-}
-
-if (prevPopup) {
-    prevPopup.addEventListener('click', () => {
-        currentIndex = (currentIndex - 1 + thumbnails.length) % thumbnails.length;
-        popupImage.src = thumbnails[currentIndex].src;
-    });
-}
-
-if (nextPopup) {
-    nextPopup.addEventListener('click', () => {
-        currentIndex = (currentIndex + 1) % thumbnails.length;
-        popupImage.src = thumbnails[currentIndex].src;
-    });
-}
-
-if (imagePopup) {
-    window.addEventListener('click', (event) => {
-        if (event.target === imagePopup) {
-            imagePopup.style.display = 'none';
-        }
-    });
-}
-
 function getSearchParams() {
     return {
-        keyword: document.getElementById('searchInput').value.trim(),
-        brand_id: document.getElementById('searchBrand').value,
-        category_id: document.getElementById('searchCategory').value,
-        sort: document.getElementById('filter-sort').value
+        keyword: document.getElementById('searchInput')?.value.trim() || '',
+        brand_id: document.getElementById('searchBrand')?.value || '',
+        category_id: document.getElementById('searchCategory')?.value || '',
+        sort: document.getElementById('filter-sort')?.value || ''
     };
 }
 
@@ -580,6 +455,32 @@ function doSearch({ keyword = '', brand_id = '', category_id = '', sort = '' }) 
     if (sort) params.append('sort', sort);
     window.location.href = `/search?${params.toString()}`;
 }
+
+// Đảm bảo chỉ gán sự kiện khi phần tử tồn tại
+function safeAddEventListener(id, event, handler) {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener(event, handler);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    // ...existing code...
+    safeAddEventListener('searchSubmit', 'click', function() {
+        doSearch(getSearchParams());
+    });
+    safeAddEventListener('searchInput', 'keydown', function(e) {
+        if (e.key === 'Enter') doSearch(getSearchParams());
+    });
+    safeAddEventListener('searchBrand', 'change', function() {
+        doSearch(getSearchParams());
+    });
+    safeAddEventListener('searchCategory', 'change', function() {
+        doSearch(getSearchParams());
+    });
+    safeAddEventListener('filter-sort', 'change', function() {
+        doSearch(getSearchParams());
+    });
+    // ...existing code...
+});
 
 function renderSearchResults(products) {
     const resultsDiv = document.getElementById('search-results');
@@ -629,3 +530,23 @@ function renderSearchResults(products) {
         </div>
     `;
 }
+
+document.getElementById("forgotPasswordForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const email = document.getElementById("forgotEmail").value;
+    try {
+        const response = await fetch("/auth/forgot-password", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email }),
+        });
+        const data = await response.json();
+        if (response.ok) {
+            document.getElementById("message").textContent = data.message;
+        } else {
+            document.getElementById("message").textContent = data.message || "Có lỗi xảy ra!";
+        }
+    } catch (error) {
+        document.getElementById("message").textContent = "Lỗi kết nối server!";
+    }
+});

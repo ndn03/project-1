@@ -14,13 +14,17 @@ body {
 }
 
 .sidebar {
-    width: 250px;
-    background-color: #f5c084; /* Match index.ejs header background */
-    color: #2D2D2D; /* Match index.ejs text color */
+    position: sticky;
+
+    height: 700px;
+
+    width: 300px;
+    background-color: #f5c084; /* Sidebar background */
+    color: #2D2D2D; /* Text color */
     padding: 20px;
-    position: fixed;
-    height: 100%;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Add subtle shadow */
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Shadow effect */
+    z-index: 1000; /* Ensure it stays above other elements */
+    display: block;
 }
 
 .sidebar h2 {
@@ -54,12 +58,11 @@ body {
 }
 
 .main-content {
-    margin-left: 270px;
     padding: 20px;
     flex-grow: 1;
-    background-color: #FFFFFF; /* Add white background for contrast */
+    background-color: #FFFFFF; /* Nền trắng */
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add subtle shadow */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Hiệu ứng đổ bóng */
 }
 
 .section {
@@ -68,13 +71,30 @@ body {
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    left: 0; right: 0; top: 0; bottom: 0;
+    transition: opacity 0.35s cubic-bezier(.4,0,.2,1), box-shadow 0.3s;
+    z-index: 1;
 }
 
 .section.active {
     display: block;
+    opacity: 1;
+    pointer-events: auto;
+    position: relative;
+    animation: fadeInSection 0.5s cubic-bezier(.4,0,.2,1);
+    z-index: 2;
+}
+
+@keyframes fadeInSection {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: none; }
 }
 
 h1 {
+    text-align: center;
     margin-bottom: 20px;
     color: #1A2B44; /* Match index.ejs header color */
     font-size: 24px;
@@ -173,100 +193,279 @@ h1 {
     border-radius: 4px;
 }
 
-.change-password form {
+/* Cập nhật CSS cho form đổi mật khẩu */
+.change-password {
     max-width: 400px;
+    margin: 0 auto;
+    height: 580px;
+    padding: 20px;
+    background-color: #FFFFFF; /* Nền trắng */
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Hiệu ứng đổ bóng */
+}
+
+.change-password h1 {
+    text-align: center;
+    color: #1A2B44; /* Màu tiêu đề */
+    margin-bottom: 20px;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.change-password form {
     display: flex;
     flex-direction: column;
     gap: 15px;
 }
 
 .change-password input {
-    padding: 10px;
-    border: 1px solid #D4A017; /* Match index.ejs input border */
+    padding: 12px;
+    font-weight: 600;
+    width: 100%;
+    border: 1px solid #D4A017; /* Viền vàng */
     border-radius: 4px;
     font-size: 16px;
-    background-color: #F8F1E9; /* Match index.ejs input background */
+    background-color: #F8F1E9; /* Nền nhạt */
 }
 
 .change-password button {
-    padding: 10px;
-    background-color: #D4A017; /* Match index.ejs button background */
-    color: #2D2D2D; /* Match index.ejs button text color */
+    padding: 12px;
+    background-color: #D4A017; /* Nền vàng */
+    color: #2D2D2D; /* Màu chữ đen */
     border: none;
     border-radius: 4px;
     cursor: pointer;
     font-size: 16px;
+    font-weight: 600;
     transition: background-color 0.3s, color 0.3s;
 }
 
 .change-password button:hover {
-    background-color: #1A2B44; /* Match index.ejs button hover background */
-    color: #F8F1E9; /* Match index.ejs button hover text color */
+    background-color: #1A2B44; /* Nền xanh đậm khi hover */
+    color: #F8F1E9; /* Màu chữ trắng khi hover */
 }
 
+/* Popup chung */
 .popup {
     display: none;
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
     background: rgba(0, 0, 0, 0.5);
     justify-content: center;
     align-items: center;
     z-index: 1000;
 }
 
-.popup-content {
-    background: #FFFFFF;
-    padding: 20px;
-    border-radius: 8px;
-    max-width: 400px;
-    width: 90%;
-    position: relative;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+
+.popup-content h2 {
+    text-align: center;
+    color: #1A2B44;
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 18px;
 }
 
-.close-btn {
+.popup-content form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.popup-content label {
+    font-weight: 500;
+    color: #1A2B44;
+    margin-bottom: 6px;
+}
+
+.popup-content select,
+.popup-content textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #D4A017;
+    background: #F8F1E9;
+    font-size: 15px;
+    resize: none;
+    margin-bottom: 8px;
+}
+
+.popup-content textarea {
+    min-height: 70px;
+    max-height: 200px;
+}
+
+.popup-content .submit-btn {
+    background: #D4A017;
+    color: #2D2D2D;
+    border: none;
+    padding: 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 8px;
+    transition: background 0.3s, color 0.3s;
+}
+
+.popup-content .submit-btn:hover {
+    background: #1A2B44;
+    color: #fff;
+}
+
+.popup-content .close-btn {
     position: absolute;
     top: 10px;
     right: 15px;
     font-size: 22px;
     cursor: pointer;
     color: #1A2B44;
+    transition: color 0.2s;
 }
 
-.form-group {
-    margin-bottom: 15px;
+.popup-content .close-btn:hover {
+    color: #D4A017;
 }
 
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    color: #1A2B44;
+@media (max-width: 500px) {
+    .popup-content {
+        padding: 16px 6vw 16px 6vw;
+        max-width: 98vw;
+    }
+    .popup-content h2 {
+        font-size: 18px;
+    }
+    .popup-content .submit-btn {
+        font-size: 15px;
+        padding: 10px;
+    }
 }
 
-.form-group select,
-.form-group textarea {
+/* Adjusted CSS for toggle-password to position it inside the input field */
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-input-wrapper input {
+    flex: 1;
+    padding-right: 40px; /* Space for the toggle icon */
+}
+
+.password-input-wrapper .toggle-password {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%); /* Center vertically */
+    cursor: pointer;
+    color: #D4A017; /* Gold color */
+    font-size: 18px;
+    transition: color 0.3s;
+}
+
+.password-input-wrapper .toggle-password:hover {
+    color: #1A2B44; /* Dark blue on hover */
+}
+
+.user-reviews-list {
+    margin-top: 18px;
+    background: none;
+}
+.user-reviews-list table {
+    margin-right: 700px;
     width: 100%;
-    padding: 8px;
-    border: 1px solid #D4A017;
-    border-radius: 4px;
-    background: #F8F1E9;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    border-collapse: separate;
+    border-spacing: 0;
+    box-shadow: 0 2px 12px rgba(212,160,23,0.08);
+    font-size: 15px;
+    margin-bottom: 0;
+}
+.user-reviews-list th, .user-reviews-list td {
+    padding: 13px 10px;
+    text-align: center;
+    border-bottom: 1px solid #f5c084;
+    color: #2D2D2D;
+}
+.user-reviews-list th {
+    background: #f5c084;
+    color: #1A2B44;
+    font-weight: 600;
+    font-size: 16px;
+    text-transform: uppercase;
+    border-bottom: 2px solid #D4A017;
+}
+.user-reviews-list td {
+    background: #fff;
+    font-size: 15px;
+    vertical-align: middle;
+}
+.user-reviews-list tr:last-child td {
+    border-bottom: none;
+}
+.user-reviews-list tbody tr:hover {
+    background: #fffbe7;
+    transition: background 0.2s;
 }
 
-.submit-btn {
-    background: #D4A017;
-    color: #2D2D2D;
+@media (max-width: 700px) {
+    .user-reviews-list table, .user-reviews-list thead, .user-reviews-list tbody, .user-reviews-list th, .user-reviews-list td, .user-reviews-list tr {
+        display: block;
+        width: 100%;
+    }
+    .user-reviews-list thead {
+        display: none;
+    }
+    .user-reviews-list td {
+        text-align: left;
+        padding: 10px 8px;
+        border-bottom: 1px solid #f5c084;
+        position: relative;
+    }
+    .user-reviews-list td:before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #1A2B44;
+        display: block;
+        margin-bottom: 4px;
+        font-size: 13px;
+    }
+}
+
+/* Nút Sửa đánh giá */
+.edit-review-btn {
+    background: #1A73E8;
+    color: #fff;
     border: none;
-    padding: 10px;
+    padding: 7px 14px;
     border-radius: 4px;
     cursor: pointer;
-    width: 100%;
-    transition: background-color 0.3s, color 0.3s;
+    font-size: 14px;
+    margin-right: 6px;
+    transition: background 0.2s, color 0.2s;
+}
+.edit-review-btn:hover {
+    background: #0c47a1;
+    color: #fff;
 }
 
-.submit-btn:hover {
-    background: #1A2B44;
-    color: #F8F1E9;
+/* Nút Xóa đánh giá */
+.delete-review-btn {
+    background: #d9534f;
+    color: #fff;
+    border: none;
+    padding: 7px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s, color 0.2s;
+}
+.delete-review-btn:hover {
+    background: #a71d2a;
+    color: #fff;
 }

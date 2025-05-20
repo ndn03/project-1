@@ -75,7 +75,7 @@ nav ul .dropdown {
     position: absolute;
     top: 100%;
     left: 0;
-    background-color: #2D2D2D; /* Xám than thay cho #333 */
+    background-color: #c4dfe7;
     padding: 10px;
     z-index: 100;
     min-width: 150px;
@@ -97,7 +97,7 @@ nav ul .dropdown li:hover > .dropdown {
 }
 
 nav ul .dropdown li a {
-    color: #D4A017; /* Vàng kim loại thay cho #FFD700 */
+    color: #1A2B44; /* Vàng kim loại thay cho #FFD700 */
     font-size: 14px;
     padding: 8px 12px;
     display: block;
@@ -542,23 +542,23 @@ footer .container {
     color: #F8F1E9; /* Trắng ngà thay cho #fff */
 }
 
+
 .tabs {
+     color: #1b1919;
     display: flex;
-    margin-bottom: 25px;
-    border-bottom: 1px solid #E5E5E5; /* Xám nhạt thay cho #ddd */
+    justify-content: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ddd;
 }
 
 .tab-btn {
-    padding: 12px 25px;
+    padding: 10px 20px;
     border: none;
     background: none;
-    font-size: 17px;
+    font-size: 16px;
     cursor: pointer;
-    color: #D4A017; /* Vàng kim loại thay cho #FFD700 */
-}
-
-.tab-btn.active {
-    color: #F8F1E9; /* Trắng ngà thay cho #FFA500 */
+     color: #1b1919;
+    transition: color 0.3s ease;
 }
 
 .tab-btn.active::after {
@@ -586,8 +586,8 @@ footer .container {
 .form-group label {
     display: block;
     margin-bottom: 5px;
-    font-size: 14px;
-    color: #D4A017; /* Vàng kim loại thay cho #FFD700 */
+    font-size: 20px;
+    color: #1b1919; /* Vàng kim loại thay cho #FFD700 */
 }
 
 .form-group input {
@@ -899,8 +899,7 @@ li {
 }
 
 li:hover {
-    background-color: #2D2D2D; /* Xám than */
-    color: #D4A017; /* Vàng kim loại */
+    color: #177fd4; /* Vàng kim loại */
 }
 
 .search-result-wrapper {

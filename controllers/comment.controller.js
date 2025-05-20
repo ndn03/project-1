@@ -52,6 +52,56 @@ const commentController = {
             console.error('[CommentController] Lỗi khi cập nhật trạng thái đánh giá:', error);
             res.status(500).json({ error: 'Không thể cập nhật trạng thái đánh giá' });
         }
+    },
+
+    // Lấy tất cả đánh giá của user hiện tại
+    async getUserComments(req, res) {
+        try {
+            const userId = req.user.user_id;
+            const comments = await commentService.getCommentsByUserId(userId);
+            res.json(comments);
+        } catch (error) {
+            console.error('[CommentController] Lỗi khi lấy đánh giá của user:', error);
+            res.status(500).json({ error: 'Không thể lấy đánh giá của bạn' });
+        }
+    },
+
+    // Cho phép user sửa đánh giá của chính mình
+    async updateUserComment(req, res) {
+        try {
+            const userId = req.user.user_id;
+            const { id } = req.params;
+            const { rating, comment } = req.body;
+            if (!rating || !comment) {
+                return res.status(400).json({ error: 'Thiếu thông tin đánh giá' });
+            }
+            const success = await commentService.updateUserComment(userId, id, rating, comment);
+            if (success) {
+                res.json({ message: 'Cập nhật đánh giá thành công' });
+            } else {
+                res.status(404).json({ error: 'Không tìm thấy hoặc không có quyền sửa đánh giá này' });
+            }
+        } catch (error) {
+            console.error('[CommentController] Lỗi khi cập nhật đánh giá:', error);
+            res.status(500).json({ error: 'Không thể cập nhật đánh giá' });
+        }
+    },
+
+    // Cho phép user xóa đánh giá của chính mình
+    async deleteUserComment(req, res) {
+        try {
+            const userId = req.user.user_id;
+            const { id } = req.params;
+            const success = await commentService.deleteUserComment(userId, id);
+            if (success) {
+                res.json({ message: 'Xóa đánh giá thành công' });
+            } else {
+                res.status(404).json({ error: 'Không tìm thấy hoặc không có quyền xóa đánh giá này' });
+            }
+        } catch (error) {
+            console.error('[CommentController] Lỗi khi xóa đánh giá:', error);
+            res.status(500).json({ error: 'Không thể xóa đánh giá' });
+        }
     }
 };
 

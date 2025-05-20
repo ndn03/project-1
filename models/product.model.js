@@ -80,6 +80,8 @@ const ProductModel = {
             GROUP BY p.product_id;
         `;
         const [rows] = await db.query(query, [productId]);
+        console.log('Fetching product details for ID:', productId); // Debug log
+        console.log('Query result:', rows); // Debug log
         if (rows.length) {
             const product = rows[0];
             product.images = product.images ? product.images.split(",") : [];

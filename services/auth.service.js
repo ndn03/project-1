@@ -2,6 +2,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const UserModel = require("../models/auth.model");
 require("dotenv").config();
+const transporter = require("../config/mailer");
 
 const authService = {
     // Đăng ký người dùng mới
@@ -98,11 +99,7 @@ const authService = {
             throw new Error("Mật khẩu cũ không chính xác!");
         }
 
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
-        await UserModel.pool.execute("UPDATE users SET password = ? WHERE user_id = ?", [
-            hashedPassword,
-            userId,
-        ]);
+        await UserModel.updatePassword(userId, newPassword);
 
         return { message: "Mật khẩu đã được thay đổi thành công!" };
     },
@@ -119,57 +116,54 @@ const authService = {
     
     async forgotPassword(email) {
         if (!email) {
-          throw new Error("Vui lòng nhập email");
+            throw new Error("Vui lòng nhập email");
         }
-    
+
         const user = await UserModel.findByEmail(email);
         if (!user) {
-          throw new Error("Email không tồn tại hoặc tài khoản đã bị vô hiệu hóa!");
+            throw new Error("Email không tồn tại hoặc tài khoản đã bị vô hiệu hóa!");
         }
-    
-        const resetToken = jwt.sign(
-          { user_id: user.user_id },
-          process.env.JWT_SECRET,
-          { expiresIn: "1h" }
-        );
-    
-        await UserModel.saveResetToken(user.user_id, resetToken);
-    
-        const resetUrl = `${process.env.BASE_URL}/auth/reset-password?token=${resetToken}`;
+
+        // Sinh mật khẩu mới ngẫu nhiên (8 ký tự)
+        const newPassword = Math.random().toString(36).slice(-8);
+
+        // Cập nhật mật khẩu mới vào DB
+        await UserModel.updatePassword(user.user_id, newPassword);
+
+        // Gửi email mật khẩu mới
         const mailOptions = {
-          from: process.env.EMAIL_USER,
-          to: email,
-          subject: "Đặt lại mật khẩu - WatchShopPro",
-          html: `
-            <h2>Đặt lại mật khẩu</h2>
-            <p>Nhấn vào liên kết dưới đây để đặt lại mật khẩu của bạn:</p>
-            <a href="${resetUrl}">${resetUrl}</a>
-            <p>Liên kết này sẽ hết hạn sau 1 giờ.</p>
-          `
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: "Mật khẩu mới - WatchShopPro",
+            html: `
+                <h2>Mật khẩu mới của bạn</h2>
+                <p>Mật khẩu mới: <b>${newPassword}</b></p>
+                <p>Vui lòng đăng nhập và đổi lại mật khẩu sau khi đăng nhập.</p>
+            `
         };
-    
+
         await transporter.sendMail(mailOptions);
-        return { message: "Vui lòng kiểm tra email để đặt lại mật khẩu" };
-      },
-    
-      async resetPassword(token, newPassword) {
+        return { message: "Mật khẩu mới đã được gửi tới email của bạn." };
+    },
+
+    async resetPassword(token, newPassword) {
         if (!token || !newPassword) {
-          throw new Error("Token hoặc mật khẩu mới không được để trống");
+            throw new Error("Token hoặc mật khẩu mới không được để trống");
         }
-    
+
         const user = await UserModel.findByResetToken(token);
         if (!user) {
-          throw new Error("Token không hợp lệ hoặc đã hết hạn!");
+            throw new Error("Token không hợp lệ hoặc đã hết hạn!");
         }
-    
+
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         if (decoded.user_id !== user.user_id) {
-          throw new Error("Token không hợp lệ!");
+            throw new Error("Token không hợp lệ!");
         }
-    
+
         await UserModel.updatePassword(user.user_id, newPassword);
         return { message: "Mật khẩu đã được đặt lại thành công!" };
-      }
-    };
+    }
+};
 
 module.exports = authService;

@@ -55,8 +55,8 @@ const getProductById = async (req, res) => {
 
 const createProduct = async (req, res) => {
     try {
-        console.log('Creating product, req.body:', req.body); // Thêm log
-        console.log('Uploaded files:', req.files); // Thêm log
+        console.log('Creating product, req.body:', req.body);
+        console.log('Uploaded files:', req.files);
 
         const mainImageFile = req.files && req.files['main_image'] && req.files['main_image'][0];
         const image_url = mainImageFile ? '/img/' + mainImageFile.filename : '';

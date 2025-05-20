@@ -26,9 +26,9 @@ document.querySelectorAll('.menu-item').forEach(item => {
 });
 
 // Handle password change form submission
-document.getElementById('password-form').addEventListener('submit', function(e) {
+document.getElementById('password-form').addEventListener('submit', async function(e) {
     e.preventDefault();
-    
+
     const currentPassword = document.getElementById('current-password').value;
     const newPassword = document.getElementById('new-password').value;
     const confirmPassword = document.getElementById('confirm-password').value;
@@ -38,9 +38,35 @@ document.getElementById('password-form').addEventListener('submit', function(e) 
         return;
     }
 
-    // Here you would typically make an API call to change the password
-    alert('Đổi mật khẩu thành công!');
-    this.reset();
+    try {
+        const res = await fetch('/auth/changePassword', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+                oldPassword: currentPassword,
+                newPassword: newPassword
+            })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            // Hiển thị xác nhận đăng xuất
+            if (confirm('Đổi mật khẩu thành công!\nBạn có muốn đăng xuất ngay không?')) {
+                await fetch('/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                window.location.href = 'http://localhost:3333/';
+            } else {
+                alert('Bạn đã đổi mật khẩu thành công!');
+                this.reset();
+            }
+        } else {
+            alert(data.message || 'Đổi mật khẩu thất bại!');
+        }
+    } catch (err) {
+        alert('Lỗi kết nối server!');
+    }
 });
 
 // Fetch and render user's orders
@@ -109,9 +135,7 @@ async function loadUserOrders() {
                                     <td>${Number(item.price || 0).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</td>
                                     <td>${Number((item.quantity || 0) * (item.price || 0)).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</td>
                                     <td>
-                                        ${item.canReview && order.status === 'Hoàn thành' ?
-                                            `<button class="review-btn" data-order-id="${order.order_id}" data-product-id="${item.product_id}">Đánh giá</button>` :
-                                            'Đã đánh giá hoặc không thể đánh giá'}
+                                        <button class="review-btn" data-order-id="${order.order_id}" data-product-id="${item.product_id}">Đánh giá</button>
                                     </td>
                                 </tr>
                             `).join('')}
@@ -140,6 +164,12 @@ async function loadUserOrders() {
             const handler = () => {
                 const orderId = button.getAttribute('data-order-id');
                 const productId = button.getAttribute('data-product-id');
+                // Tìm order trong ordersData
+                const order = ordersData.find(o => String(o.order_id) === String(orderId));
+                if (order && order.status !== 'Hoàn thành') {
+                    alert('Bạn chỉ có thể đánh giá sản phẩm khi đơn hàng đã hoàn thành!');
+                    return;
+                }
                 document.getElementById('review-order-id').value = orderId;
                 document.getElementById('review-product-id').value = productId;
                 document.getElementById('review-popup').style.display = 'block';
@@ -205,7 +235,173 @@ if (reviewForm) {
     });
 }
 
+// JavaScript for toggle password visibility
+document.querySelectorAll('.toggle-password').forEach(toggle => {
+    toggle.addEventListener('click', function() {
+        const targetId = this.getAttribute('data-target');
+        const input = document.getElementById(targetId);
+        if (input.type === 'password') {
+            input.type = 'text';
+            this.innerHTML = '<i class="fa fa-eye-slash"></i>';
+        } else {
+            input.type = 'password';
+            this.innerHTML = '<i class="fa fa-eye"></i>';
+        }
+    });
+});
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     loadUserOrders();
+});
+
+// ========== ĐÁNH GIÁ CỦA TÔI ========== //
+async function loadUserReviews() {
+    const tbody = document.getElementById('user-reviews-body');
+    tbody.innerHTML = '<tr><td colspan="6">Đang tải...</td></tr>';
+    try {
+        const res = await fetch('/user/reviews', { credentials: 'include' });
+        if (!res.ok) throw new Error('Không thể lấy danh sách đánh giá');
+        const reviews = await res.json();
+        if (!reviews || reviews.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6">Bạn chưa có đánh giá nào.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = '';
+        reviews.forEach(r => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${r.product_name}</td>
+                <td>${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</td>
+                <td>${r.content}</td>
+                <td>${new Date(r.created_at).toLocaleDateString('vi-VN')}</td>
+                <td>${r.isActive ? 'Hiển thị' : 'Đã ẩn'}</td>
+                <td>
+                    <button class="edit-review-btn" data-id="${r.comment_id}" data-rating="${r.rating}" data-content="${encodeURIComponent(r.content)}">Sửa</button>
+                    <button class="delete-review-btn" data-id="${r.comment_id}">Xóa</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+        // Gán sự kiện cho nút sửa
+        document.querySelectorAll('.edit-review-btn').forEach(btn => {
+            btn.onclick = function() {
+                document.getElementById('edit-review-id').value = btn.dataset.id;
+                document.getElementById('edit-review-rating').value = btn.dataset.rating;
+                document.getElementById('edit-review-comment').value = decodeURIComponent(btn.dataset.content);
+                document.getElementById('edit-review-popup').style.display = 'block';
+            };
+        });
+        // Gán sự kiện cho nút xóa
+        document.querySelectorAll('.delete-review-btn').forEach(btn => {
+            btn.onclick = function() {
+                const reviewId = btn.dataset.id;
+                document.getElementById('delete-review-popup').style.display = 'block';
+                document.getElementById('confirm-delete-review').onclick = async function() {
+                    try {
+                        const res = await fetch(`/user/reviews/${reviewId}`, {
+                            method: 'DELETE',
+                            credentials: 'include'
+                        });
+                        if (res.ok) {
+                            alert('Xóa đánh giá thành công!');
+                            closeDeleteReviewPopup();
+                            loadUserReviews();
+                        } else {
+                            const data = await res.json();
+                            alert(data.error || 'Xóa đánh giá thất bại!');
+                        }
+                    } catch (err) {
+                        alert('Lỗi kết nối server!');
+                    }
+                };
+                document.getElementById('cancel-delete-review').onclick = closeDeleteReviewPopup;
+            };
+        });
+        // Gán sự kiện cho nút bỏ ẩn
+        document.querySelectorAll('.unhide-review-btn').forEach(btn => {
+            btn.onclick = async function() {
+                const reviewId = btn.dataset.id;
+                try {
+                    const res = await fetch(`/api/comments/${reviewId}/hide`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ isActive: 1 })
+                    });
+                    if (res.ok) {
+                        alert('Đánh giá đã được hiển thị lại!');
+                        loadUserReviews();
+                    } else {
+                        const data = await res.json();
+                        alert(data.error || 'Không thể hiển thị lại đánh giá!');
+                    }
+                } catch (err) {
+                    alert('Lỗi kết nối server!');
+                }
+            };
+        });
+    } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6">${err.message}</td></tr>`;
+    }
+}
+
+// Đóng popup xác nhận xóa đánh giá
+function closeDeleteReviewPopup() {
+    document.getElementById('delete-review-popup').style.display = 'none';
+}
+document.getElementById('close-delete-review-popup').onclick = closeDeleteReviewPopup;
+document.getElementById('cancel-delete-review').onclick = closeDeleteReviewPopup;
+
+// Đóng popup sửa đánh giá
+function closeEditReviewPopup() {
+    document.getElementById('edit-review-popup').style.display = 'none';
+    document.getElementById('edit-review-form').reset();
+}
+document.getElementById('close-edit-review-popup').onclick = closeEditReviewPopup;
+window.addEventListener('click', function(e) {
+    if (e.target === document.getElementById('edit-review-popup')) closeEditReviewPopup();
+});
+
+// Xử lý submit sửa đánh giá
+const editReviewForm = document.getElementById('edit-review-form');
+if (editReviewForm) {
+    editReviewForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const id = document.getElementById('edit-review-id').value;
+        const rating = document.getElementById('edit-review-rating').value;
+        const comment = document.getElementById('edit-review-comment').value.trim();
+        if (!rating || !comment) {
+            alert('Vui lòng nhập đủ thông tin!');
+            return;
+        }
+        try {
+            const res = await fetch(`/user/reviews/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ rating, comment })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                alert('Cập nhật đánh giá thành công!');
+                closeEditReviewPopup();
+                loadUserReviews();
+            } else {
+                alert(data.error || 'Cập nhật đánh giá thất bại!');
+            }
+        } catch (err) {
+            alert('Lỗi kết nối server!');
+        }
+    });
+}
+
+// Khi chuyển sang tab "Đánh giá của tôi" thì load danh sách đánh giá
+const menuItems = document.querySelectorAll('.menu-item');
+menuItems.forEach(item => {
+    item.addEventListener('click', function() {
+        if (this.getAttribute('href') === '#user-reviews') {
+            loadUserReviews();
+        }
+    });
 });

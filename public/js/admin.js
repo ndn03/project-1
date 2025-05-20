@@ -162,6 +162,10 @@ function updateOverview(overview) {
     if (overview.categories && overview.brands && overview.paymentMethods) {
         renderListInfo(overview.categories, overview.brands, overview.paymentMethods);
     }
+
+    if (overview && overview.revenueDetails) {
+        renderRevenueDetails(overview.totalRevenue, overview.revenueDetails);
+    }
 }
 
 // Định dạng giá tiền sang VND
@@ -2140,3 +2144,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+function renderRevenueDetails(totalRevenue, revenueDetails) {
+    const modal = document.querySelector('.revenue-details-modal');
+    if (modal) {
+        modal.innerHTML = `
+            <div class="revenue-item"><span>Tổng doanh thu:</span> <span id="modal-total-revenue">${formatPrice(totalRevenue)}</span></div>
+            <div class="revenue-item"><span>Hôm nay:</span> <span id="modal-today-revenue">${formatPrice(revenueDetails.today)}</span></div>
+            <div class="revenue-item"><span>Hôm qua:</span> <span id="modal-yesterday-revenue">${formatPrice(revenueDetails.yesterday)}</span></div>
+            <div class="revenue-item"><span>7 ngày qua:</span> <span id="modal-week-revenue">${formatPrice(revenueDetails.week)}</span></div>
+            <div class="revenue-item"><span>30 ngày qua:</span> <span id="modal-month-revenue">${formatPrice(revenueDetails.month)}</span></div>
+        `;
+    }
+}

@@ -22,18 +22,20 @@ body {
 }
 
 header {
-    background-color: #2D2D2D;
+    background-color: #f5c084; /* Trắng ngà thay cho #ffffff */
+    color: #2D2D2D; /* Xám than thay cho #333 */
     padding: 20px 0;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Thêm bóng nhẹ */
 }
 
 .logo {
-    color: #D4A017;
-    font-size: 26px;
-    font-weight: 700;
+    color:#2D2D2D; /* Vàng kim loại thay cho #FFD700 */
+    font-size: 26px; /* Tăng nhẹ kích thước */
+    font-weight: 700; /* Đậm hơn */
     text-transform: uppercase;
     display: inline-block;
 }
+
 
 nav {
     float: right;
@@ -53,14 +55,18 @@ nav ul li {
 }
 
 nav ul li a {
-    color: #D4A017;
+    color: #1A2B44; /* Xanh navy thay cho #007BFF */
     text-decoration: none;
     font-weight: 600;
     font-size: 16px;
     padding: 10px 15px;
     display: block;
     white-space: nowrap;
-    transition: color 0.3s ease;
+    transition: color 0.3s ease; /* Mượt mà hơn */
+}
+
+nav ul li a:hover {
+    color: #D4A017; /* Vàng kim loại thay cho #0056b3 */
 }
 
 nav ul li:hover > .dropdown {
@@ -72,11 +78,11 @@ nav ul .dropdown {
     position: absolute;
     top: 100%;
     left: 0;
-    background-color: #2D2D2D;
+    background-color: #85cee4;
     padding: 10px;
     z-index: 100;
     min-width: 150px;
-    border-radius: 4px;
+    border-radius: 4px; /* Bo góc nhẹ */
 }
 
 nav ul .dropdown li {
@@ -94,7 +100,7 @@ nav ul .dropdown li:hover > .dropdown {
 }
 
 nav ul .dropdown li a {
-    color: #D4A017;
+    color: #1A2B44; /* Vàng kim loại thay cho #FFD700 */
     font-size: 14px;
     padding: 8px 12px;
     display: block;
@@ -102,11 +108,7 @@ nav ul .dropdown li a {
 }
 
 nav ul .dropdown li a:hover {
-    color: #F8F1E9;
-}
-
-.hero {
-    background-color: #2D2D2D;
+    color: #F8F1E9; /* Trắng ngà thay cho #FFA500 */
 }
 
 /* Cart Table Styles */
@@ -167,15 +169,35 @@ nav ul .dropdown li a:hover {
     border: 1px solid #E5E5E5;
     border-radius: 4px;
     font-size: 14px;
-    background-color: #2D2D2D;
-    color: #F8F1E9;
+    background-color: #b4cc98;
+    color: #000000;
 }
 
 #totalPriceContainer {
     text-align: right;
-    margin-top: 20px;
-    font-size: 1.2em;
+    margin-top: 24px;
+    background: #fffbe7;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(212, 160, 23, 0.08);
+    padding: 18px 32px 12px 32px;
+    font-size: 1.18em;
+    color: #1A2B44;
+    max-width: 420px;
+    margin-left: auto;
+    margin-right: 0;
+}
+
+#totalPriceContainer p {
+    margin: 0 0 8px 0;
+    font-size: 1.08em;
+    color: #1A2B44;
+}
+
+#totalPriceContainer p:last-child {
+    margin-bottom: 0;
+    font-size: 1.18em;
     color: #D4A017;
+    font-weight: bold;
 }
 
 .delete-btn, .buy-now-btn {
@@ -194,14 +216,12 @@ nav ul .dropdown li a:hover {
 }
 
 footer {
-    background-color: #E5E5E5;
-    color: #D4A017;
+    margin-top: 50px;
+    background-color: #E5E5E5; /* Xám nhạt thay cho #f8f9fa */
+    color: #2D2D2D; /* Xám than thay cho #333 */
     padding: 20px 0;
-    text-align: center;
-    margin-top: auto;
-    width: 100%;
-    border-top: 1px solid #D4A017;
 }
+
 
 footer .container {
     width: 90%;
@@ -224,7 +244,7 @@ footer .container {
 .footer-section h6 {
     margin-bottom: 10px;
     font-size: 18px;
-    border-bottom: 2px solid #1A2B44;
+    border-bottom: 2px solid #1A2B44; /* Xanh navy thay cho #00c8ff */
     padding-bottom: 5px;
 }
 
@@ -238,13 +258,13 @@ footer .container {
 }
 
 .footer-section a {
-    color: #D4A017;
+    color: #1A2B44; /* Xanh navy thay cho #007BFF */
     text-decoration: none;
 }
 
 .footer-section a:hover {
     text-decoration: underline;
-    color: #F8F1E9;
+    color: #D4A017; /* Vàng kim loại thay cho #0056b3 */
 }
 
 .footer-bottom {
@@ -255,7 +275,6 @@ footer .container {
 .footer-bottom p {
     margin: 0;
     font-size: 14px;
-    color: #F8F1E9;
 }
 
 #cart-container {
@@ -328,7 +347,7 @@ footer .container {
     border: 1px solid #E5E5E5;
     border-radius: 4px;
     padding: 5px;
-    background-color: #2D2D2D;
+    background-color: #5b9ae2;
     color: #F8F1E9;
 }
 
@@ -374,6 +393,24 @@ footer .container {
     .cart-actions .btn {
         font-size: 14px;
         padding: 8px 15px;
+    }
+
+    nav ul {
+        flex-direction: column;
+    }
+    nav ul li {
+        display: block;
+        margin-left: 0;
+    }
+    nav ul .dropdown {
+        position: static;
+        min-width: 100%;
+        box-shadow: none;
+        border-radius: 0;
+        padding: 0;
+    }
+    nav ul .dropdown li a {
+        padding: 12px 16px;
     }
 }
 
@@ -425,7 +462,7 @@ footer .container {
     border-radius: 4px;
     font-size: 12px;
     flex: 1;
-    background-color: #2D2D2D;
+    background-color: #9dd8e7;
     color: #F8F1E9;
 }
 
@@ -623,46 +660,14 @@ footer .container {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 400px; /* Tăng chiều cao để form rộng hơn */
-    border: 2px dashed #ccc; /* Viền để làm nổi bật */
-    border-radius: 10px;
-    background-color: #f9f9f9; /* Màu nền nhẹ nhàng */
-    margin: 20px auto;
-    max-width: 600px; /* Cố định chiều rộng */
-    text-align: center;
-}
-
-.empty-cart-visual img {
-    width: 150px; /* Kích thước hình ảnh */
-    margin-bottom: 20px;
-}
-
-.empty-cart-content h2 {
-    font-size: 24px;
-    color: #333;
-    margin-bottom: 10px;
-}
-
-.empty-cart-content p {
-    font-size: 16px;
-    color: #666;
-    margin-bottom: 20px;
-}
-
-.empty-cart-content .btn {
-    display: inline-block;
-    padding: 10px 20px;
-    font-size: 16px;
-    color: #fff;
-    background-color: #007bff;
-    border: none;
-    border-radius: 5px;
-    text-decoration: none;
-    transition: background-color 0.3s;
-}
-
-.empty-cart-content .btn:hover {
-    background-color: #0056b3;
+    min-height: 400px;
+    background: linear-gradient(135deg, #fffbe7 60%, #f8f1e9 100%);
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(212, 160, 23, 0.10);
+    padding: 48px 24px;
+    margin: 40px auto;
+    max-width: 480px;
+    animation: fadeIn 0.7s;
 }
 
 @keyframes fadeIn {
@@ -728,34 +733,9 @@ footer .container {
     .empty-cart-content h2 {
         font-size: 1.3rem;
     }
+    #totalPriceContainer {
+        padding: 12px 8px 8px 8px;
+        font-size: 1em;
+        max-width: 98vw;
+    }
 }
-.spinner {
-        text-align: center;
-        padding: 20px;
-        font-size: 1.2rem;
-        color: #D4A017;
-    }
-    .toast {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 10px 20px;
-        border-radius: 5px;
-        color: #fff;
-        z-index: 1000;
-        animation: slideIn 0.3s, slideOut 0.3s 2.7s forwards;
-    }
-    .toast.success {
-        background: #28a745;
-    }
-    .toast.error {
-        background: #dc3545;
-    }
-    @keyframes slideIn {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-    @keyframes slideOut {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
-    }

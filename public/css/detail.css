@@ -1,21 +1,24 @@
 body {
     font-family: 'Poppins', sans-serif;
-    background-color: #1A1A1A; /* Darker background for a more luxurious feel */
-    color: #FFFFFF; /* White text for better contrast */
+    background-color: #f8f4e3; /* Changed to ivory color for a softer look */
+    color:  #f8f4e3;  /* Darker text for better readability */
     margin: 0;
     padding: 0;
 }
 
 
+
 header {
-    background-color: #333333; /* Darker header for better contrast */
-    color: #FFFFFF; /* White text for better readability */
+    background-color: #f5c084; /* Trắng ngà thay cho #ffffff */
+    color: #2D2D2D; /* Xám than thay cho #333 */
     padding: 20px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Thêm bóng nhẹ */
 }
 
+
 .logo {
-    color: #FFD700; /* Gold color for the logo */
-    font-size: 24px;
+    color:  #2D2D2D;  /* Blue color for the logo */
+    font-size: 28px;
     font-weight: 600;
     text-transform: uppercase;
     display: inline-block;
@@ -38,10 +41,9 @@ nav ul li {
 }
 
 nav ul li a {
-    color: #FFD700; /* Gold color for navigation links */
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 16px;
+    color:  #2D2D2D; /* Blue color for navigation links */
+    font-weight: 500;
+    font-size: 20px;
     padding: 10px 15px;
     display: block;
     white-space: nowrap;
@@ -102,15 +104,17 @@ nav ul .dropdown li a:hover {
     transition: background 0.3s ease;
 }
 .product-detail {
-    padding: 60px 0;
-    background-color: #2E2E2E; /* Slightly lighter gray for contrast with the header */
+    padding: 40px 0;
+    background-color: #fff; /* White background for product detail section */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    margin: 20px auto;
+    max-width: 1200px;
 }
 .product-detail-content {
     display: flex;
+    gap: 20px;
     flex-wrap: wrap;
-    gap: 30px;
-    align-items: flex-start; /* Align items to the top */
-    justify-content: center;
 }
 
 .product-image-section, .product-info-section {
@@ -123,31 +127,26 @@ nav ul .dropdown li a:hover {
 }
 
 .product-image img {
-    width: 70%;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add shadow for better visual */
+    width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .product-info-section {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between; /* Distribute space evenly */
-    height: 100%; /* Make it the same height as the image section */
+    flex: 1;
+    padding: 20px;
+    background-color: #ffffff; /* Changed to white for a clean look */
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    color: #eee3e3; /* Darker text for better readability */
 }
 
 .product-info {
     text-align: left; /* Align text to the left */
     padding: 20px;
-    background-color: #2C2C2C; /* Slightly lighter background for contrast */
+    background-color: #ffffff; /* Slightly lighter background for contrast */
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add shadow for better visual */
-}
-
-.product-info h2 {
-    font-size: 2rem;
-    margin-bottom: 20px;
-    color: #FFD700; /* Gold color for section title */
-    text-align: center; /* Center align the title */
 }
 
 .product-info ul {
@@ -160,53 +159,54 @@ nav ul .dropdown li a:hover {
 }
 
 .product-info ul li {
-    background-color: #2C2C2C; /* Slightly lighter background for list items */
+    background-color:  #ffffff; /* Slightly lighter background for list items */
     padding: 10px 15px;
     border-radius: 8px; /* Add rounded corners */
-    color: #FFFFFF; /* White text for better contrast */
+    color: #030303; /* White text for better contrast */
     font-size: 1rem;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Add subtle shadow */
     transition: background-color 0.3s ease;
 }
 
 .product-info ul li:hover {
-    background-color: #FFD700; /* Gold background on hover */
-    color: #1A1A1A; /* Dark text on hover */
+    background-color: #3fbde4; /* Gold background on hover */
+    color:  #ffffff; /* Dark text on hover */
 }
 
 .product-info h2 {
     font-size: 2.5rem;
     margin-bottom: 20px;
-    color: #FFD700; /* Gold color for product name */
+    color: #ec7632; /* Gold color for product name */
 }
 
 .product-info .original-price {
-    color: #B0B0B0; /* Light gray for original price */
-    text-decoration: line-through;
-    font-size: 1.2em;
+    font-size: 18px;
+    color: #db5d14;
+    margin-bottom: 8px;
 }
 
 .product-info .discount {
-    color: #FFD700; /* Gold color for discount text */
+    color: #e2392d; /* Gold color for discount text */
     font-weight: bold;
     margin: 5px 0;
 }
 
 .product-info .discounted-price {
-    color: #FFFFFF; /* White color for discounted price */
+    color: #e2392d;/* White color for discounted price */
     font-weight: bold;
     font-size: 1.5em;
 }
 
 .product-info .stock {
-    color: #B0B0B0; /* Light gray for stock */
-    margin: 10px 0;
+    font-size: 16px;
+    color: #e2392d;
+    margin-bottom: 16px;
 }
 
 .product-info .description {
-    margin: 20px 0;
-    font-size: 1.1em;
-    color: #B0B0B0; /* Light gray for description */
+    font-size: 14px;
+    color: #666;
+    line-height: 1.6;
 }
 
 .product-info .product-stats {
@@ -228,7 +228,7 @@ nav ul .dropdown li a:hover {
 }
 
 .product-info .product-stats .stars {
-    color: #FFD700; /* Gold color for stars */
+    color: #e2392d;/* Gold color for stars */
     font-size: 1.2em;
 }
 
@@ -243,7 +243,7 @@ nav ul .dropdown li a:hover {
 }
 
 .product-info .cart .submit-btn {
-    background-color: #FFD700; /* Gold color for submit button */
+    background-color: #3fbde4;/* Gold color for submit button */
     color: #1A1A1A; /* Dark text on button */
     padding: 15px 30px;
     border: none;
@@ -254,32 +254,30 @@ nav ul .dropdown li a:hover {
 }
 
 .product-info .cart .submit-btn:hover {
-    background-color: #FFA500; /* Lighter gold on hover */
+    background-color:#3fbde4; /* Lighter gold on hover */
 }
 
 .product-thumbnails {
     display: flex;
-    justify-content: center;
     gap: 10px;
-    margin-top: 20px;
+    margin-top: 16px;
 }
 
 .product-thumbnails img {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-    border-radius: 5px;
+    width: 155px;
+     height: 155px;
+    border-radius: 4px;
     cursor: pointer;
-    transition: transform 0.3s ease;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
 .product-thumbnails img:hover {
-    transform: scale(1.1);
+    border: 2px solid #1976d2;
 }
 
 .product-info-section button {
     padding: 12px 25px;
-    background-color: #FFD700; /* Gold color for button */
+    background-color: #e2392d;/* Gold color for button */
     color: #1A1A1A; /* Dark text for contrast */
     border: none;
     border-radius: 8px; /* Rounded corners for a modern look */
@@ -291,70 +289,62 @@ nav ul .dropdown li a:hover {
 }
 
 .product-info-section button:hover {
-    background-color: #FFA500; /* Lighter gold on hover */
+    background-color: #e0635a; /* Lighter gold on hover */
     color: #FFFFFF; /* White text on hover for better contrast */
     transform: translateY(-3px); /* Slight lift effect on hover */
     box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3); /* Enhanced shadow on hover */
 }
 
 .product-reviews {
-    padding: 40px 0;
-    background-color: #3A3A3A; /* Slightly lighter gray for contrast with the header */
-    color: #FFFFFF; /* White text for better contrast */
-    text-align: center;
+    margin-top: 40px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .product-reviews h3 {
-    font-size: 2rem;
-    color: #FFD700; /* Gold color for headings */
-    margin-bottom: 20px;
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 16px;
+    color: #333;
 }
 
 .reviews-container {
     display: flex;
-    align-items: center;
-    justify-content: center;
+    gap: 20px;
+    overflow-x: auto;
+    padding: 10px 0;
 }
 
 .reviews-list {
     display: flex;
-    overflow: hidden;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    width: 100%; /* Adjust width as needed */
-    max-width: 1200px; /* Adjust max-width as needed */
+    gap: 20px;
 }
 
 .review {
-    min-width: 300px;
-    max-width: 300px;
-    background-color: #1A1A1A; /* Darker background for reviews */
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add shadow for better visual */
-    margin: 0 10px;
-    display: none; /* Hide all reviews initially */
+    background-color: #f9f9f9;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    flex: 0 0 300px;
 }
 
 .review-user {
     font-weight: bold;
-    color: #FFD700; /* Gold color for username */
-}
-
-.review-rating {
-    color: #FFD700; /* Gold color for rating */
-    margin: 5px 0;
+    margin-bottom: 8px;
+    color: #1976d2;
 }
 
 .review-comment {
-    color: #B0B0B0; /* Light gray for comment */
-    margin: 10px 0;
+    font-size: 14px;
+    color: #555;
+    line-height: 1.4;
 }
 
-.review-date {
-    color: #666666; /* Dark gray for date */
-    font-size: 0.9em;
+.review-rating {
+    margin-top: 8px;
+    color: #e9c704; /* Gold color for stars */
 }
 
 .nav-btn {
@@ -374,52 +364,65 @@ nav ul .dropdown li a:hover {
 }
 
 footer {
-    background-color: #333333; /* Darker footer background */
-    padding: 40px 0;
-    color: #FFFFFF; /* White text for footer */
-    text-align: center;
+    background-color: #E5E5E5; /* Xám nhạt thay cho #f8f9fa */
+    color: #2D2D2D; /* Xám than thay cho #333 */
+    padding: 20px 0;
 }
 
-footer .footer-content {
+footer .container {
+    width: 90%;
+    margin: 0 auto;
     display: flex;
-    flex-wrap: wrap;
-    justify-content: space-around;
-    gap: 20px;
+    flex-direction: column;
 }
 
-footer .footer-section {
-    max-width: 300px;
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
 }
 
-footer .footer-section h6 {
-    font-size: 1.2rem;
+.footer-section {
+    flex: 1;
+    margin: 0 10px;
+}
+
+.footer-section h6 {
     margin-bottom: 10px;
-    color: #FFD700; /* Gold color for footer headings */
+    font-size: 18px;
+    border-bottom: 2px solid #1A2B44; /* Xanh navy thay cho #00c8ff */
+    padding-bottom: 5px;
 }
 
-footer .footer-section ul {
-    list-style: none;
+.footer-section ul {
+    list-style-type: none;
     padding: 0;
 }
 
-footer .footer-section ul li {
+.footer-section ul li {
     margin: 5px 0;
 }
 
-footer .footer-section ul li a {
-    color: #FFFFFF; /* White text for footer links */
+.footer-section a {
+    color: #1A2B44; /* Xanh navy thay cho #007BFF */
     text-decoration: none;
 }
 
-footer .footer-section ul li a:hover {
-    color: #FFD700; /* Gold color on hover */
+.footer-section a:hover {
+    text-decoration: underline;
+    color: #D4A017; /* Vàng kim loại thay cho #0056b3 */
 }
 
-footer .footer-bottom {
+.footer-bottom {
+    text-align: center;
     margin-top: 20px;
-    font-size: 0.9rem;
-    color: #B0B0B0; /* Light gray for footer bottom text */
 }
+
+.footer-bottom p {
+    margin: 0;
+    font-size: 14px;
+}
+
 
 .image-popup {
     display: none; /* Hidden by default */
@@ -506,36 +509,50 @@ popup {
     z-index: 1000;
 }
 
+
+.popup {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Tăng độ tối */
+    z-index: 1000;
+    color: #0c0a0a; 
+}
+
 .popup-content {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: #333; /* Darker background for popup */
-    color: #FFD700; /* Gold color for popup text */
+    background-color: #fff; /* Đổi sang màu trắng */
+    color: #0c0a0a; /* Đậm hơn, dễ nhìn hơn */
     padding: 40px;
     border-radius: 12px;
-    width: 400px;
-    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.15);
+    width: 520px;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2); /* Tăng bóng */
 }
 
-.popup-content form {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.popup-content input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #FFD700; /* Gold border for inputs */
-    border-radius: 5px;
+.message {
+    margin-top: 10px;
     font-size: 14px;
+    text-align: center;
 }
 
-.popup-content input:focus {
-    border-color: #FFA500; /* Lighter gold on focus */
-    outline: none;
+.submit-btn:disabled {
+    background-color: #E5E5E5; /* Xám nhạt thay cho #ccc */
+    cursor: not-allowed;
+}
+
+.close-btn {
+    position: absolute;
+    right: 20px;
+    top: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #141413; /* Vàng kim loại thay cho #FFD700 */
 }
 
 .close-btn {
@@ -548,10 +565,11 @@ popup {
 }
 
 .close-btn:hover {
-    color: #fff;
+    color: #1b1919;
 }
 
 .tabs {
+     color: #1b1919;
     display: flex;
     justify-content: center;
     margin-bottom: 20px;
@@ -564,12 +582,12 @@ popup {
     background: none;
     font-size: 16px;
     cursor: pointer;
-    color: #FFD700; /* Gold color for tab buttons */
+     color: #1b1919;
     transition: color 0.3s ease;
 }
 
 .tab-btn.active {
-    color: #FFA500; /* Lighter gold for active tab */
+    color:  #1b1919;
     border-bottom: 2px solid #FFA500; /* Highlight active tab */
 }
 
