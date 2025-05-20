@@ -196,10 +196,6 @@
                 <!-- Danh sách sản phẩm -->
                 <div class="product-list-container">
                     <div class="search-filter">
-                        <div class="search-box">
-                            <input type="text" id="search-product" placeholder="Tìm kiếm sản phẩm...">
-                            <i class="fas fa-search"></i>
-                        </div>
                         <div class="filter-box">
                             <select id="filter-brand">
                                 <option value="">Tất cả thương hiệu</option>
@@ -304,7 +300,59 @@
         </section>
 
         <!-- Section Tài khoản -->
-        <section id="user" class="content-section" style="display: none;">
+        <section id="user" class="content-section">
+            <!-- Nút thêm tài khoản -->
+            <div class="action-buttons" style="margin-bottom: 12px;">
+                <button id="add-user-btn" class="btn-primary">
+                    <i class="fas fa-plus"></i> Thêm tài khoản
+                </button>
+            </div>
+            <!-- Modal thêm tài khoản -->
+            <div id="add-user-modal" class="form-container" style="display:none;">
+                <div class="form-content" style="max-width:400px;">
+                    <div class="form-header">
+                        <h3>Thêm tài khoản mới</h3>
+                        <button type="button" class="close-form" onclick="hideAddUserModal()"><i class="fas fa-times"></i></button>
+                    </div>
+                    <form id="add-user-form">
+                        <div class="form-group">
+                            <label for="add-username">Tên đăng nhập:</label>
+                            <input type="text" id="add-username" name="username" required maxlength="50">
+                        </div>
+                        <div class="form-group">
+                            <label for="add-fullname">Họ tên:</label>
+                            <input type="text" id="add-fullname" name="full_name">
+                        </div>
+                        <div class="form-group">
+                            <label for="add-email">Email:</label>
+                            <input type="email" id="add-email" name="email" required maxlength="100">
+                        </div>
+                        <div class="form-group">
+                            <label for="add-password">Mật khẩu:</label>
+                            <input type="password" id="add-password" name="password" required minlength="6">
+                        </div>
+                        <div class="form-group">
+                            <label for="add-role">Vai trò:</label>
+                            <select id="add-role" name="role" required>
+                                <option value="customer">Khách hàng</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="add-status">Trạng thái:</label>
+                            <select id="add-status" name="isActive" required>
+                                <option value="1">Hoạt động</option>
+                                <option value="0">Khoá</option>
+                            </select>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary">Thêm</button>
+                            <button type="button" class="btn-secondary" onclick="hideAddUserModal()">Hủy</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <div class="user-management">
                 <div class="user-filter-bar" id="user-filter-bar" style="display:flex;gap:12px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
                     <input type="text" id="filter-username" placeholder="Tìm theo username" style="padding:5px 10px; border-radius:5px; border:1px solid #bbb; margin-right:8px;">
@@ -408,12 +456,6 @@
             <h2>Quản Lý Đánh Giá</h2>
             <div class="comment-management">
                 <div class="comment-filter-bar" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
-                    <label>STT:
-                        <input type="text" id="filter-comment-id" style="width:80px;">
-                    </label>
-                    <label>Ngày đánh giá:
-                        <input type="date" id="filter-comment-date">
-                    </label>
                     <label>Đánh giá:
                         <select id="filter-comment-rating">
                             <option value="">Tất cả</option>
@@ -431,7 +473,13 @@
                             <option value="0">Ẩn</option>
                         </select>
                     </label>
-                    <button class="btn-primary" id="filter-comment-btn" style="padding:6px 18px;">Lọc</button>
+                    <label>Sắp xếp:
+                        <select id="filter-comment-sort">
+                            <option value="">--</option>
+                            <option value="end_date_asc">Gần nhất</option>
+                            <option value="end_date_desc">Xa nhất</option>
+                        </select>
+                    </label>
                 </div>
                 <table class="comment-table">
                     <thead>

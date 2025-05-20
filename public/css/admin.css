@@ -1009,16 +1009,6 @@ header h1 {
 }
 
 /* --- TÀI KHOẢN (USER MANAGEMENT) --- */
-#user {
-    background: #f9f9f9;
-    border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    padding: 24px;
-    margin-bottom: 32px;
-    max-width: 1200px;
-    margin-left: auto;
-    margin-right: auto;
-}
 
 #user h2 {
     text-align: center;
@@ -1030,8 +1020,7 @@ header h1 {
 }
 
 .user-management {
-    margin: 0 auto;
-    max-width: 900px;
+    max-width: 3900px;
     padding: 24px 16px;
     background: #fff;
     border-radius: 12px;
@@ -1495,35 +1484,40 @@ header h1 {
     background: #f9f9f9;
 }
 
-.form-group-1 {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-    padding: 16px;
-    background-color: #f9f9f9;
-    border: 1px solid #ddd;
+.comment-filter-bar {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    background: #f8f9fa;
+    padding: 14px 18px;
     border-radius: 8px;
-    margin-top: 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
-
-.form-group-1 h4 {
-    grid-column: span 2;
-    font-size: 18px;
-    font-weight: bold;
-    margin-bottom: 12px;
-}
-
-.form-group-1 label {
-    font-size: 14px;
+.comment-filter-bar label {
     font-weight: 500;
-    margin-bottom: 4px;
+    font-size: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 150px;
 }
-
-.form-group-1 input {
-    padding: 8px;
-    font-size: 14px;
+.comment-filter-bar select {
+    padding: 6px 12px;
+    border-radius: 6px;
     border: 1px solid #ccc;
-    border-radius: 4px;
-    width: 100%;
-    box-sizing: border-box;
+    background: #fff;
+    font-size: 14px;
+}
+@media (max-width: 700px) {
+    .comment-filter-bar {
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px 6px;
+    }
+    .comment-filter-bar label {
+        min-width: 100px;
+        font-size: 14px;
+    }
 }

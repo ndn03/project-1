@@ -10,22 +10,22 @@
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css" />
 </head>
 <body style="min-height:100vh;display:flex;flex-direction:column;">
-    <header>
+        <header>
         <div class="container">
             <h1 class="logo">Luxury Watches</h1>
             <nav>
                 <ul>
                     <li><a href="/">Trang chủ</a></li>
-                    <li>
-                        <a href="#">Sản phẩm</a>
+                    <li><a href="/product">Sản phẩm</a></li>
+                    <li><a href="/contact">Liên hệ</a></li>
+                    <li class="has-dropdown">
+                        <a href="#">Tài khoản</a>
                         <ul class="dropdown">
-                            <li><a href="#1">Sản phẩm nổi bật</a></li>
-                            <li><a href="#2">Đồng hồ nam</a></li>
-                            <li><a href="#3">Đồng hồ nữ</a></li>
+                            <li><a href="/cart" class="cart-link">Giỏ hàng</a></li>
+                            <li><a href="/account">Tài khoản</a></li>
+                            <li><a href="#" onclick="logout(); return false;">Đăng xuất</a></li>
                         </ul>
                     </li>
-                    <li><a href="#">Liên hệ</a></li>
-                    <li><a href="#" onclick="showLoginPopup(); return false;">Đăng nhập</a></li>
                 </ul>
             </nav>
         </div>

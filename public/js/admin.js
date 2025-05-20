@@ -892,7 +892,8 @@ async function showProductDetail(productId) {
                     }).join('')
                   : ''}
             </div>
-            <div style="margin-top:24px;display:flex;gap:10px;justify-content:flex-end;">
+            <div style="margin-top:24px;display:flex;gap:10px;ju
+            stify-content:flex-end;">
                 <button class="btn-edit" onclick="editProduct(${data.product.product_id}); hideProductDetail();">
                     <i class="fas fa-edit"></i> Sửa
                 </button>
@@ -969,12 +970,21 @@ async function loadUsers(filters = {}) {
                 <td>${u.username}</td>
                 <td>${u.email}</td>
                 <td>${u.full_name || ''}</td>
-                <td>${u.role}</td>
-                <td>${u.isActive == 1 ? 'Hoạt động' : 'Khoá'}</td>
+                <td>
+                    <select class="user-role-select" data-user-id="${u.user_id}">
+                        <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+                        <option value="customer" ${u.role === 'customer' ? 'selected' : ''}>Khách hàng</option>
+                    </select>
+                </td>
+                <td>
+                    <select class="user-status-select" data-user-id="${u.user_id}">
+                        <option value="1" ${u.isActive == 1 ? 'selected' : ''}>Hoạt động</option>
+                        <option value="0" ${u.isActive == 0 ? 'selected' : ''}>Khoá</option>
+                    </select>
+                </td>
                 <td>${u.created_at ? new Date(u.created_at).toLocaleString('vi-VN') : ''}</td>
                 <td>${u.updated_at ? new Date(u.updated_at).toLocaleString('vi-VN') : ''}</td>
                 <td>
-                    <button onclick="editUser(${u.user_id})" class="btn-edit">Sửa</button>
                     <button onclick="deleteUser(${u.user_id})" class="btn-delete">Xóa</button>
                 </td>
             </tr>
@@ -1018,73 +1028,32 @@ window.updateUserStatus = async function(userId, newStatus) {
 
 // Hiển thị modal thêm người dùng
 window.showAddUserModal = function() {
-    let modal = document.getElementById('add-user-modal');
-    if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'add-user-modal';
-        modal.className = 'form-container';
-        modal.innerHTML = `
-            <div class="form-content" style="max-width:400px;">
-                <div class="form-header">
-                    <h3>Thêm Người Dùng</h3>
-                    <button type="button" class="close-form" onclick="hideAddUserModal()"><i class="fas fa-times"></i></button>
-                </div>
-                <form id="add-user-form">
-                    <div class="form-group">
-                        <label>Tên đăng nhập:</label>
-                        <input type="text" name="username" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Email:</label>
-                        <input type="email" name="email" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Mật khẩu:</label>
-                        <input type="password" name="password" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Vai trò:</label>
-                        <select name="role">
-                            <option value="customer">Khách hàng</option>
-                            <option value="admin">Admin</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Trạng thái:</label>
-                        <select name="isActive">
-                            <option value="1">Hoạt động</option>
-                            <option value="0">Khoá</option>
-                        </select>
-                    </div>
-                    <div class="form-actions">
-                        <button type="submit" class="btn-primary">Thêm</button>
-                        <button type="button" class="btn-secondary" onclick="hideAddUserModal()">Hủy</button>
-                    </div>
-                </form>
-            </div>
-        `;
-        document.body.appendChild(modal);
-        document.getElementById('add-user-form').onsubmit = handleAddUserSubmit;
+    const modal = document.getElementById('add-user-modal');
+    if (modal) {
+        document.getElementById('add-user-form').reset();
+        modal.style.display = 'flex';
     }
-    modal.style.display = 'block';
-}
+};
 
 window.hideAddUserModal = function() {
     const modal = document.getElementById('add-user-modal');
     if (modal) modal.style.display = 'none';
-}
+};
 
-async function handleAddUserSubmit(e) {
+document.getElementById('add-user-btn')?.addEventListener('click', window.showAddUserModal);
+
+document.getElementById('add-user-form')?.addEventListener('submit', async function(e) {
     e.preventDefault();
     const form = e.target;
     const data = {
         username: form.username.value.trim(),
+        full_name: form.full_name.value.trim(),
         email: form.email.value.trim(),
         password: form.password.value,
         role: form.role.value,
         isActive: parseInt(form.isActive.value)
     };
-    if (!data.username || !data.email || !data.password) {
+    if (!data.username || !data.full_name || !data.email || !data.password) {
         showNotification('Vui lòng nhập đầy đủ thông tin', 'error');
         return;
     }
@@ -1096,31 +1065,16 @@ async function handleAddUserSubmit(e) {
         });
         if (!res.ok) {
             const err = await res.json();
-            throw new Error(err.error || 'Lỗi khi thêm người dùng');
+            showNotification(err.error || 'Lỗi khi thêm tài khoản', 'error');
+            return;
         }
-        showNotification('Thêm người dùng thành công', 'success');
-        hideAddUserModal();
+        showNotification('Thêm tài khoản thành công', 'success');
+        window.hideAddUserModal();
         loadUsers();
     } catch (err) {
-        showNotification(err.message, 'error');
+        showNotification('Lỗi khi thêm tài khoản', 'error');
     }
-}
-
-// Thêm nút Thêm người dùng
-function renderAddUserButton() {
-    const userContainer = document.querySelector('.user-management');
-    if (!userContainer) return;
-    let btn = document.getElementById('add-user-btn');
-    if (!btn) {
-        btn = document.createElement('button');
-        btn.id = 'add-user-btn';
-        btn.className = 'btn-primary';
-        btn.innerHTML = '<i class="fas fa-user-plus"></i> Thêm người dùng';
-        btn.style.marginBottom = '12px';
-        btn.onclick = showAddUserModal;
-        userContainer.prepend(btn);
-    }
-}
+});
 
 // Xóa người dùng
 window.deleteUser = async function(userId) {
@@ -1290,10 +1244,9 @@ const commentTableBody = document.getElementById('comment-table-body');
 // --- FILTER FOR COMMENT MANAGEMENT ---
 function getCommentFiltersFromUI() {
     return {
-        id: document.getElementById('filter-comment-id')?.value.trim(),
-        date: document.getElementById('filter-comment-date')?.value,
         rating: document.getElementById('filter-comment-rating')?.value,
-        status: document.getElementById('filter-comment-status')?.value
+        status: document.getElementById('filter-comment-status')?.value,
+        sort: document.getElementById('filter-comment-sort')?.value
     };
 }
 
@@ -1301,10 +1254,9 @@ async function loadComments(filters = {}) {
     try {
         // Tạo query string từ filters
         const params = new URLSearchParams();
-        if (filters.id) params.append('id', filters.id);
-        if (filters.date) params.append('date', filters.date);
         if (filters.rating) params.append('rating', filters.rating);
         if (filters.status !== undefined && filters.status !== "") params.append('status', filters.status);
+        if (filters.sort) params.append('sort', filters.sort);
         const response = await fetch('/admin/api/comments' + (params.toString() ? '?' + params.toString() : ''));
         if (!response.ok) {
             throw new Error('Lỗi khi tải danh sách đánh giá');
@@ -1896,8 +1848,18 @@ async function loadUsersWithFilters() {
                 <td>${user.username}</td>
                 <td>${user.email}</td>
                 <td>${user.full_name || ''}</td>
-                <td>${user.role}</td>
-                <td>${user.isActive == 1 ? 'Hoạt động' : 'Khoá'}</td>
+                <td>
+                    <select class="user-role-select" data-user-id="${user.user_id}">
+                        <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                        <option value="customer" ${user.role === 'customer' ? 'selected' : ''}>Khách hàng</option>
+                    </select>
+                </td>
+                <td>
+                    <select class="user-status-select" data-user-id="${user.user_id}">
+                        <option value="1" ${user.isActive == 1 ? 'selected' : ''}>Hoạt động</option>
+                        <option value="0" ${user.isActive == 0 ? 'selected' : ''}>Khoá</option>
+                    </select>
+                </td>
                 <td>${user.created_at ? new Date(user.created_at).toLocaleString('vi-VN') : ''}</td>
                 <td>${user.updated_at ? new Date(user.updated_at).toLocaleString('vi-VN') : ''}</td>
                 <td>
@@ -2157,3 +2119,36 @@ function renderRevenueDetails(totalRevenue, revenueDetails) {
         `;
     }
 }
+
+document.addEventListener('change', function(e) {
+    // Đổi vai trò
+    if (e.target.classList.contains('user-role-select')) {
+        const userId = e.target.dataset.userId;
+        const newRole = e.target.value;
+        fetch(`/admin/api/users/${userId}/role`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ role: newRole })
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert('Cập nhật vai trò thành công!');
+        })
+        .catch(() => alert('Lỗi khi cập nhật vai trò!'));
+    }
+    // Đổi trạng thái
+    if (e.target.classList.contains('user-status-select')) {
+        const userId = e.target.dataset.userId;
+        const newStatus = e.target.value;
+        fetch(`/admin/api/users/${userId}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ isActive: parseInt(newStatus) })
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert('Cập nhật trạng thái thành công!');
+        })
+        .catch(() => alert('Lỗi khi cập nhật trạng thái!'));
+    }
+});

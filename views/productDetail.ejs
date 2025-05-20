@@ -43,15 +43,17 @@
                 <section class="product-image-section">
                     <div class="product-image">
                         <img id="product-image" 
-                        src="<%= product && product.image_url ? (product.image_url.startsWith('http') ? product.image_url : '/' + product.image_url) : '/public/img/default.jpg' %>" 
+                        src="<%= product && product.image_url ? (product.image_url.startsWith('http') ? product.image_url : (product.image_url.startsWith('/img/') ? product.image_url : '/img/' + product.image_url)) : '/img/default.jpg' %>" 
                         alt="<%= product && product.name ? product.name : 'Sản phẩm không xác định' %>"
-                        onerror="this.onerror=null; this.src='/public/img/default.jpg';">
+                        onerror="this.onerror=null; this.src='/img/default.jpg';">
                         <div class="product-thumbnails">
                             <% if (product.images && product.images.length > 0) { %>
-                                <% product.images.forEach(img => { %>
-                                    <img class="thumbnail" src="/<%= img %>" alt="Ảnh phụ" 
-                                         onerror="this.src='/public/img/default.jpg'">
-                                <% }) %>
+                                <% 
+                                    let imagesArr = Array.isArray(product.images) ? product.images : [product.images];
+                                    imagesArr.forEach(function(img) { 
+                                %>
+                                    <img class="thumbnail" src="<%= img.startsWith('/') ? img : '/' + img %>" alt="Ảnh phụ" onerror="this.src='/img/default.jpg'">
+                                <% }); %>
                             <% } else { %>
                                 <p>Không có ảnh phụ.</p>
                             <% } %>
