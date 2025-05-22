@@ -1527,22 +1527,50 @@ async function renderOrderPaymentFilter() {
         paymentSelect.innerHTML = '<option value="all">Tất cả</option>';
         methods.forEach(pm => {
             const opt = document.createElement('option');
-            opt.value = pm.payment_method_id || pm.payment_methods_id || pm.id || pm.name;
+            opt.value = pm.payment_method_id;
+            opt.textContent = pm.name;
+            paymentSelect.appendChild(opt);
+        });
+    } catch (err) {
+        console.error('Lỗi khi load phương thức thanh toán:', err);
+    }
+}
+
+// --- FILTER FOR PRODUCT MANAGEMENT ---
+async function renderProductPaymentFilter() {
+    const paymentSelect = document.getElementById('filter-product-payment');
+    if (!paymentSelect) return;
+    try {
+        const res = await fetch('/admin/api/payment-methods', { credentials: 'include' });
+        if (!res.ok) return;
+        const methods = await res.json();
+        paymentSelect.innerHTML = '<option value="">Tất cả phương thức TT</option>';
+        methods.forEach(pm => {
+            const opt = document.createElement('option');
+            opt.value = pm.payment_method_id;
             opt.textContent = pm.name;
             paymentSelect.appendChild(opt);
         });
     } catch {}
 }
+document.addEventListener('DOMContentLoaded', renderProductPaymentFilter);
 
-function getOrderFiltersFromUI() {
-    const filters = {};
-    const statusFilter = document.getElementById('order-status-filter');
-    const orderSortFilter = document.getElementById('order-sort-filter');
-    const paymentFilter = document.getElementById('order-payment-filter');
-    if (statusFilter && statusFilter.value && statusFilter.value !== 'all') filters.status_id = statusFilter.value;
-    if (paymentFilter && paymentFilter.value && paymentFilter.value !== 'all') filters.payment_method_id = paymentFilter.value;
-    if (orderSortFilter && orderSortFilter.value) filters.sortBy = orderSortFilter.value;
-    return filters;
+const statusProductFilter = document.getElementById('filter-product-status');
+const paymentProductFilter = document.getElementById('filter-product-payment');
+
+if (statusProductFilter) {
+    statusProductFilter.addEventListener('change', (e) => {
+        currentFilters.status = e.target.value;
+        currentPage = 1;
+        loadProducts(currentPage, currentFilters);
+    });
+}
+if (paymentProductFilter) {
+    paymentProductFilter.addEventListener('change', (e) => {
+        currentFilters.payment_method_id = e.target.value;
+        currentPage = 1;
+        loadProducts(currentPage, currentFilters);
+    });
 }
 
 // Initialize page
@@ -1578,32 +1606,37 @@ document.addEventListener('DOMContentLoaded', () => {
     const sortFilter = document.getElementById('filter-sort');
     
     let searchTimeout;
-    searchInput.addEventListener('input', (e) => {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            currentFilters.search = e.target.value;
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                currentFilters.search = e.target.value;
+                currentPage = 1;
+                loadProducts(currentPage, currentFilters);
+            }, 500);
+        });
+    }
+    if (brandFilter) {
+        brandFilter.addEventListener('change', (e) => {
+            currentFilters.brandId = e.target.value;
             currentPage = 1;
             loadProducts(currentPage, currentFilters);
-        }, 500);
-    });
-    
-    brandFilter.addEventListener('change', (e) => {
-        currentFilters.brandId = e.target.value;
-        currentPage = 1;
-        loadProducts(currentPage, currentFilters);
-    });
-    
-    categoryFilter.addEventListener('change', (e) => {
-        currentFilters.categoryId = e.target.value;
-        currentPage = 1;
-        loadProducts(currentPage, currentFilters);
-    });
-    
-    sortFilter.addEventListener('change', (e) => {
-        currentFilters.sortBy = e.target.value;
-        currentPage = 1;
-        loadProducts(currentPage, currentFilters);
-    });
+        });
+    }
+    if (categoryFilter) {
+        categoryFilter.addEventListener('change', (e) => {
+            currentFilters.categoryId = e.target.value;
+            currentPage = 1;
+            loadProducts(currentPage, currentFilters);
+        });
+    }
+    if (sortFilter) {
+        sortFilter.addEventListener('change', (e) => {
+            currentFilters.sortBy = e.target.value;
+            currentPage = 1;
+            loadProducts(currentPage, currentFilters);
+        });
+    }
 
     const detailModal = document.getElementById('product-detail-modal');
     detailModal.addEventListener('click', function(e) {

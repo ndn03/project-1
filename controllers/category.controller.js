@@ -59,11 +59,11 @@ const categoryController = {
             res.json({ message: 'Xóa danh mục thành công' });
         } catch (error) {
             console.error('Error deleting category:', error);
+            if (error.message.includes('Không thể xóa danh mục này vì đang có sản phẩm sử dụng')) {
+                return res.status(400).json({ error: error.message });
+            }
             if (error.message === 'Category not found') {
                 return res.status(404).json({ error: 'Không tìm thấy danh mục' });
-            }
-            if (error.message === 'Category is in use') {
-                return res.status(400).json({ error: 'Không thể xóa danh mục đang được sử dụng' });
             }
             res.status(500).json({ error: 'Lỗi khi xóa danh mục' });
         }
